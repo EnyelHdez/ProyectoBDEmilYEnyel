@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.text.*?>
+
+<Pane prefHeight="700.0" prefWidth="750.0" style="-fx-background-color: #ecf0f1;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.proyecto.Controladores.RegistroCompraController">
+    <children>
+
+        <Rectangle fill="#667eea" height="700.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="127.0" />
+
+        <Rectangle fill="#667eea" height="65.0" layoutX="126.0" stroke="#5568d3" width="624.0" />
+        <Label layoutX="150.0" layoutY="16.0" text="Farmacia Kenia Carmen - Registrar Compra" textFill="WHITE">
+            <font>
+                <Font name="System Bold" size="18.0" />
+            </font>
+        </Label>
+
+        <VBox layoutX="150.0" layoutY="80.0" prefWidth="580.0" spacing="16.0">
+            <children>
+
+                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                    <children>
+                        <Label text="🛒" style="-fx-font-size: 20px;" />
+                        <Label text="Registrar Compra">
+                            <font>
+                                <Font name="System Bold" size="16.0" />
+                            </font>
+                        </Label>
+                    </children>
+                </HBox>
+
+                <GridPane hgap="15.0" prefHeight="145.0" prefWidth="580.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, 2);" vgap="12.0">
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="120.0" prefWidth="120.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="150.0" prefWidth="200.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="80.0" prefWidth="100.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="100.0" prefWidth="130.0" />
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints minHeight="35.0" prefHeight="35.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="35.0" prefHeight="35.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="35.0" prefHeight="35.0" vgrow="SOMETIMES" />
+                    </rowConstraints>
+                    <children>
+
+                        <Label style="-fx-font-weight: bold; -fx-text-fill: #34495e;" text="Proveedor:" />
+                        <ComboBox fx:id="cmbProveedor" prefHeight="27.0" prefWidth="170.0" promptText="Seleccione proveedor" style="-fx-background-radius: 6; -fx-border-color: #bdc3c7; -fx-border-radius: 6;" GridPane.columnIndex="1" />
+
+                        <Label style="-fx-font-weight: bold; -fx-text-fill: #34495e;" text="N° Orden:" GridPane.columnIndex="2" />
+                        <TextField fx:id="txtNumOrden" promptText="ORD-00000" style="-fx-background-radius: 6; -fx-border-color: #bdc3c7; -fx-border-radius: 6;" GridPane.columnIndex="3" />
+
+                        <Label style="-fx-font-weight: bold; -fx-text-fill: #34495e;" text="Fecha Compra:" GridPane.rowIndex="1" />
+                        <DatePicker fx:id="dateFechaCompra" prefHeight="27.0" prefWidth="172.0" promptText="Seleccione fecha" style="-fx-background-radius: 6; -fx-border-color: #bdc3c7; -fx-border-radius: 6;" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+
+                        <Label style="-fx-font-weight: bold; -fx-text-fill: #34495e;" text="Estado:" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                        <ComboBox fx:id="cmbEstado" prefWidth="130.0" promptText="Estado" style="-fx-background-radius: 6; -fx-border-color: #bdc3c7; -fx-border-radius: 6;" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+
+                        <Label style="-fx-font-weight: bold; -fx-text-fill: #34495e;" text="Método Pago:" GridPane.rowIndex="2" />
+                        <ComboBox fx:id="cmbMetodoPago" prefHeight="27.0" prefWidth="171.0" promptText="Forma de pago" style="-fx-background-radius: 6; -fx-border-color: #bdc3c7; -fx-border-radius: 6;" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                    </children>
+                </GridPane>
+
+                <!-- Sección de agregar productos -->
+                <VBox spacing="10" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, 2);">
+                    <children>
+                        <Label style="-fx-font-weight: bold; -fx-text-fill: #34495e; -fx-font-size: 13px;" text="Agregar Productos a la Compra:" />
+
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <children>
+                                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <Label text="Producto:" style="-fx-font-size: 11px; -fx-text-fill: #7f8c8d;" />
+                                        <ComboBox fx:id="cmbProducto" prefWidth="180.0" promptText="Seleccione producto"
+                                                  style="-fx-background-radius: 6; -fx-border-color: #bdc3c7; -fx-border-radius: 6;" />
+                                    </children>
+                                </VBox>
+
+                                <VBox spacing="5">
+                                    <children>
+                                        <Label text="Cantidad:" style="-fx-font-size: 11px; -fx-text-fill: #7f8c8d;" />
+                                        <Spinner fx:id="spnCantidad" editable="true" prefWidth="80.0" />
+                                    </children>
+                                </VBox>
+
+                                <VBox spacing="5">
+                                    <children>
+                                        <Label text="Precio Unit. (RD$):" style="-fx-font-size: 11px; -fx-text-fill: #7f8c8d;" />
+                                        <TextField fx:id="txtPrecioUnit" prefWidth="100.0" promptText="0.00"
+                                                   style="-fx-background-radius: 6; -fx-border-color: #bdc3c7; -fx-border-radius: 6;" />
+                                    </children>
+                                </VBox>
+
+                                <VBox spacing="5">
+                                    <children>
+                                        <Label text="Lote:" style="-fx-font-size: 11px; -fx-text-fill: #7f8c8d;" />
+                                        <TextField fx:id="txtLote" prefWidth="90.0" promptText="LOT-000"
+                                                   style="-fx-background-radius: 6; -fx-border-color: #bdc3c7; -fx-border-radius: 6;" />
+                                    </children>
+                                </VBox>
+
+                                <VBox spacing="5" alignment="BOTTOM_CENTER">
+                                    <children>
+                                        <Button fx:id="btnAgregarProducto" onAction="#agregarProducto" text="+ Agregar" prefWidth="80.0" prefHeight="30.0"
+                                                style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: bold; -fx-cursor: hand;" />
+                                    </children>
+                                </VBox>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+
+                <VBox spacing="8">
+                    <children>
+                        <Label style="-fx-font-weight: bold; -fx-text-fill: #34495e; -fx-font-size: 13px;" text="Productos en la Compra:" />
+                        <TableView fx:id="tblProductos" prefHeight="140.0" prefWidth="580.0" style="-fx-background-radius: 8; -fx-border-color: #bdc3c7; -fx-border-radius: 8;">
+                            <columns>
+                                <TableColumn fx:id="colProducto" prefWidth="200.0" text="Producto" />
+                                <TableColumn fx:id="colCantidad" prefWidth="80.0" text="Cantidad" />
+                                <TableColumn fx:id="colPrecioUnit" prefWidth="100.0" text="Precio Unit." />
+                                <TableColumn fx:id="colLote" prefWidth="80.0" text="Lote" />
+                                <TableColumn fx:id="colSubtotal" prefWidth="100.0" text="Subtotal" />
+                            </columns>
+                        </TableView>
+                        <HBox spacing="10">
+                            <children>
+                                <Button text="❌ Quitar Producto" onAction="#eliminarProducto"
+                                        style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: bold;" />
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+
+                <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-background-color: #f8f9fa; -fx-background-radius: 8; -fx-padding: 12; -fx-border-color: #667eea; -fx-border-width: 2; -fx-border-radius: 8;">
+                    <children>
+                        <Label text="📊" style="-fx-font-size: 16px;" />
+                        <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #34495e;" text="Total Compra:" />
+                        <Label fx:id="lblTotalCompra" style="-fx-font-weight: bold; -fx-font-size: 18px; -fx-text-fill: #27ae60;" text="RD$ 0.00" />
+
+                        <Region HBox.hgrow="ALWAYS" />
+
+                        <Button fx:id="btnCancelar" onAction="#cancelar" mnemonicParsing="false" prefHeight="38.0" prefWidth="110.0" style="-fx-background-color: #e74c3c; -fx-background-radius: 20; -fx-font-size: 13px; -fx-font-weight: bold; -fx-cursor: hand;" text="Cancelar" textFill="WHITE" />
+
+                        <Button fx:id="btnRegistrarCompra" onAction="#registrarCompra" mnemonicParsing="false" prefHeight="38.0" prefWidth="160.0" style="-fx-background-color: #27ae60; -fx-background-radius: 20; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(39, 174, 96, 0.4), 8, 0, 0, 2);" text="Registrar Compra" textFill="WHITE" />
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+
+        <!-- Menú lateral -->
+        <VBox layoutX="12.0" layoutY="80.0" spacing="12.0">
+            <children>
+                <Button prefHeight="40.0" prefWidth="106.0" text="Nueva Compra"
+                        style="-fx-background-color: #667eea; -fx-text-fill: white; -fx-background-radius: 8; -fx-font-weight: bold;" />
+                <Button prefHeight="40.0" prefWidth="106.0" text="Historial"
+                        style="-fx-background-color: white; -fx-text-fill: #667eea; -fx-border-color: #667eea; -fx-border-width: 2; -fx-background-radius: 8;" />
+                <Button prefHeight="40.0" prefWidth="106.0" text="Proveedores"
+                        style="-fx-background-color: white; -fx-text-fill: #667eea; -fx-border-color: #667eea; -fx-border-width: 2; -fx-background-radius: 8;" />
+                <Button prefHeight="40.0" prefWidth="106.0" text="Inventario"
+                        style="-fx-background-color: white; -fx-text-fill: #667eea; -fx-border-color: #667eea; -fx-border-width: 2; -fx-background-radius: 8;" />
+            </children>
+        </VBox>
+    </children>
+</Pane>
