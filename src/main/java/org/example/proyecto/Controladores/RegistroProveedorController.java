@@ -11,18 +11,22 @@ import org.example.proyecto.Modelos.Proveedor;
 
 import java.net.URL;
 import java.sql.*;
-import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class RegistroProveedorController implements Initializable {
 
-    @FXML private TextField txtBuscar, txtNombre, txtRNC, txtTelefono, txtEmail, txtDireccion;
+    @FXML private TextField txtBuscar, txtNombre, txtNombreComercial, txtRNC,
+            txtTelefono, txtEmail, txtContacto, txtDireccion;
+    @FXML private CheckBox chkEstado;
+
     @FXML private TableView<Proveedor> tblProveedores;
     @FXML private TableColumn<Proveedor, Integer> colId;
-    @FXML private TableColumn<Proveedor, String> colNombre, colRnc, colTelefono, colEmail, colDireccion;
-    @FXML private Button btnNuevo, btnGuardar, btnEditar, btnEliminar, btnLimpiar;
+    @FXML private TableColumn<Proveedor, String>  colRazonSocial, colNombreComercial,
+            colRnc, colTelefono, colEmail,
+            colContacto, colDireccion;
+    @FXML private TableColumn<Proveedor, Boolean> colEstado;
 
-    private ObservableList<Proveedor> listaProveedores = FXCollections.observableArrayList();
+    private final ObservableList<Proveedor> listaProveedores = FXCollections.observableArrayList();
     private Connection conexion;
     private int idProveedorSeleccionado = 0;
 
@@ -34,31 +38,44 @@ public class RegistroProveedorController implements Initializable {
         configurarSeleccionTabla();
     }
 
+    // ─────────────────────────────────────────────────────────
+    // CONFIGURACIÓN DE TABLA
+    // ─────────────────────────────────────────────────────────
+
     private void configurarTabla() {
         colId.setCellValueFactory(new PropertyValueFactory<>("idProveedor"));
-        colNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
+        colRazonSocial.setCellValueFactory(new PropertyValueFactory<>("razonSocial"));
+        colNombreComercial.setCellValueFactory(new PropertyValueFactory<>("nombreComercial"));
         colRnc.setCellValueFactory(new PropertyValueFactory<>("rnc"));
         colTelefono.setCellValueFactory(new PropertyValueFactory<>("telefono"));
         colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
+        colContacto.setCellValueFactory(new PropertyValueFactory<>("contacto"));
         colDireccion.setCellValueFactory(new PropertyValueFactory<>("direccion"));
+        colEstado.setCellValueFactory(new PropertyValueFactory<>("estado"));
     }
 
     private void configurarSeleccionTabla() {
-        tblProveedores.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-            if (newSelection != null) {
-                cargarDatosEnFormulario(newSelection);
-            }
-        });
+        tblProveedores.getSelectionModel().selectedItemProperty()
+                .addListener((obs, oldVal, newVal) -> {
+                    if (newVal != null) cargarDatosEnFormulario(newVal);
+                });
     }
 
-    private void cargarDatosEnFormulario(Proveedor proveedor) {
-        idProveedorSeleccionado = proveedor.getIdProveedor();
-        txtNombre.setText(proveedor.getNombre());
-        txtRNC.setText(proveedor.getRnc());
-        txtTelefono.setText(proveedor.getTelefono());
-        txtEmail.setText(proveedor.getEmail());
-        txtDireccion.setText(proveedor.getDireccion());
+    private void cargarDatosEnFormulario(Proveedor p) {
+        idProveedorSeleccionado = p.getIdProveedor();
+        txtNombre.setText(p.getRazonSocial());
+        txtNombreComercial.setText(p.getNombreComercial());
+        txtRNC.setText(p.getRnc());
+        txtTelefono.setText(p.getTelefono());
+        txtEmail.setText(p.getEmail());
+        txtContacto.setText(p.getContacto());
+        txtDireccion.setText(p.getDireccion());
+        chkEstado.setSelected(p.isEstado());
     }
+
+    // ─────────────────────────────────────────────────────────
+    // CRUD
+    // ─────────────────────────────────────────────────────────
 
     @FXML
     private void cargarProveedores() {
@@ -69,110 +86,48 @@ public class RegistroProveedorController implements Initializable {
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-                Proveedor proveedor = new Proveedor();
-                proveedor.setIdProveedor(rs.getInt("id_proveedor"));
-                proveedor.setNombre(rs.getString("nombre"));
-                proveedor.setRnc(rs.getString("rnc"));
-                proveedor.setTelefono(rs.getString("telefono"));
-                proveedor.setEmail(rs.getString("email"));
-                proveedor.setDireccion(rs.getString("direccion"));
-
-                listaProveedores.add(proveedor);
+                Proveedor p = new Proveedor();
+                p.setIdProveedor(rs.getInt("id_proveedor"));
+                p.setRazonSocial(rs.getString("razon_social"));
+                p.setNombreComercial(rs.getString("nombre_comercial"));
+                p.setRnc(rs.getString("rnc"));
+                p.setTelefono(rs.getString("telefono"));
+                p.setEmail(rs.getString("email"));
+                p.setContacto(rs.getString("contacto"));
+                p.setDireccion(rs.getString("direccion"));
+                p.setEstado(rs.getBoolean("estado"));
+                listaProveedores.add(p);
             }
-
             tblProveedores.setItems(listaProveedores);
 
         } catch (SQLException e) {
-            mostrarAlerta("Error", "Error al cargar proveedores: " + e.getMessage(), Alert.AlertType.ERROR);
             e.printStackTrace();
         }
-    }
-
-    @FXML
-    private void buscarProveedor() {
-        String busqueda = txtBuscar.getText().trim();
-
-        if (busqueda.isEmpty()) {
-            mostrarAlerta("Advertencia", "Ingrese un término de búsqueda", Alert.AlertType.WARNING);
-            return;
-        }
-
-        listaProveedores.clear();
-        String sql = "SELECT * FROM tbl_PROVEEDOR WHERE nombre LIKE ? OR rnc LIKE ? OR telefono LIKE ?";
-
-        try (PreparedStatement pstmt = conexion.prepareStatement(sql)) {
-            String parametro = "%" + busqueda + "%";
-            pstmt.setString(1, parametro);
-            pstmt.setString(2, parametro);
-            pstmt.setString(3, parametro);
-
-            ResultSet rs = pstmt.executeQuery();
-
-            while (rs.next()) {
-                Proveedor proveedor = new Proveedor();
-                proveedor.setIdProveedor(rs.getInt("id_proveedor"));
-                proveedor.setNombre(rs.getString("nombre"));
-                proveedor.setRnc(rs.getString("rnc"));
-                proveedor.setTelefono(rs.getString("telefono"));
-                proveedor.setEmail(rs.getString("email"));
-                proveedor.setDireccion(rs.getString("direccion"));
-
-                listaProveedores.add(proveedor);
-            }
-
-            tblProveedores.setItems(listaProveedores);
-
-            if (listaProveedores.isEmpty()) {
-                mostrarAlerta("Información", "No se encontraron resultados", Alert.AlertType.INFORMATION);
-            }
-
-        } catch (SQLException e) {
-            mostrarAlerta("Error", "Error en la búsqueda: " + e.getMessage(), Alert.AlertType.ERROR);
-            e.printStackTrace();
-        }
-    }
-
-    @FXML
-    private void mostrarTodos() {
-        txtBuscar.clear();
-        cargarProveedores();
-    }
-
-    @FXML
-    private void nuevoProveedor() {
-        limpiarCampos();
-        txtNombre.requestFocus();
     }
 
     @FXML
     private void guardarProveedor() {
-        if (!validarCampos()) {
-            return;
-        }
+        if (!validarCampos()) return;
 
-        String sql = "INSERT INTO tbl_PROVEEDOR (nombre, rnc, telefono, email, direccion) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO tbl_PROVEEDOR (rnc, razon_social, nombre_comercial, telefono, email, contacto, direccion, estado) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement pstmt = conexion.prepareStatement(sql)) {
-            pstmt.setString(1, txtNombre.getText().trim());
-            pstmt.setString(2, txtRNC.getText().trim());
-            pstmt.setString(3, txtTelefono.getText().trim());
-            pstmt.setString(4, txtEmail.getText().trim());
-            pstmt.setString(5, txtDireccion.getText().trim());
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            ps.setString(1, txtRNC.getText());
+            ps.setString(2, txtNombre.getText());
+            ps.setString(3, txtNombreComercial.getText());
+            ps.setString(4, txtTelefono.getText());
+            ps.setString(5, txtEmail.getText());
+            ps.setString(6, txtContacto.getText());
+            ps.setString(7, txtDireccion.getText());
+            ps.setBoolean(8, chkEstado.isSelected());
 
-            int filasAfectadas = pstmt.executeUpdate();
-
-            if (filasAfectadas > 0) {
-                mostrarAlerta("Éxito", " Proveedor registrado correctamente", Alert.AlertType.INFORMATION);
-                limpiarCampos();
-                cargarProveedores();
-            }
+            ps.executeUpdate();
+            mostrarAlerta("Éxito", "Proveedor guardado correctamente", Alert.AlertType.INFORMATION);
+            limpiarCampos();
+            cargarProveedores();
 
         } catch (SQLException e) {
-            if (e.getMessage().contains("Duplicate entry")) {
-                mostrarAlerta("Error", " El RNC ya está registrado", Alert.AlertType.ERROR);
-            } else {
-                mostrarAlerta("Error", "Error al guardar: " + e.getMessage(), Alert.AlertType.ERROR);
-            }
             e.printStackTrace();
         }
     }
@@ -184,40 +139,27 @@ public class RegistroProveedorController implements Initializable {
             return;
         }
 
-        if (!validarCampos()) {
-            return;
-        }
+        String sql = "UPDATE tbl_PROVEEDOR SET rnc=?, razon_social=?, nombre_comercial=?, " +
+                "telefono=?, email=?, contacto=?, direccion=?, estado=? WHERE id_proveedor=?";
 
-        Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmacion.setTitle("Confirmar Edición");
-        confirmacion.setHeaderText("¿Editar este proveedor?");
-        confirmacion.setContentText("Los cambios se guardarán en la base de datos");
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            ps.setString(1, txtRNC.getText());
+            ps.setString(2, txtNombre.getText());
+            ps.setString(3, txtNombreComercial.getText());
+            ps.setString(4, txtTelefono.getText());
+            ps.setString(5, txtEmail.getText());
+            ps.setString(6, txtContacto.getText());
+            ps.setString(7, txtDireccion.getText());
+            ps.setBoolean(8, chkEstado.isSelected());
+            ps.setInt(9, idProveedorSeleccionado);
 
-        Optional<ButtonType> resultado = confirmacion.showAndWait();
+            ps.executeUpdate();
+            mostrarAlerta("Actualizado", "Proveedor actualizado correctamente", Alert.AlertType.INFORMATION);
+            limpiarCampos();
+            cargarProveedores();
 
-        if (resultado.isPresent() && resultado.get() == ButtonType.OK) {
-            String sql = "UPDATE tbl_PROVEEDOR SET nombre=?, rnc=?, telefono=?, email=?, direccion=? WHERE id_proveedor=?";
-
-            try (PreparedStatement pstmt = conexion.prepareStatement(sql)) {
-                pstmt.setString(1, txtNombre.getText().trim());
-                pstmt.setString(2, txtRNC.getText().trim());
-                pstmt.setString(3, txtTelefono.getText().trim());
-                pstmt.setString(4, txtEmail.getText().trim());
-                pstmt.setString(5, txtDireccion.getText().trim());
-                pstmt.setInt(6, idProveedorSeleccionado);
-
-                int filasAfectadas = pstmt.executeUpdate();
-
-                if (filasAfectadas > 0) {
-                    mostrarAlerta("Éxito", "✅ Proveedor actualizado", Alert.AlertType.INFORMATION);
-                    limpiarCampos();
-                    cargarProveedores();
-                }
-
-            } catch (SQLException e) {
-                mostrarAlerta("Error", "Error al actualizar: " + e.getMessage(), Alert.AlertType.ERROR);
-                e.printStackTrace();
-            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
@@ -228,77 +170,103 @@ public class RegistroProveedorController implements Initializable {
             return;
         }
 
-        Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmacion.setTitle("Confirmar Eliminación");
-        confirmacion.setHeaderText("¿Eliminar este proveedor?");
-        confirmacion.setContentText("⚠️ Esta acción no se puede deshacer");
+        String sql = "DELETE FROM tbl_PROVEEDOR WHERE id_proveedor=?";
 
-        Optional<ButtonType> resultado = confirmacion.showAndWait();
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            ps.setInt(1, idProveedorSeleccionado);
+            ps.executeUpdate();
+            mostrarAlerta("Eliminado", "Proveedor eliminado correctamente", Alert.AlertType.INFORMATION);
+            limpiarCampos();
+            cargarProveedores();
 
-        if (resultado.isPresent() && resultado.get() == ButtonType.OK) {
-            String sql = "DELETE FROM tbl_PROVEEDOR WHERE id_proveedor=?";
-
-            try (PreparedStatement pstmt = conexion.prepareStatement(sql)) {
-                pstmt.setInt(1, idProveedorSeleccionado);
-
-                int filasAfectadas = pstmt.executeUpdate();
-
-                if (filasAfectadas > 0) {
-                    mostrarAlerta("Éxito", "✅ Proveedor eliminado", Alert.AlertType.INFORMATION);
-                    limpiarCampos();
-                    cargarProveedores();
-                }
-
-            } catch (SQLException e) {
-                if (e.getMessage().contains("foreign key constraint")) {
-                    mostrarAlerta("Error", "❌ No se puede eliminar: Tiene productos o compras asociadas", Alert.AlertType.ERROR);
-                } else {
-                    mostrarAlerta("Error", "Error al eliminar: " + e.getMessage(), Alert.AlertType.ERROR);
-                }
-                e.printStackTrace();
-            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
+
+    // ─────────────────────────────────────────────────────────
+    // BÚSQUEDA
+    // ─────────────────────────────────────────────────────────
+
+    @FXML
+    private void buscarProveedor() {
+        String filtro = txtBuscar.getText().trim();
+        if (filtro.isEmpty()) { cargarProveedores(); return; }
+
+        listaProveedores.clear();
+        String sql = "SELECT * FROM tbl_PROVEEDOR " +
+                "WHERE razon_social LIKE ? OR rnc LIKE ? OR telefono LIKE ? OR direccion LIKE ? " +
+                "ORDER BY id_proveedor DESC";
+
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            String like = "%" + filtro + "%";
+            ps.setString(1, like);
+            ps.setString(2, like);
+            ps.setString(3, like);
+            ps.setString(4, like);
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Proveedor p = new Proveedor();
+                p.setIdProveedor(rs.getInt("id_proveedor"));
+                p.setRazonSocial(rs.getString("razon_social"));
+                p.setNombreComercial(rs.getString("nombre_comercial"));
+                p.setRnc(rs.getString("rnc"));
+                p.setTelefono(rs.getString("telefono"));
+                p.setEmail(rs.getString("email"));
+                p.setContacto(rs.getString("contacto"));
+                p.setDireccion(rs.getString("direccion"));
+                p.setEstado(rs.getBoolean("estado"));
+                listaProveedores.add(p);
+            }
+            tblProveedores.setItems(listaProveedores);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void mostrarTodos() {
+        txtBuscar.clear();
+        cargarProveedores();
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // UTILIDADES
+    // ─────────────────────────────────────────────────────────
 
     @FXML
     private void limpiarCampos() {
         idProveedorSeleccionado = 0;
         txtNombre.clear();
+        txtNombreComercial.clear();
         txtRNC.clear();
         txtTelefono.clear();
         txtEmail.clear();
+        txtContacto.clear();
         txtDireccion.clear();
         txtBuscar.clear();
+        chkEstado.setSelected(false);
         tblProveedores.getSelectionModel().clearSelection();
     }
 
     private boolean validarCampos() {
-        if (txtNombre.getText().trim().isEmpty()) {
-            mostrarAlerta("Advertencia", "El nombre es obligatorio", Alert.AlertType.WARNING);
-            txtNombre.requestFocus();
+        if (txtNombre.getText().isBlank()) {
+            mostrarAlerta("Validación", "La razón social es obligatoria", Alert.AlertType.WARNING);
             return false;
         }
-
-        if (txtRNC.getText().trim().isEmpty()) {
-            mostrarAlerta("Advertencia", "El RNC/Cédula es obligatorio", Alert.AlertType.WARNING);
-            txtRNC.requestFocus();
+        if (txtRNC.getText().isBlank()) {
+            mostrarAlerta("Validación", "El RNC es obligatorio", Alert.AlertType.WARNING);
             return false;
         }
-
-        if (txtTelefono.getText().trim().isEmpty()) {
-            mostrarAlerta("Advertencia", "El teléfono es obligatorio", Alert.AlertType.WARNING);
-            txtTelefono.requestFocus();
-            return false;
-        }
-
         return true;
     }
 
     private void mostrarAlerta(String titulo, String mensaje, Alert.AlertType tipo) {
-        Alert alerta = new Alert(tipo);
-        alerta.setTitle(titulo);
-        alerta.setHeaderText(null);
-        alerta.setContentText(mensaje);
-        alerta.showAndWait();
+        Alert a = new Alert(tipo);
+        a.setTitle(titulo);
+        a.setContentText(mensaje);
+        a.showAndWait();
     }
 }

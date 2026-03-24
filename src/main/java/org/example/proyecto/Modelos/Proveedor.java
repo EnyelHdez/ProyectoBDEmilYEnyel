@@ -1,45 +1,100 @@
 package org.example.proyecto.Modelos;
 
 public class Proveedor {
-    private int idProveedor;
-    private String nombre;
-    private String rnc;
-    private String telefono;
-    private String email;
-    private String direccion;
+        private int idProveedor;
+        private String direccion;
+        private String rnc;
+        private String razonSocial;
+        private String nombreComercial;
+        private String telefono;
+        private String email;
+        private String contacto;
+        private boolean estado;
 
-    public Proveedor() {}
+    public String getDireccion() {
+        return direccion;
+    }
 
-    public Proveedor(int idProveedor, String nombre, String rnc, String telefono, String email, String direccion) {
-        this.idProveedor = idProveedor;
-        this.nombre = nombre;
-        this.rnc = rnc;
-        this.telefono = telefono;
-        this.email = email;
+    public void setDireccion(String direccion) {
         this.direccion = direccion;
     }
 
-    // Getters y Setters
-    public int getIdProveedor() { return idProveedor; }
-    public void setIdProveedor(int idProveedor) { this.idProveedor = idProveedor; }
+    public Proveedor() {
+        this.idProveedor = idProveedor;
+        this.direccion = direccion;
+        this.rnc = rnc;
+        this.razonSocial = razonSocial;
+        this.nombreComercial = nombreComercial;
+        this.telefono = telefono;
+        this.email = email;
+        this.contacto = contacto;
+        this.estado = estado;
+    }
 
-    public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
+    public int getIdProveedor() {
+        return idProveedor;
+    }
 
-    public String getRnc() { return rnc; }
-    public void setRnc(String rnc) { this.rnc = rnc; }
+    public void setIdProveedor(int idProveedor) {
+        this.idProveedor = idProveedor;
+    }
 
-    public String getTelefono() { return telefono; }
-    public void setTelefono(String telefono) { this.telefono = telefono; }
+    public String getRnc() {
+        return rnc;
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public void setRnc(String rnc) {
+        this.rnc = rnc;
+    }
 
-    public String getDireccion() { return direccion; }
-    public void setDireccion(String direccion) { this.direccion = direccion; }
+    public String getRazonSocial() {
+        return razonSocial;
+    }
 
-    @Override
-    public String toString() {
-        return nombre;
+    public void setRazonSocial(String razonSocial) {
+        this.razonSocial = razonSocial;
+    }
+
+    public String getNombreComercial() {
+        return nombreComercial;
+    }
+
+    public void setNombreComercial(String nombreComercial) {
+        this.nombreComercial = nombreComercial;
+    }
+
+    public String getTelefono() {
+        return telefono;
+    }
+
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getContacto() {
+        return contacto;
+    }
+
+    public void setContacto(String contacto) {
+        this.contacto = contacto;
+    }
+
+    public boolean isEstado() {
+        return estado;
+    }
+
+    public void setEstado(boolean estado) {
+        this.estado = estado;
+    }
+
+    public void setNombre(String nombre) {
     }
 }

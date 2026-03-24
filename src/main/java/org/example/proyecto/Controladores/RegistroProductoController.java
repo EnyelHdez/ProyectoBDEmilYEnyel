@@ -7,6 +7,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import org.example.proyecto.Conexion.ConexionBD;
+import org.example.proyecto.Modelos.Categoria;
 import org.example.proyecto.Modelos.Producto;
 import org.example.proyecto.Modelos.Proveedor;
 
@@ -17,89 +18,151 @@ import java.util.ResourceBundle;
 
 public class RegistroProductoController implements Initializable {
 
-    @FXML private TextField txtBuscar, txtNombre, txtCodigo, txtPrecioCompra, txtPrecioVenta;
-    @FXML private ComboBox<Proveedor> cbProveedor;
-    @FXML private Spinner<Integer> spnStock;
-    @FXML private TableView<Producto> tblProductos;
-    @FXML private TableColumn<Producto, Integer> colId;
-    @FXML private TableColumn<Producto, String> colNombre, colCodigo, colProveedor;
-    @FXML private TableColumn<Producto, Double> colPrecioCompra, colPrecioVenta;
-    @FXML private TableColumn<Producto, Integer> colStock;
-    @FXML private Button btnNuevo, btnGuardar, btnEditar, btnEliminar, btnLimpiar;
+    // ── Campos de búsqueda ───────────────────────────────────
+    @FXML private TextField txtBuscar;
 
-    private ObservableList<Producto> listaProductos = FXCollections.observableArrayList();
-    private ObservableList<Proveedor> listaProveedores = FXCollections.observableArrayList();
+    // ── Campos del formulario ────────────────────────────────
+    @FXML private TextField  txtNombre, txtCodigoBarra, txtDescripcion;
+    @FXML private TextField  txtPrecioCosto, txtPrecioVenta, txtPorcentajeItbis;
+    @FXML private ComboBox<Categoria> cbCategoria;
+    @FXML private ComboBox<Proveedor> cbProveedor;
+    @FXML private Spinner<Integer>    spnStockActual, spnStockMinimo;
+    @FXML private CheckBox   chkAplicaItbis, chkRequiereReceta, chkEstado;
+
+    // ── Tabla ────────────────────────────────────────────────
+    @FXML private TableView<Producto>              tblProductos;
+    @FXML private TableColumn<Producto, Integer>   colId, colStockActual, colStockMinimo;
+    @FXML private TableColumn<Producto, String>    colNombre, colCodigoBarra, colCategoria,
+            colProveedor;
+    @FXML private TableColumn<Producto, Double>    colPrecioCosto, colPrecioVenta;
+    @FXML private TableColumn<Producto, Boolean>   colRequiereReceta, colAplicaItbis, colEstado;
+
+    // ── Estado interno ───────────────────────────────────────
+    private final ObservableList<Producto>  listaProductos   = FXCollections.observableArrayList();
+    private final ObservableList<Proveedor> listaProveedores = FXCollections.observableArrayList();
+    private final ObservableList<Categoria> listaCategorias  = FXCollections.observableArrayList();
     private Connection conexion;
     private int idProductoSeleccionado = 0;
+
+    // ─────────────────────────────────────────────────────────
+    // INICIALIZACIÓN
+    // ─────────────────────────────────────────────────────────
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         conexion = new ConexionBD().EstablecerConexion();
-        configurarSpinner();
+        configurarSpinners();
         configurarTabla();
+        cargarCategorias();
         cargarProveedores();
         cargarProductos();
         configurarSeleccionTabla();
     }
 
-    private void configurarSpinner() {
-        SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 10000, 0);
-        spnStock.setValueFactory(valueFactory);
-        spnStock.setEditable(true);
+    private void configurarSpinners() {
+        spnStockActual.setValueFactory(
+                new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 100000, 0));
+        spnStockActual.setEditable(true);
+
+        spnStockMinimo.setValueFactory(
+                new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 100000, 0));
+        spnStockMinimo.setEditable(true);
     }
 
     private void configurarTabla() {
         colId.setCellValueFactory(new PropertyValueFactory<>("idProducto"));
         colNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
-        colCodigo.setCellValueFactory(new PropertyValueFactory<>("codigoBarras"));
-        colPrecioCompra.setCellValueFactory(new PropertyValueFactory<>("precioCompra"));
+        colCodigoBarra.setCellValueFactory(new PropertyValueFactory<>("codigoBarra"));
+        colCategoria.setCellValueFactory(new PropertyValueFactory<>("nombreCategoria"));
+        colPrecioCosto.setCellValueFactory(new PropertyValueFactory<>("precioCosto"));
         colPrecioVenta.setCellValueFactory(new PropertyValueFactory<>("precioVenta"));
-        colStock.setCellValueFactory(new PropertyValueFactory<>("stock"));
+        colStockActual.setCellValueFactory(new PropertyValueFactory<>("stockActual"));
+        colStockMinimo.setCellValueFactory(new PropertyValueFactory<>("stockMinimo"));
         colProveedor.setCellValueFactory(new PropertyValueFactory<>("nombreProveedor"));
+        colRequiereReceta.setCellValueFactory(new PropertyValueFactory<>("requiereReceta"));
+        colAplicaItbis.setCellValueFactory(new PropertyValueFactory<>("aplicaItbis"));
+        colEstado.setCellValueFactory(new PropertyValueFactory<>("estado"));
     }
 
     private void configurarSeleccionTabla() {
-        tblProductos.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-            if (newSelection != null) {
-                cargarDatosEnFormulario(newSelection);
-            }
-        });
+        tblProductos.getSelectionModel().selectedItemProperty()
+                .addListener((obs, oldVal, newVal) -> {
+                    if (newVal != null) cargarDatosEnFormulario(newVal);
+                });
     }
 
-    private void cargarDatosEnFormulario(Producto producto) {
-        idProductoSeleccionado = producto.getIdProducto();
-        txtNombre.setText(producto.getNombre());
-        txtCodigo.setText(producto.getCodigoBarras());
-        txtPrecioCompra.setText(String.valueOf(producto.getPrecioCompra()));
-        txtPrecioVenta.setText(String.valueOf(producto.getPrecioVenta()));
-        spnStock.getValueFactory().setValue(producto.getStock());
+    private void cargarDatosEnFormulario(Producto p) {
+        idProductoSeleccionado = p.getIdProducto();
+        txtNombre.setText(p.getNombre());
+        txtCodigoBarra.setText(p.getCodigoBarra());
+        txtDescripcion.setText(p.getDescripcion() != null ? p.getDescripcion() : "");
+        txtPrecioCosto.setText(String.valueOf(p.getPrecioCosto()));
+        txtPrecioVenta.setText(String.valueOf(p.getPrecioVenta()));
+        txtPorcentajeItbis.setText(String.valueOf(p.getPorcentajeItbis()));
+        spnStockActual.getValueFactory().setValue(p.getStockActual());
+        spnStockMinimo.getValueFactory().setValue(p.getStockMinimo());
+        chkAplicaItbis.setSelected(p.isAplicaItbis());
+        chkRequiereReceta.setSelected(p.isRequiereReceta());
+        chkEstado.setSelected(p.isEstado());
 
-        // Seleccionar el proveedor en el ComboBox
-        for (Proveedor p : cbProveedor.getItems()) {
-            if (p.getIdProveedor() == producto.getIdProveedor()) {
-                cbProveedor.setValue(p);
-                break;
-            }
+        // Seleccionar categoría en el ComboBox
+        listaCategorias.stream()
+                .filter(c -> c.getIdCategoria() == p.getIdCategoria())
+                .findFirst()
+                .ifPresent(cbCategoria::setValue);
+
+        // Seleccionar proveedor en el ComboBox (puede ser null)
+        if (p.getIdProveedor() != null) {
+            listaProveedores.stream()
+                    .filter(prov -> prov.getIdProveedor() == p.getIdProveedor())
+                    .findFirst()
+                    .ifPresent(cbProveedor::setValue);
+        } else {
+            cbProveedor.setValue(null);
         }
     }
 
-    private void cargarProveedores() {
-        listaProveedores.clear();
-        String sql = "SELECT * FROM tbl_PROVEEDOR ORDER BY nombre";
+    // ─────────────────────────────────────────────────────────
+    // CARGA DE DATOS
+    // ─────────────────────────────────────────────────────────
+
+    private void cargarCategorias() {
+        listaCategorias.clear();
+        String sql = "SELECT id_categoria, nombre FROM tbl_CATEGORIA_PRODUCTO WHERE estado = 1 ORDER BY nombre";
 
         try (Statement stmt = conexion.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-                Proveedor proveedor = new Proveedor();
-                proveedor.setIdProveedor(rs.getInt("id_proveedor"));
-                proveedor.setNombre(rs.getString("nombre"));
-                proveedor.setRnc(rs.getString("rnc"));
-                proveedor.setTelefono(rs.getString("telefono"));
-
-                listaProveedores.add(proveedor);
+                Categoria c = new Categoria();
+                c.setIdCategoria(rs.getInt("id_categoria"));
+                c.setNombre(rs.getString("nombre"));
+                listaCategorias.add(c);
             }
+            cbCategoria.setItems(listaCategorias);
 
+        } catch (SQLException e) {
+            mostrarAlerta("Error", "Error al cargar categorías: " + e.getMessage(), Alert.AlertType.ERROR);
+            e.printStackTrace();
+        }
+    }
+
+    private void cargarProveedores() {
+        listaProveedores.clear();
+        String sql = "SELECT id_proveedor, razon_social, rnc, telefono " +
+                "FROM tbl_PROVEEDOR WHERE estado = 1 ORDER BY razon_social";
+
+        try (Statement stmt = conexion.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                Proveedor p = new Proveedor();
+                p.setIdProveedor(rs.getInt("id_proveedor"));
+                p.setRazonSocial(rs.getString("razon_social"));
+                p.setRnc(rs.getString("rnc"));
+                p.setTelefono(rs.getString("telefono"));
+                listaProveedores.add(p);
+            }
             cbProveedor.setItems(listaProveedores);
 
         } catch (SQLException e) {
@@ -111,28 +174,26 @@ public class RegistroProductoController implements Initializable {
     @FXML
     private void cargarProductos() {
         listaProductos.clear();
-        String sql = "SELECT p.*, prov.nombre AS nombre_proveedor " +
+
+        String sql = "SELECT p.id_producto, p.id_categoria, p.id_proveedor, " +
+                "       p.codigo_barra, p.nombre, p.descripcion, " +
+                "       p.precio_costo, p.precio_venta, " +
+                "       p.stock_actual, p.stock_minimo, " +
+                "       p.requiere_receta, p.aplica_itbis, " +
+                "       p.porcentaje_itbis, p.estado, " +
+                "       cat.nombre AS nombre_categoria, " +
+                "       prov.razon_social AS nombre_proveedor " +
                 "FROM tbl_PRODUCTO p " +
-                "LEFT JOIN tbl_PROVEEDOR prov ON p.id_proveedor = prov.id_proveedor " +
+                "LEFT JOIN tbl_CATEGORIA_PRODUCTO cat  ON p.id_categoria = cat.id_categoria " +
+                "LEFT JOIN tbl_PROVEEDOR  prov ON p.id_proveedor = prov.id_proveedor " +
                 "ORDER BY p.id_producto DESC";
 
         try (Statement stmt = conexion.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-                Producto producto = new Producto();
-                producto.setIdProducto(rs.getInt("id_producto"));
-                producto.setNombre(rs.getString("nombre"));
-                producto.setCodigoBarras(rs.getString("codigo_barras"));
-                producto.setPrecioCompra(rs.getDouble("precio_compra"));
-                producto.setPrecioVenta(rs.getDouble("precio_venta"));
-                producto.setStock(rs.getInt("stock"));
-                producto.setIdProveedor(rs.getInt("id_proveedor"));
-                producto.setNombreProveedor(rs.getString("nombre_proveedor"));
-
-                listaProductos.add(producto);
+                listaProductos.add(mapearProducto(rs));
             }
-
             tblProductos.setItems(listaProductos);
 
         } catch (SQLException e) {
@@ -141,47 +202,68 @@ public class RegistroProductoController implements Initializable {
         }
     }
 
+    /** Mapea un ResultSet a un objeto Producto (reutilizable en búsqueda). */
+    private Producto mapearProducto(ResultSet rs) throws SQLException {
+        Producto p = new Producto();
+        p.setIdProducto(rs.getInt("id_producto"));
+        p.setIdCategoria(rs.getInt("id_categoria"));
+
+        int idProv = rs.getInt("id_proveedor");
+        p.setIdProveedor(rs.wasNull() ? null : idProv);
+
+        p.setCodigoBarra(rs.getString("codigo_barra"));
+        p.setNombre(rs.getString("nombre"));
+        p.setDescripcion(rs.getString("descripcion"));
+        p.setPrecioCosto(rs.getDouble("precio_costo"));
+        p.setPrecioVenta(rs.getDouble("precio_venta"));
+        p.setStockActual(rs.getInt("stock_actual"));
+        p.setStockMinimo(rs.getInt("stock_minimo"));
+        p.setRequiereReceta(rs.getBoolean("requiere_receta"));
+        p.setAplicaItbis(rs.getBoolean("aplica_itbis"));
+        p.setPorcentajeItbis(rs.getDouble("porcentaje_itbis"));
+        p.setEstado(rs.getBoolean("estado"));
+        p.setNombreCategoria(rs.getString("nombre_categoria"));
+        p.setNombreProveedor(rs.getString("nombre_proveedor"));
+        return p;
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // BÚSQUEDA
+    // ─────────────────────────────────────────────────────────
+
     @FXML
     private void buscarProducto() {
-        String busqueda = txtBuscar.getText().trim();
-
-        if (busqueda.isEmpty()) {
-            mostrarAlerta("Advertencia", "Ingrese un término de búsqueda", Alert.AlertType.WARNING);
-            return;
-        }
+        String filtro = txtBuscar.getText().trim();
+        if (filtro.isEmpty()) { cargarProductos(); return; }
 
         listaProductos.clear();
-        String sql = "SELECT p.*, prov.nombre AS nombre_proveedor " +
+
+        String sql = "SELECT p.id_producto, p.id_categoria, p.id_proveedor, " +
+                "       p.codigo_barra, p.nombre, p.descripcion, " +
+                "       p.precio_costo, p.precio_venta, " +
+                "       p.stock_actual, p.stock_minimo, " +
+                "       p.requiere_receta, p.aplica_itbis, " +
+                "       p.porcentaje_itbis, p.estado, " +
+                "       cat.nombre AS nombre_categoria, " +
+                "       prov.razon_social AS nombre_proveedor " +
                 "FROM tbl_PRODUCTO p " +
-                "LEFT JOIN tbl_PROVEEDOR prov ON p.id_proveedor = prov.id_proveedor " +
-                "WHERE p.nombre LIKE ? OR p.codigo_barras LIKE ?";
+                "LEFT JOIN tbl_CATEGORIA_PRODUCTO cat  ON p.id_categoria = cat.id_categoria " +
+                "LEFT JOIN tbl_PROVEEDOR  prov ON p.id_proveedor = prov.id_proveedor " +
+                "WHERE p.nombre LIKE ? OR p.codigo_barra LIKE ? " +
+                "ORDER BY p.id_producto DESC";
 
-        try (PreparedStatement pstmt = conexion.prepareStatement(sql)) {
-            String parametro = "%" + busqueda + "%";
-            pstmt.setString(1, parametro);
-            pstmt.setString(2, parametro);
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            String like = "%" + filtro + "%";
+            ps.setString(1, like);
+            ps.setString(2, like);
 
-            ResultSet rs = pstmt.executeQuery();
-
-            while (rs.next()) {
-                Producto producto = new Producto();
-                producto.setIdProducto(rs.getInt("id_producto"));
-                producto.setNombre(rs.getString("nombre"));
-                producto.setCodigoBarras(rs.getString("codigo_barras"));
-                producto.setPrecioCompra(rs.getDouble("precio_compra"));
-                producto.setPrecioVenta(rs.getDouble("precio_venta"));
-                producto.setStock(rs.getInt("stock"));
-                producto.setIdProveedor(rs.getInt("id_proveedor"));
-                producto.setNombreProveedor(rs.getString("nombre_proveedor"));
-
-                listaProductos.add(producto);
-            }
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) listaProductos.add(mapearProducto(rs));
 
             tblProductos.setItems(listaProductos);
 
-            if (listaProductos.isEmpty()) {
+            if (listaProductos.isEmpty())
                 mostrarAlerta("Información", "No se encontraron resultados", Alert.AlertType.INFORMATION);
-            }
 
         } catch (SQLException e) {
             mostrarAlerta("Error", "Error en la búsqueda: " + e.getMessage(), Alert.AlertType.ERROR);
@@ -195,6 +277,10 @@ public class RegistroProductoController implements Initializable {
         cargarProductos();
     }
 
+    // ─────────────────────────────────────────────────────────
+    // CRUD
+    // ─────────────────────────────────────────────────────────
+
     @FXML
     private void nuevoProducto() {
         limpiarCampos();
@@ -203,38 +289,24 @@ public class RegistroProductoController implements Initializable {
 
     @FXML
     private void guardarProducto() {
-        if (!validarCampos()) {
-            return;
-        }
+        if (!validarCampos()) return;
 
-        String sql = "INSERT INTO tbl_PRODUCTO (nombre, codigo_barras, precio_compra, precio_venta, stock, id_proveedor) " +
-                "VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO tbl_PRODUCTO " +
+                "(id_categoria, id_proveedor, codigo_barra, nombre, descripcion, " +
+                " precio_costo, precio_venta, stock_actual, stock_minimo, " +
+                " requiere_receta, aplica_itbis, porcentaje_itbis, estado) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement pstmt = conexion.prepareStatement(sql)) {
-            pstmt.setString(1, txtNombre.getText().trim());
-            pstmt.setString(2, txtCodigo.getText().trim());
-            pstmt.setDouble(3, Double.parseDouble(txtPrecioCompra.getText().trim()));
-            pstmt.setDouble(4, Double.parseDouble(txtPrecioVenta.getText().trim()));
-            pstmt.setInt(5, spnStock.getValue());
-            pstmt.setInt(6, cbProveedor.getValue().getIdProveedor());
-
-            int filasAfectadas = pstmt.executeUpdate();
-
-            if (filasAfectadas > 0) {
-                mostrarAlerta("Éxito", " Producto registrado correctamente", Alert.AlertType.INFORMATION);
-                limpiarCampos();
-                cargarProductos();
-            }
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            setearParametros(ps, false);
+            ps.executeUpdate();
+            mostrarAlerta("Éxito", "Producto registrado correctamente", Alert.AlertType.INFORMATION);
+            limpiarCampos();
+            cargarProductos();
 
         } catch (SQLException e) {
-            if (e.getMessage().contains("Duplicate entry")) {
-                mostrarAlerta("Error", " El código de barras ya está registrado", Alert.AlertType.ERROR);
-            } else {
-                mostrarAlerta("Error", "Error al guardar: " + e.getMessage(), Alert.AlertType.ERROR);
-            }
+            mostrarAlerta("Error", "Error al guardar: " + e.getMessage(), Alert.AlertType.ERROR);
             e.printStackTrace();
-        } catch (NumberFormatException e) {
-            mostrarAlerta("Error", " Los precios deben ser números válidos", Alert.AlertType.ERROR);
         }
     }
 
@@ -244,45 +316,31 @@ public class RegistroProductoController implements Initializable {
             mostrarAlerta("Advertencia", "Seleccione un producto de la tabla", Alert.AlertType.WARNING);
             return;
         }
+        if (!validarCampos()) return;
 
-        if (!validarCampos()) {
-            return;
-        }
+        Alert conf = new Alert(Alert.AlertType.CONFIRMATION);
+        conf.setTitle("Confirmar edición");
+        conf.setContentText("¿Desea guardar los cambios en este producto?");
+        Optional<ButtonType> r = conf.showAndWait();
+        if (r.isEmpty() || r.get() != ButtonType.OK) return;
 
-        Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmacion.setTitle("Confirmar Edición");
-        confirmacion.setHeaderText("¿Editar este producto?");
-        confirmacion.setContentText("Los cambios se guardarán en la base de datos");
+        String sql = "UPDATE tbl_PRODUCTO SET " +
+                "id_categoria=?, id_proveedor=?, codigo_barra=?, nombre=?, descripcion=?, " +
+                "precio_costo=?, precio_venta=?, stock_actual=?, stock_minimo=?, " +
+                "requiere_receta=?, aplica_itbis=?, porcentaje_itbis=?, estado=? " +
+                "WHERE id_producto=?";
 
-        Optional<ButtonType> resultado = confirmacion.showAndWait();
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            setearParametros(ps, true);
+            ps.setInt(14, idProductoSeleccionado);
+            ps.executeUpdate();
+            mostrarAlerta("Éxito", "Producto actualizado correctamente", Alert.AlertType.INFORMATION);
+            limpiarCampos();
+            cargarProductos();
 
-        if (resultado.isPresent() && resultado.get() == ButtonType.OK) {
-            String sql = "UPDATE tbl_PRODUCTO SET nombre=?, codigo_barras=?, precio_compra=?, precio_venta=?, stock=?, id_proveedor=? " +
-                    "WHERE id_producto=?";
-
-            try (PreparedStatement pstmt = conexion.prepareStatement(sql)) {
-                pstmt.setString(1, txtNombre.getText().trim());
-                pstmt.setString(2, txtCodigo.getText().trim());
-                pstmt.setDouble(3, Double.parseDouble(txtPrecioCompra.getText().trim()));
-                pstmt.setDouble(4, Double.parseDouble(txtPrecioVenta.getText().trim()));
-                pstmt.setInt(5, spnStock.getValue());
-                pstmt.setInt(6, cbProveedor.getValue().getIdProveedor());
-                pstmt.setInt(7, idProductoSeleccionado);
-
-                int filasAfectadas = pstmt.executeUpdate();
-
-                if (filasAfectadas > 0) {
-                    mostrarAlerta("Éxito", " Producto actualizado", Alert.AlertType.INFORMATION);
-                    limpiarCampos();
-                    cargarProductos();
-                }
-
-            } catch (SQLException e) {
-                mostrarAlerta("Error", "Error al actualizar: " + e.getMessage(), Alert.AlertType.ERROR);
-                e.printStackTrace();
-            } catch (NumberFormatException e) {
-                mostrarAlerta("Error", " Los precios deben ser números válidos", Alert.AlertType.ERROR);
-            }
+        } catch (SQLException e) {
+            mostrarAlerta("Error", "Error al actualizar: " + e.getMessage(), Alert.AlertType.ERROR);
+            e.printStackTrace();
         }
     }
 
@@ -293,46 +351,75 @@ public class RegistroProductoController implements Initializable {
             return;
         }
 
-        Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmacion.setTitle("Confirmar Eliminación");
-        confirmacion.setHeaderText("¿Eliminar este producto?");
-        confirmacion.setContentText(" Esta acción no se puede deshacer");
+        Alert conf = new Alert(Alert.AlertType.CONFIRMATION);
+        conf.setTitle("Confirmar eliminación");
+        conf.setContentText("¿Está seguro que desea eliminar este producto? Esta acción no se puede deshacer.");
+        Optional<ButtonType> r = conf.showAndWait();
+        if (r.isEmpty() || r.get() != ButtonType.OK) return;
 
-        Optional<ButtonType> resultado = confirmacion.showAndWait();
+        try (PreparedStatement ps = conexion.prepareStatement(
+                "DELETE FROM tbl_PRODUCTO WHERE id_producto=?")) {
+            ps.setInt(1, idProductoSeleccionado);
+            ps.executeUpdate();
+            mostrarAlerta("Éxito", "Producto eliminado correctamente", Alert.AlertType.INFORMATION);
+            limpiarCampos();
+            cargarProductos();
 
-        if (resultado.isPresent() && resultado.get() == ButtonType.OK) {
-            String sql = "DELETE FROM tbl_PRODUCTO WHERE id_producto=?";
-
-            try (PreparedStatement pstmt = conexion.prepareStatement(sql)) {
-                pstmt.setInt(1, idProductoSeleccionado);
-
-                int filasAfectadas = pstmt.executeUpdate();
-
-                if (filasAfectadas > 0) {
-                    mostrarAlerta("Éxito", " Producto eliminado", Alert.AlertType.INFORMATION);
-                    limpiarCampos();
-                    cargarProductos();
-                }
-
-            } catch (SQLException e) {
-                if (e.getMessage().contains("foreign key constraint")) {
-                    mostrarAlerta("Error", " No se puede eliminar: Tiene compras asociadas", Alert.AlertType.ERROR);
-                } else {
-                    mostrarAlerta("Error", "Error al eliminar: " + e.getMessage(), Alert.AlertType.ERROR);
-                }
-                e.printStackTrace();
-            }
+        } catch (SQLException e) {
+            mostrarAlerta("Error", "No se puede eliminar: el producto tiene registros asociados", Alert.AlertType.ERROR);
+            e.printStackTrace();
         }
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // UTILIDADES
+    // ─────────────────────────────────────────────────────────
+
+    /**
+     * Setea los 13 parámetros compartidos entre INSERT y UPDATE.
+     * isUpdate=true añade el índice 14 (id_producto) desde el caller.
+     */
+    private void setearParametros(PreparedStatement ps, boolean isUpdate) throws SQLException {
+        ps.setInt(1, cbCategoria.getValue().getIdCategoria());
+
+        Proveedor prov = cbProveedor.getValue();
+        if (prov != null) ps.setInt(2, prov.getIdProveedor());
+        else              ps.setNull(2, Types.INTEGER);
+
+        ps.setString(3, txtCodigoBarra.getText().trim());
+        ps.setString(4, txtNombre.getText().trim());
+
+        String desc = txtDescripcion.getText().trim();
+        ps.setString(5, desc.isEmpty() ? null : desc);
+
+        ps.setDouble(6, Double.parseDouble(txtPrecioCosto.getText().trim()));
+        ps.setDouble(7, Double.parseDouble(txtPrecioVenta.getText().trim()));
+        ps.setInt(8, spnStockActual.getValue());
+        ps.setInt(9, spnStockMinimo.getValue());
+        ps.setBoolean(10, chkRequiereReceta.isSelected());
+        ps.setBoolean(11, chkAplicaItbis.isSelected());
+
+        String itbis = txtPorcentajeItbis.getText().trim();
+        ps.setDouble(12, itbis.isEmpty() ? 0.0 : Double.parseDouble(itbis));
+
+        ps.setBoolean(13, chkEstado.isSelected());
     }
 
     @FXML
     private void limpiarCampos() {
         idProductoSeleccionado = 0;
         txtNombre.clear();
-        txtCodigo.clear();
-        txtPrecioCompra.clear();
+        txtCodigoBarra.clear();
+        txtDescripcion.clear();
+        txtPrecioCosto.clear();
         txtPrecioVenta.clear();
-        spnStock.getValueFactory().setValue(0);
+        txtPorcentajeItbis.clear();
+        spnStockActual.getValueFactory().setValue(0);
+        spnStockMinimo.getValueFactory().setValue(0);
+        chkAplicaItbis.setSelected(false);
+        chkRequiereReceta.setSelected(false);
+        chkEstado.setSelected(true);
+        cbCategoria.setValue(null);
         cbProveedor.setValue(null);
         txtBuscar.clear();
         tblProductos.getSelectionModel().clearSelection();
@@ -340,61 +427,54 @@ public class RegistroProductoController implements Initializable {
 
     private boolean validarCampos() {
         if (txtNombre.getText().trim().isEmpty()) {
-            mostrarAlerta("Advertencia", "El nombre del producto es obligatorio", Alert.AlertType.WARNING);
-            txtNombre.requestFocus();
-            return false;
+            mostrarAlerta("Validación", "El nombre del producto es obligatorio", Alert.AlertType.WARNING);
+            txtNombre.requestFocus(); return false;
         }
-
-        if (txtPrecioCompra.getText().trim().isEmpty()) {
-            mostrarAlerta("Advertencia", "El precio de compra es obligatorio", Alert.AlertType.WARNING);
-            txtPrecioCompra.requestFocus();
-            return false;
+        if (cbCategoria.getValue() == null) {
+            mostrarAlerta("Validación", "Debe seleccionar una categoría", Alert.AlertType.WARNING);
+            cbCategoria.requestFocus(); return false;
         }
-
+        if (txtPrecioCosto.getText().trim().isEmpty()) {
+            mostrarAlerta("Validación", "El precio de costo es obligatorio", Alert.AlertType.WARNING);
+            txtPrecioCosto.requestFocus(); return false;
+        }
         if (txtPrecioVenta.getText().trim().isEmpty()) {
-            mostrarAlerta("Advertencia", "El precio de venta es obligatorio", Alert.AlertType.WARNING);
-            txtPrecioVenta.requestFocus();
-            return false;
+            mostrarAlerta("Validación", "El precio de venta es obligatorio", Alert.AlertType.WARNING);
+            txtPrecioVenta.requestFocus(); return false;
         }
-
-        if (cbProveedor.getValue() == null) {
-            mostrarAlerta("Advertencia", "Debe seleccionar un proveedor", Alert.AlertType.WARNING);
-            cbProveedor.requestFocus();
-            return false;
-        }
-
         try {
-            double precioCompra = Double.parseDouble(txtPrecioCompra.getText().trim());
-            double precioVenta = Double.parseDouble(txtPrecioVenta.getText().trim());
-
-            if (precioCompra < 0 || precioVenta < 0) {
-                mostrarAlerta("Advertencia", "Los precios no pueden ser negativos", Alert.AlertType.WARNING);
+            double costo = Double.parseDouble(txtPrecioCosto.getText().trim());
+            double venta = Double.parseDouble(txtPrecioVenta.getText().trim());
+            if (costo < 0 || venta < 0) {
+                mostrarAlerta("Validación", "Los precios no pueden ser negativos", Alert.AlertType.WARNING);
                 return false;
             }
-
-            if (precioVenta < precioCompra) {
-                Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
-                confirmacion.setTitle("Advertencia");
-                confirmacion.setHeaderText("El precio de venta es menor al de compra");
-                confirmacion.setContentText("¿Desea continuar de todas formas?");
-
-                Optional<ButtonType> resultado = confirmacion.showAndWait();
-                return resultado.isPresent() && resultado.get() == ButtonType.OK;
+            if (venta < costo) {
+                Alert conf = new Alert(Alert.AlertType.CONFIRMATION);
+                conf.setTitle("Precio menor al de costo");
+                conf.setContentText("El precio de venta es menor al de costo. ¿Desea continuar de todas formas?");
+                Optional<ButtonType> r = conf.showAndWait();
+                return r.isPresent() && r.get() == ButtonType.OK;
             }
-
+            if (!txtPorcentajeItbis.getText().trim().isEmpty()) {
+                double itbis = Double.parseDouble(txtPorcentajeItbis.getText().trim());
+                if (itbis < 0 || itbis > 100) {
+                    mostrarAlerta("Validación", "El porcentaje de ITBIS debe estar entre 0 y 100", Alert.AlertType.WARNING);
+                    txtPorcentajeItbis.requestFocus(); return false;
+                }
+            }
         } catch (NumberFormatException e) {
-            mostrarAlerta("Error", "Los precios deben ser números válidos", Alert.AlertType.ERROR);
+            mostrarAlerta("Validación", "Los campos numéricos deben tener valores válidos (Ej: 150.00)", Alert.AlertType.ERROR);
             return false;
         }
-
         return true;
     }
 
     private void mostrarAlerta(String titulo, String mensaje, Alert.AlertType tipo) {
-        Alert alerta = new Alert(tipo);
-        alerta.setTitle(titulo);
-        alerta.setHeaderText(null);
-        alerta.setContentText(mensaje);
-        alerta.showAndWait();
+        Alert a = new Alert(tipo);
+        a.setTitle(titulo);
+        a.setHeaderText(null);
+        a.setContentText(mensaje);
+        a.showAndWait();
     }
 }

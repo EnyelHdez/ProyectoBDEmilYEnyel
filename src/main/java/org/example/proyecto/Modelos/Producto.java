@@ -1,55 +1,111 @@
 package org.example.proyecto.Modelos;
 
 public class Producto {
-    private int idProducto;
-    private String nombre;
-    private String codigoBarras;
-    private double precioCompra;
-    private double precioVenta;
-    private int stock;
-    private int idProveedor;
-    private String nombreProveedor;
 
+    private int     idProducto;
+    private int     idCategoria;
+    private Integer idProveedor;        // nullable en BD
+    private String  codigoBarra;        // codigo_barra (sin 's')
+    private String  nombre;
+    private String  descripcion;        // nullable en BD
+    private double  precioCosto;        // precio_costo
+    private double  precioVenta;
+    private int     stockActual;        // stock_actual
+    private int     stockMinimo;        // stock_minimo
+    private boolean requiereReceta;     // bit
+    private boolean aplicaItbis;        // aplica_itbis (bit)
+    private double  porcentajeItbis;    // decimal(5,2)
+    private boolean estado;             // bit
+
+    // Campo auxiliar (JOIN con proveedor, no viene directo de PRODUCTO)
+    private String nombreProveedor;
+    // Campo auxiliar (JOIN con categoria)
+    private String nombreCategoria;
+
+    // ── Constructor vacío ────────────────────────────────────
     public Producto() {}
 
-    public Producto(int idProducto, String nombre, String codigoBarras, double precioCompra,
-                    double precioVenta, int stock, int idProveedor) {
-        this.idProducto = idProducto;
-        this.nombre = nombre;
-        this.codigoBarras = codigoBarras;
-        this.precioCompra = precioCompra;
-        this.precioVenta = precioVenta;
-        this.stock = stock;
-        this.idProveedor = idProveedor;
+    // ── Constructor completo ─────────────────────────────────
+    public Producto(int idProducto, int idCategoria, Integer idProveedor,
+                    String codigoBarra, String nombre, String descripcion,
+                    double precioCosto, double precioVenta,
+                    int stockActual, int stockMinimo,
+                    boolean requiereReceta, boolean aplicaItbis,
+                    double porcentajeItbis, boolean estado) {
+        this.idProducto      = idProducto;
+        this.idCategoria     = idCategoria;
+        this.idProveedor     = idProveedor;
+        this.codigoBarra     = codigoBarra;
+        this.nombre          = nombre;
+        this.descripcion     = descripcion;
+        this.precioCosto     = precioCosto;
+        this.precioVenta     = precioVenta;
+        this.stockActual     = stockActual;
+        this.stockMinimo     = stockMinimo;
+        this.requiereReceta  = requiereReceta;
+        this.aplicaItbis     = aplicaItbis;
+        this.porcentajeItbis = porcentajeItbis;
+        this.estado          = estado;
     }
 
-    // Getters y Setters
+    // ── Getters & Setters ────────────────────────────────────
+
     public int getIdProducto() { return idProducto; }
     public void setIdProducto(int idProducto) { this.idProducto = idProducto; }
+
+    public int getIdCategoria() { return idCategoria; }
+    public void setIdCategoria(int idCategoria) { this.idCategoria = idCategoria; }
+
+    // Integer (nullable) para id_proveedor que admite NULL en BD
+    public Integer getIdProveedor() { return idProveedor; }
+    public void setIdProveedor(Integer idProveedor) { this.idProveedor = idProveedor; }
+
+    // PropertyValueFactory("codigoBarra") → getCodigoBarra()
+    public String getCodigoBarra() { return codigoBarra; }
+    public void setCodigoBarra(String codigoBarra) { this.codigoBarra = codigoBarra; }
 
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
 
-    public String getCodigoBarras() { return codigoBarras; }
-    public void setCodigoBarras(String codigoBarras) { this.codigoBarras = codigoBarras; }
+    public String getDescripcion() { return descripcion; }
+    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 
-    public double getPrecioCompra() { return precioCompra; }
-    public void setPrecioCompra(double precioCompra) { this.precioCompra = precioCompra; }
+    // PropertyValueFactory("precioCosto") → getPrecioCosto()
+    public double getPrecioCosto() { return precioCosto; }
+    public void setPrecioCosto(double precioCosto) { this.precioCosto = precioCosto; }
 
     public double getPrecioVenta() { return precioVenta; }
     public void setPrecioVenta(double precioVenta) { this.precioVenta = precioVenta; }
 
-    public int getStock() { return stock; }
-    public void setStock(int stock) { this.stock = stock; }
+    // PropertyValueFactory("stockActual") → getStockActual()
+    public int getStockActual() { return stockActual; }
+    public void setStockActual(int stockActual) { this.stockActual = stockActual; }
 
-    public int getIdProveedor() { return idProveedor; }
-    public void setIdProveedor(int idProveedor) { this.idProveedor = idProveedor; }
+    public int getStockMinimo() { return stockMinimo; }
+    public void setStockMinimo(int stockMinimo) { this.stockMinimo = stockMinimo; }
 
+    public boolean isRequiereReceta() { return requiereReceta; }
+    public void setRequiereReceta(boolean requiereReceta) { this.requiereReceta = requiereReceta; }
+
+    public boolean isAplicaItbis() { return aplicaItbis; }
+    public void setAplicaItbis(boolean aplicaItbis) { this.aplicaItbis = aplicaItbis; }
+
+    public double getPorcentajeItbis() { return porcentajeItbis; }
+    public void setPorcentajeItbis(double porcentajeItbis) { this.porcentajeItbis = porcentajeItbis; }
+
+    public boolean isEstado() { return estado; }
+    public void setEstado(boolean estado) { this.estado = estado; }
+
+    // ── Auxiliares (JOIN) ────────────────────────────────────
+
+    // PropertyValueFactory("nombreProveedor") → getNombreProveedor()
     public String getNombreProveedor() { return nombreProveedor; }
     public void setNombreProveedor(String nombreProveedor) { this.nombreProveedor = nombreProveedor; }
 
+    // PropertyValueFactory("nombreCategoria") → getNombreCategoria()
+    public String getNombreCategoria() { return nombreCategoria; }
+    public void setNombreCategoria(String nombreCategoria) { this.nombreCategoria = nombreCategoria; }
+
     @Override
-    public String toString() {
-        return nombre;
-    }
+    public String toString() { return nombre; }
 }

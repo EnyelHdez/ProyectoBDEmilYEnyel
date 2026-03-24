@@ -158,14 +158,6 @@ public class OrdenCompraController implements Initializable {
             return;
         }
 
-        Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmacion.setTitle("Confirmar Orden");
-        confirmacion.setHeaderText("¿Enviar orden de compra?");
-        confirmacion.setContentText("Proveedor: " + cmbProveedor.getValue().getNombre() + "\nTotal: RD$ " + String.format("%.2f", totalOrden));
-
-        if (confirmacion.showAndWait().get() == ButtonType.OK) {
-            guardarOrdenCompra();
-        }
     }
 
     private void guardarOrdenCompra() {

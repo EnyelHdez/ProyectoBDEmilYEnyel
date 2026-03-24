@@ -115,7 +115,7 @@ public class RegistroCompraController implements Initializable {
                 Producto producto = new Producto();
                 producto.setIdProducto(rs.getInt("id_producto"));
                 producto.setNombre(rs.getString("nombre"));
-                producto.setPrecioCompra(rs.getDouble("precio_compra"));
+                producto.setPrecioCosto(rs.getDouble("precio_compra"));
 
                 listaProductos.add(producto);
             }
