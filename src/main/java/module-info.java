@@ -4,6 +4,8 @@ module org.example.proyecto {
     requires com.dlsc.formsfx;
     requires java.sql;
     requires java.desktop;
+    requires javafx.graphics;
+
 
     opens org.example.proyecto.application to javafx.fxml;
     opens org.example.proyecto.Controladores to javafx.fxml;

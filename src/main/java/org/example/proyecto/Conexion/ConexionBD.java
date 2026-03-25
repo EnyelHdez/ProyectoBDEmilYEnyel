@@ -18,8 +18,6 @@ public class ConexionBD {
 
             String cadena = "jdbc:sqlserver://" + server + ":" + puerto + ";" + "databaseName=" + db + ";" + "encrypt=true" + ";" + "trustServerCertificate=true";
             connection = DriverManager.getConnection(cadena, usuario, contrasena);
-            JOptionPane.showMessageDialog
-                    (null, "Se realizo exitosamente la conexion bro");
         } catch (Exception e) {
             JOptionPane.showMessageDialog
                     (null, "te dio error menol" + e.toString());

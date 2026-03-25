@@ -1,57 +1,71 @@
 package org.example.proyecto.Modelos;
 
-import java.time.LocalDate;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 public class Pago {
-    private int idPago;
-    private int idProveedor;
-    private String nombreProveedor;
-    private String numeroFactura;
-    private LocalDate fechaFactura;
-    private LocalDate fechaPago;
-    private String metodoPago;
-    private double monto;
-    private String estado;
+    private int           idPago;
+    private int           idCuentaPago;
+    private BigDecimal    monto;
+    private LocalDateTime fecha;
+    private String        referencia;
+    private boolean       estado;
 
-    public Pago() {}
+    public int getIdPago() {
+        return idPago;
+    }
 
-    public Pago(int idPago, int idProveedor, String numeroFactura, LocalDate fechaFactura,
-                LocalDate fechaPago, String metodoPago, double monto, String estado) {
+    public void setIdPago(int idPago) {
         this.idPago = idPago;
-        this.idProveedor = idProveedor;
-        this.numeroFactura = numeroFactura;
-        this.fechaFactura = fechaFactura;
-        this.fechaPago = fechaPago;
-        this.metodoPago = metodoPago;
+    }
+
+    public int getIdCuentaPago() {
+        return idCuentaPago;
+    }
+
+    public void setIdCuentaPago(int idCuentaPago) {
+        this.idCuentaPago = idCuentaPago;
+    }
+
+    public BigDecimal getMonto() {
+        return monto;
+    }
+
+    public void setMonto(BigDecimal monto) {
         this.monto = monto;
+    }
+
+    public LocalDateTime getFecha() {
+        return fecha;
+    }
+
+    public void setFecha(LocalDateTime fecha) {
+        this.fecha = fecha;
+    }
+
+    public String getReferencia() {
+        return referencia;
+    }
+
+    public void setReferencia(String referencia) {
+        this.referencia = referencia;
+    }
+
+    public boolean isEstado() {
+        return estado;
+    }
+
+    public void setEstado(boolean estado) {
         this.estado = estado;
     }
 
-    // Getters y Setters
-    public int getIdPago() { return idPago; }
-    public void setIdPago(int idPago) { this.idPago = idPago; }
-
-    public int getIdProveedor() { return idProveedor; }
-    public void setIdProveedor(int idProveedor) { this.idProveedor = idProveedor; }
-
-    public String getNombreProveedor() { return nombreProveedor; }
-    public void setNombreProveedor(String nombreProveedor) { this.nombreProveedor = nombreProveedor; }
-
-    public String getNumeroFactura() { return numeroFactura; }
-    public void setNumeroFactura(String numeroFactura) { this.numeroFactura = numeroFactura; }
-
-    public LocalDate getFechaFactura() { return fechaFactura; }
-    public void setFechaFactura(LocalDate fechaFactura) { this.fechaFactura = fechaFactura; }
-
-    public LocalDate getFechaPago() { return fechaPago; }
-    public void setFechaPago(LocalDate fechaPago) { this.fechaPago = fechaPago; }
-
-    public String getMetodoPago() { return metodoPago; }
-    public void setMetodoPago(String metodoPago) { this.metodoPago = metodoPago; }
-
-    public double getMonto() { return monto; }
-    public void setMonto(double monto) { this.monto = monto; }
-
-    public String getEstado() { return estado; }
-    public void setEstado(String estado) { this.estado = estado; }
+    public Pago(int idPago, int idCuentaPago, BigDecimal monto, LocalDateTime fecha, String referencia, boolean estado) {
+        this.idPago = idPago;
+        this.idCuentaPago = idCuentaPago;
+        this.monto = monto;
+        this.fecha = fecha;
+        this.referencia = referencia;
+        this.estado = estado;
+    }
 }
+

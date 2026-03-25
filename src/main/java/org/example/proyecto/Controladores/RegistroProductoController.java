@@ -7,7 +7,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import org.example.proyecto.Conexion.ConexionBD;
-import org.example.proyecto.Modelos.Categoria;
+import org.example.proyecto.Modelos.CategoriaProducto;
 import org.example.proyecto.Modelos.Producto;
 import org.example.proyecto.Modelos.Proveedor;
 
@@ -24,7 +24,7 @@ public class RegistroProductoController implements Initializable {
     // ── Campos del formulario ────────────────────────────────
     @FXML private TextField  txtNombre, txtCodigoBarra, txtDescripcion;
     @FXML private TextField  txtPrecioCosto, txtPrecioVenta, txtPorcentajeItbis;
-    @FXML private ComboBox<Categoria> cbCategoria;
+    @FXML private ComboBox<CategoriaProducto> cbCategoria;
     @FXML private ComboBox<Proveedor> cbProveedor;
     @FXML private Spinner<Integer>    spnStockActual, spnStockMinimo;
     @FXML private CheckBox   chkAplicaItbis, chkRequiereReceta, chkEstado;
@@ -40,7 +40,7 @@ public class RegistroProductoController implements Initializable {
     // ── Estado interno ───────────────────────────────────────
     private final ObservableList<Producto>  listaProductos   = FXCollections.observableArrayList();
     private final ObservableList<Proveedor> listaProveedores = FXCollections.observableArrayList();
-    private final ObservableList<Categoria> listaCategorias  = FXCollections.observableArrayList();
+    private final ObservableList<CategoriaProducto> listaCategorias  = FXCollections.observableArrayList();
     private Connection conexion;
     private int idProductoSeleccionado = 0;
 
@@ -134,7 +134,7 @@ public class RegistroProductoController implements Initializable {
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-                Categoria c = new Categoria();
+                CategoriaProducto c = new CategoriaProducto();
                 c.setIdCategoria(rs.getInt("id_categoria"));
                 c.setNombre(rs.getString("nombre"));
                 listaCategorias.add(c);
@@ -150,7 +150,7 @@ public class RegistroProductoController implements Initializable {
     private void cargarProveedores() {
         listaProveedores.clear();
         String sql = "SELECT id_proveedor, razon_social, rnc, telefono " +
-                "FROM tbl_PROVEEDOR WHERE estado = 1 ORDER BY razon_social";
+                "FROM tbl_PROVEEDOR WHERE estado_temp = 1 ORDER BY razon_social";
 
         try (Statement stmt = conexion.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {

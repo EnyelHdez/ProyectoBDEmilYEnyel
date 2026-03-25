@@ -1,52 +1,72 @@
 package org.example.proyecto.Modelos;
 
-import java.time.LocalDate;
-
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 public class Compra {
-    private int idCompra;
-    private String numeroOrden;
-    private LocalDate fechaCompra;
-    private int idProveedor;
-    private String nombreProveedor;
-    private String metodoPago;
-    private String estado;
-    private double total;
-
+    private int           idCompra;
+    private int           idProveedor;
+    private int           idEmpleado;
+    private Integer       idComprobante;
+    private LocalDateTime fecha;
+    private String        nroFacturaProv;
+    private BigDecimal    subtotal;
+    private BigDecimal    descuento;
+    private BigDecimal    itbis;
+    private BigDecimal    total;
+    private String        estado;   // PENDIENTE | RECIBIDA | ANULADA
     public Compra() {}
 
-    public Compra(int idCompra, String numeroOrden, LocalDate fechaCompra, int idProveedor,
-                  String metodoPago, String estado, double total) {
-        this.idCompra = idCompra;
-        this.numeroOrden = numeroOrden;
-        this.fechaCompra = fechaCompra;
-        this.idProveedor = idProveedor;
-        this.metodoPago = metodoPago;
-        this.estado = estado;
-        this.total = total;
+    public Compra(int idCompra, int idProveedor, int idEmpleado,
+                  int idComprobante, LocalDateTime fecha,
+                  String nroFacturaProv, BigDecimal subtotal,
+                  BigDecimal descuento, BigDecimal itbis,
+                  BigDecimal total, String estado) {
+        this.idCompra       = idCompra;
+        this.idProveedor    = idProveedor;
+        this.idEmpleado     = idEmpleado;
+        this.idComprobante  = idComprobante;
+        this.fecha          = fecha;
+        this.nroFacturaProv = nroFacturaProv;
+        this.subtotal       = subtotal;
+        this.descuento      = descuento;
+        this.itbis          = itbis;
+        this.total          = total;
+        this.estado         = this.estado;
     }
 
-    // Getters y Setters
-    public int getIdCompra() { return idCompra; }
-    public void setIdCompra(int idCompra) { this.idCompra = idCompra; }
 
-    public String getNumeroOrden() { return numeroOrden; }
-    public void setNumeroOrden(String numeroOrden) { this.numeroOrden = numeroOrden; }
 
-    public LocalDate getFechaCompra() { return fechaCompra; }
-    public void setFechaCompra(LocalDate fechaCompra) { this.fechaCompra = fechaCompra; }
+    public int getIdCompra()                        { return idCompra; }
+    public void setIdCompra(int v)                  { this.idCompra = v; }
 
-    public int getIdProveedor() { return idProveedor; }
-    public void setIdProveedor(int idProveedor) { this.idProveedor = idProveedor; }
+    public int getIdProveedor()                     { return idProveedor; }
+    public void setIdProveedor(int v)               { this.idProveedor = v; }
 
-    public String getNombreProveedor() { return nombreProveedor; }
-    public void setNombreProveedor(String nombreProveedor) { this.nombreProveedor = nombreProveedor; }
+    public int getIdEmpleado()                      { return idEmpleado; }
+    public void setIdEmpleado(int v)                { this.idEmpleado = v; }
 
-    public String getMetodoPago() { return metodoPago; }
-    public void setMetodoPago(String metodoPago) { this.metodoPago = metodoPago; }
+    public Integer getIdComprobante()               { return idComprobante; }
+    public void setIdComprobante(Integer v)         { this.idComprobante = v; }
 
-    public String getEstado() { return estado; }
-    public void setEstado(String estado) { this.estado = estado; }
+    public LocalDateTime getFecha()                 { return fecha; }
+    public void setFecha(LocalDateTime v)           { this.fecha = v; }
 
-    public double getTotal() { return total; }
-    public void setTotal(double total) { this.total = total; }
+    public String getNroFacturaProv()               { return nroFacturaProv; }
+    public void setNroFacturaProv(String v)         { this.nroFacturaProv = v; }
+
+    public BigDecimal getSubtotal()                 { return subtotal; }
+    public void setSubtotal(BigDecimal v)           { this.subtotal = v; }
+
+    public BigDecimal getDescuento()                { return descuento; }
+    public void setDescuento(BigDecimal v)          { this.descuento = v; }
+
+    public BigDecimal getItbis()                    { return itbis; }
+    public void setItbis(BigDecimal v)              { this.itbis = v; }
+
+    public BigDecimal getTotal()                    { return total; }
+    public void setTotal(BigDecimal v)              { this.total = v; }
+
+    public String getEstado()                       { return estado; }
+    public void setEstado(String v)                 { this.estado = v; }
 }
+

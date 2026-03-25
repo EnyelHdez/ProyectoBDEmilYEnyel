@@ -24,7 +24,7 @@ public class RegistroProveedorController implements Initializable {
     @FXML private TableColumn<Proveedor, String>  colRazonSocial, colNombreComercial,
             colRnc, colTelefono, colEmail,
             colContacto, colDireccion;
-    @FXML private TableColumn<Proveedor, Boolean> colEstado;
+    @FXML private TableColumn<Proveedor, String> colEstado; // Cambiado de Boolean a String
 
     private final ObservableList<Proveedor> listaProveedores = FXCollections.observableArrayList();
     private Connection conexion;
@@ -51,7 +51,7 @@ public class RegistroProveedorController implements Initializable {
         colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
         colContacto.setCellValueFactory(new PropertyValueFactory<>("contacto"));
         colDireccion.setCellValueFactory(new PropertyValueFactory<>("direccion"));
-        colEstado.setCellValueFactory(new PropertyValueFactory<>("estado"));
+        colEstado.setCellValueFactory(new PropertyValueFactory<>("estadoTexto")); // Usar getter de String
     }
 
     private void configurarSeleccionTabla() {
@@ -70,7 +70,8 @@ public class RegistroProveedorController implements Initializable {
         txtEmail.setText(p.getEmail());
         txtContacto.setText(p.getContacto());
         txtDireccion.setText(p.getDireccion());
-        chkEstado.setSelected(p.isEstado());
+        // Convertir String estado a boolean para CheckBox
+        chkEstado.setSelected("Activo".equals(p.getEstadoTexto()));
     }
 
     // ─────────────────────────────────────────────────────────
@@ -95,12 +96,13 @@ public class RegistroProveedorController implements Initializable {
                 p.setEmail(rs.getString("email"));
                 p.setContacto(rs.getString("contacto"));
                 p.setDireccion(rs.getString("direccion"));
-                p.setEstado(rs.getBoolean("estado"));
+                p.setEstadoTexto(rs.getString("estado_temp"));
                 listaProveedores.add(p);
             }
             tblProveedores.setItems(listaProveedores);
 
         } catch (SQLException e) {
+            mostrarAlerta("Error", "Error al cargar proveedores: " + e.getMessage(), Alert.AlertType.ERROR);
             e.printStackTrace();
         }
     }
@@ -109,25 +111,28 @@ public class RegistroProveedorController implements Initializable {
     private void guardarProveedor() {
         if (!validarCampos()) return;
 
-        String sql = "INSERT INTO tbl_PROVEEDOR (rnc, razon_social, nombre_comercial, telefono, email, contacto, direccion, estado) " +
+        String sql = "INSERT INTO tbl_PROVEEDOR (rnc, razon_social, nombre_comercial, telefono, email, contacto, direccion, estado_temp) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
-            ps.setString(1, txtRNC.getText());
-            ps.setString(2, txtNombre.getText());
-            ps.setString(3, txtNombreComercial.getText());
-            ps.setString(4, txtTelefono.getText());
-            ps.setString(5, txtEmail.getText());
-            ps.setString(6, txtContacto.getText());
-            ps.setString(7, txtDireccion.getText());
-            ps.setBoolean(8, chkEstado.isSelected());
+        try (PreparedStatement ps = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, txtRNC.getText().trim());
+            ps.setString(2, txtNombre.getText().trim());
+            ps.setString(3, txtNombreComercial.getText().trim());
+            ps.setString(4, txtTelefono.getText().trim());
+            ps.setString(5, txtEmail.getText().trim());
+            ps.setString(6, txtContacto.getText().trim());
+            ps.setString(7, txtDireccion.getText().trim());
+            // Convertir CheckBox a String 'Activo' o 'Inactivo'
+            ps.setString(8, chkEstado.isSelected() ? "Activo" : "Inactivo");
 
             ps.executeUpdate();
+
             mostrarAlerta("Éxito", "Proveedor guardado correctamente", Alert.AlertType.INFORMATION);
             limpiarCampos();
             cargarProveedores();
 
         } catch (SQLException e) {
+            mostrarAlerta("Error", "Error al guardar: " + e.getMessage(), Alert.AlertType.ERROR);
             e.printStackTrace();
         }
     }
@@ -140,25 +145,31 @@ public class RegistroProveedorController implements Initializable {
         }
 
         String sql = "UPDATE tbl_PROVEEDOR SET rnc=?, razon_social=?, nombre_comercial=?, " +
-                "telefono=?, email=?, contacto=?, direccion=?, estado=? WHERE id_proveedor=?";
+                "telefono=?, email=?, contacto=?, direccion=?, estado_temp=? WHERE id_proveedor=?";
 
         try (PreparedStatement ps = conexion.prepareStatement(sql)) {
-            ps.setString(1, txtRNC.getText());
-            ps.setString(2, txtNombre.getText());
-            ps.setString(3, txtNombreComercial.getText());
-            ps.setString(4, txtTelefono.getText());
-            ps.setString(5, txtEmail.getText());
-            ps.setString(6, txtContacto.getText());
-            ps.setString(7, txtDireccion.getText());
-            ps.setBoolean(8, chkEstado.isSelected());
+            ps.setString(1, txtRNC.getText().trim());
+            ps.setString(2, txtNombre.getText().trim());
+            ps.setString(3, txtNombreComercial.getText().trim());
+            ps.setString(4, txtTelefono.getText().trim());
+            ps.setString(5, txtEmail.getText().trim());
+            ps.setString(6, txtContacto.getText().trim());
+            ps.setString(7, txtDireccion.getText().trim());
+            // Convertir CheckBox a String 'Activo' o 'Inactivo'
+            ps.setString(8, chkEstado.isSelected() ? "Activo" : "Inactivo");
             ps.setInt(9, idProveedorSeleccionado);
 
-            ps.executeUpdate();
-            mostrarAlerta("Actualizado", "Proveedor actualizado correctamente", Alert.AlertType.INFORMATION);
-            limpiarCampos();
-            cargarProveedores();
+            int filas = ps.executeUpdate();
+            if (filas > 0) {
+                mostrarAlerta("Actualizado", "Proveedor actualizado correctamente", Alert.AlertType.INFORMATION);
+                limpiarCampos();
+                cargarProveedores();
+            } else {
+                mostrarAlerta("Error", "No se encontró el proveedor", Alert.AlertType.ERROR);
+            }
 
         } catch (SQLException e) {
+            mostrarAlerta("Error", "Error al actualizar: " + e.getMessage(), Alert.AlertType.ERROR);
             e.printStackTrace();
         }
     }
@@ -170,6 +181,13 @@ public class RegistroProveedorController implements Initializable {
             return;
         }
 
+        Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmacion.setTitle("Confirmar eliminación");
+        confirmacion.setHeaderText("¿Está seguro?");
+        confirmacion.setContentText("Esta acción no se puede deshacer.");
+
+        if (confirmacion.showAndWait().get() != ButtonType.OK) return;
+
         String sql = "DELETE FROM tbl_PROVEEDOR WHERE id_proveedor=?";
 
         try (PreparedStatement ps = conexion.prepareStatement(sql)) {
@@ -180,6 +198,7 @@ public class RegistroProveedorController implements Initializable {
             cargarProveedores();
 
         } catch (SQLException e) {
+            mostrarAlerta("Error", "Error al eliminar: " + e.getMessage(), Alert.AlertType.ERROR);
             e.printStackTrace();
         }
     }
@@ -191,7 +210,10 @@ public class RegistroProveedorController implements Initializable {
     @FXML
     private void buscarProveedor() {
         String filtro = txtBuscar.getText().trim();
-        if (filtro.isEmpty()) { cargarProveedores(); return; }
+        if (filtro.isEmpty()) {
+            cargarProveedores();
+            return;
+        }
 
         listaProveedores.clear();
         String sql = "SELECT * FROM tbl_PROVEEDOR " +
@@ -216,12 +238,13 @@ public class RegistroProveedorController implements Initializable {
                 p.setEmail(rs.getString("email"));
                 p.setContacto(rs.getString("contacto"));
                 p.setDireccion(rs.getString("direccion"));
-                p.setEstado(rs.getBoolean("estado"));
+                p.setEstadoTexto(rs.getString("estado_temp"));
                 listaProveedores.add(p);
             }
             tblProveedores.setItems(listaProveedores);
 
         } catch (SQLException e) {
+            mostrarAlerta("Error", "Error en búsqueda: " + e.getMessage(), Alert.AlertType.ERROR);
             e.printStackTrace();
         }
     }
@@ -260,12 +283,17 @@ public class RegistroProveedorController implements Initializable {
             mostrarAlerta("Validación", "El RNC es obligatorio", Alert.AlertType.WARNING);
             return false;
         }
+        if (txtTelefono.getText().isBlank()) {
+            mostrarAlerta("Validación", "El teléfono es obligatorio", Alert.AlertType.WARNING);
+            return false;
+        }
         return true;
     }
 
     private void mostrarAlerta(String titulo, String mensaje, Alert.AlertType tipo) {
         Alert a = new Alert(tipo);
         a.setTitle(titulo);
+        a.setHeaderText(null);
         a.setContentText(mensaje);
         a.showAndWait();
     }

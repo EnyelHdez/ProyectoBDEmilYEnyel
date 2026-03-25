@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox spacing="0"
+      style="-fx-background-color: #f0f2f5;"
+      xmlns="http://javafx.com/javafx/17.0.12"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.example.proyecto.Controladores.RegistroDevolucionController">
+
+    <!-- HEADER -->
+    <HBox alignment="CENTER_LEFT"
+          prefHeight="50"
+          style="-fx-background-color: #1E90FF; -fx-padding: 0 20 0 20;">
+        <Label text="Farmacia Kenia Carmen" textFill="WHITE" HBox.hgrow="ALWAYS">
+            <font><Font size="15" /></font>
+        </Label>
+        <Label text="Registro de Devolución de Venta" textFill="WHITE">
+            <font><Font size="15" /></font>
+        </Label>
+    </HBox>
+
+    <VBox spacing="14" style="-fx-padding: 18;">
+
+        <!-- BUSCADOR DE VENTA -->
+        <VBox spacing="10"
+              style="-fx-background-color: white; -fx-padding: 14 18 14 18; -fx-background-radius: 10; -fx-border-color: #e0e0e0; -fx-border-radius: 10; -fx-border-width: 0.5;">
+            <Label text="Buscar venta para devolver" style="-fx-font-size: 12px; -fx-text-fill: #6b7280;" />
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <TextField fx:id="txtBuscarVenta" prefWidth="360" prefHeight="34"
+                           promptText="Buscar por ID de venta o nombre de cliente..."
+                           style="-fx-font-size: 13px; -fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #d1d5db; -fx-border-width: 0.5;" />
+                <Button text="Buscar" onAction="#buscarVenta" prefHeight="34"
+                        style="-fx-font-size: 13px; -fx-background-color: transparent; -fx-border-color: #1E90FF; -fx-text-fill: #1E90FF; -fx-background-radius: 6; -fx-border-radius: 6; -fx-cursor: hand; -fx-padding: 0 14 0 14;" />
+                <Button text="Mostrar todos" onAction="#mostrarTodos" prefHeight="34"
+                        style="-fx-font-size: 13px; -fx-background-color: transparent; -fx-border-color: #d1d5db; -fx-text-fill: #6b7280; -fx-background-radius: 6; -fx-border-radius: 6; -fx-cursor: hand; -fx-padding: 0 14 0 14;" />
+            </HBox>
+            <TableView fx:id="tblVentas" prefHeight="155"
+                       style="-fx-background-color: transparent; -fx-background-radius: 10;">
+                <columns>
+                    <TableColumn fx:id="colIdVenta"    prefWidth="55"  text="ID" />
+                    <TableColumn fx:id="colCliente"    prefWidth="175" text="Cliente" />
+                    <TableColumn fx:id="colEmpleado"   prefWidth="140" text="Empleado" />
+                    <TableColumn fx:id="colFechaVenta" prefWidth="140" text="Fecha" />
+                    <TableColumn fx:id="colTotalVenta" prefWidth="100" text="Total" />
+                    <TableColumn fx:id="colEstadoVenta" prefWidth="90"  text="Estado" />
+                </columns>
+            </TableView>
+        </VBox>
+
+        <!-- CONTENIDO: PRODUCTOS A DEVOLVER + FORMULARIO -->
+        <HBox spacing="14">
+
+            <!-- TABLA DETALLE DE VENTA (selección de productos a devolver) -->
+            <VBox HBox.hgrow="ALWAYS"
+                  style="-fx-background-color: white; -fx-padding: 14 18 14 18; -fx-background-radius: 10; -fx-border-color: #e0e0e0; -fx-border-radius: 10; -fx-border-width: 0.5;">
+                <Label text="Productos de la venta — seleccione los que se devuelven"
+                       style="-fx-font-size: 12px; -fx-text-fill: #6b7280; -fx-padding: 0 0 8 0;" />
+                <TableView fx:id="tblDetalle" prefHeight="200"
+                           style="-fx-background-color: transparent; -fx-background-radius: 10;">
+                    <columns>
+                        <TableColumn fx:id="colDetProducto"  prefWidth="200" text="Producto" />
+                        <TableColumn fx:id="colDetCantidad"  prefWidth="75"  text="Cant. vendida" />
+                        <TableColumn fx:id="colDetPrecio"    prefWidth="100" text="Precio Unit." />
+                        <TableColumn fx:id="colDetSubtotal"  prefWidth="100" text="Subtotal" />
+                        <TableColumn fx:id="colDetLote"      prefWidth="85"  text="Lote" />
+                    </columns>
+                </TableView>
+                <HBox spacing="8" alignment="CENTER_LEFT" style="-fx-padding: 10 0 0 0;">
+                    <Label text="Cant. a devolver:" style="-fx-font-size: 13px; -fx-text-fill: #374151;" />
+                    <TextField fx:id="txtCantDevolver" prefWidth="70" prefHeight="34"
+                               promptText="1"
+                               style="-fx-font-size: 13px; -fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #d1d5db; -fx-border-width: 0.5;" />
+                    <Button text="Agregar a devolución" onAction="#agregarADevolucion" prefHeight="34"
+                            style="-fx-font-size: 13px; -fx-background-color: transparent; -fx-border-color: #1E90FF; -fx-text-fill: #1E90FF; -fx-background-radius: 6; -fx-border-radius: 6; -fx-cursor: hand; -fx-padding: 0 14 0 14;" />
+                </HBox>
+            </VBox>
+
+            <!-- FORMULARIO DE DEVOLUCIÓN -->
+            <VBox spacing="12" prefWidth="300"
+                  style="-fx-background-color: white; -fx-padding: 16; -fx-background-radius: 10; -fx-border-color: #e0e0e0; -fx-border-radius: 10; -fx-border-width: 0.5;">
+
+                <Label text="Datos de la devolución"
+                       style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #111827;" />
+
+                <VBox spacing="5">
+                    <Label text="Empleado que procesa" style="-fx-font-size: 12px; -fx-text-fill: #6b7280;" />
+                    <ComboBox fx:id="cmbEmpleado" prefWidth="268" prefHeight="34"
+                              promptText="Seleccionar empleado..."
+                              style="-fx-font-size: 13px; -fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #d1d5db; -fx-border-width: 0.5;" />
+                </VBox>
+
+                <VBox spacing="5">
+                    <Label text="Motivo de devolución" style="-fx-font-size: 12px; -fx-text-fill: #6b7280;" />
+                    <ComboBox fx:id="cmbMotivo" prefWidth="268" prefHeight="34"
+                              promptText="Seleccionar motivo..."
+                              style="-fx-font-size: 13px; -fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #d1d5db; -fx-border-width: 0.5;" />
+                </VBox>
+
+                <VBox spacing="5">
+                    <Label text="Comprobante fiscal (opcional)" style="-fx-font-size: 12px; -fx-text-fill: #6b7280;" />
+                    <ComboBox fx:id="cmbComprobante" prefWidth="268" prefHeight="34"
+                              promptText="Tipo de comprobante..."
+                              style="-fx-font-size: 13px; -fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #d1d5db; -fx-border-width: 0.5;" />
+                </VBox>
+
+                <VBox spacing="5">
+                    <Label text="Observación" style="-fx-font-size: 12px; -fx-text-fill: #6b7280;" />
+                    <TextArea fx:id="txtObservacion" prefHeight="70" prefWidth="268"
+                              wrapText="true"
+                              style="-fx-font-size: 13px; -fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #d1d5db; -fx-border-width: 0.5;" />
+                </VBox>
+
+                <Separator />
+
+                <GridPane hgap="8" vgap="6">
+                    <columnConstraints>
+                        <ColumnConstraints prefWidth="130" />
+                        <ColumnConstraints prefWidth="130" />
+                    </columnConstraints>
+                    <Label text="Monto a devolver:" style="-fx-font-size: 12px; -fx-text-fill: #6b7280;" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <Label fx:id="lblMontoDevolucion" text="RD$ 0.00"
+                           style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #dc2626;"
+                           GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                </GridPane>
+
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <Button text="Procesar devolución" onAction="#procesarDevolucion" prefHeight="34"
+                            style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-background-color: #dc2626; -fx-text-fill: white; -fx-background-radius: 6; -fx-border-radius: 6; -fx-cursor: hand; -fx-padding: 0 16 0 16;" />
+                    <Button text="Limpiar" onAction="#limpiarFormulario" prefHeight="34"
+                            style="-fx-font-size: 13px; -fx-background-color: transparent; -fx-border-color: #d1d5db; -fx-text-fill: #6b7280; -fx-background-radius: 6; -fx-border-radius: 6; -fx-cursor: hand; -fx-padding: 0 16 0 16;" />
+                </HBox>
+
+            </VBox>
+        </HBox>
+
+        <!-- ITEMS DE DEVOLUCIÓN ACTIVA + HISTORIAL -->
+        <HBox spacing="14">
+
+            <!-- ITEMS SELECCIONADOS PARA DEVOLVER -->
+            <VBox HBox.hgrow="ALWAYS"
+                  style="-fx-background-color: white; -fx-padding: 14 18 14 18; -fx-background-radius: 10; -fx-border-color: #e0e0e0; -fx-border-radius: 10; -fx-border-width: 0.5;">
+                <HBox alignment="CENTER_LEFT" spacing="12" style="-fx-padding: 0 0 8 0;">
+                    <Label text="Productos a devolver en esta transacción"
+                           style="-fx-font-size: 12px; -fx-text-fill: #6b7280;" HBox.hgrow="ALWAYS" />
+                    <Button text="Quitar seleccionado" onAction="#quitarDeDevolucion" prefHeight="28"
+                            style="-fx-font-size: 12px; -fx-background-color: transparent; -fx-border-color: #f87171; -fx-text-fill: #dc2626; -fx-background-radius: 6; -fx-border-radius: 6; -fx-cursor: hand; -fx-padding: 0 10 0 10;" />
+                </HBox>
+                <TableView fx:id="tblDevolucion" prefHeight="140"
+                           style="-fx-background-color: transparent; -fx-background-radius: 10;">
+                    <columns>
+                        <TableColumn fx:id="colDevProducto"  prefWidth="200" text="Producto" />
+                        <TableColumn fx:id="colDevCantidad"  prefWidth="75"  text="Cantidad" />
+                        <TableColumn fx:id="colDevPrecio"    prefWidth="100" text="Precio Unit." />
+                        <TableColumn fx:id="colDevSubtotal"  prefWidth="100" text="Subtotal" />
+                    </columns>
+                </TableView>
+            </VBox>
+
+            <!-- HISTORIAL DE DEVOLUCIONES -->
+            <VBox prefWidth="340"
+                  style="-fx-background-color: white; -fx-padding: 14 18 14 18; -fx-background-radius: 10; -fx-border-color: #e0e0e0; -fx-border-radius: 10; -fx-border-width: 0.5;">
+                <Label text="Historial de devoluciones"
+                       style="-fx-font-size: 12px; -fx-text-fill: #6b7280; -fx-padding: 0 0 8 0;" />
+                <TableView fx:id="tblHistorial" prefHeight="140"
+                           style="-fx-background-color: transparent; -fx-background-radius: 10;">
+                    <columns>
+                        <TableColumn fx:id="colHistId"      prefWidth="45"  text="ID" />
+                        <TableColumn fx:id="colHistVenta"   prefWidth="55"  text="Venta" />
+                        <TableColumn fx:id="colHistFecha"   prefWidth="130" text="Fecha" />
+                        <TableColumn fx:id="colHistMonto"   prefWidth="90"  text="Monto" />
+                        <TableColumn fx:id="colHistEstado"  prefWidth="80"  text="Estado" />
+                    </columns>
+                </TableView>
+            </VBox>
+        </HBox>
+
+    </VBox>
+</VBox>

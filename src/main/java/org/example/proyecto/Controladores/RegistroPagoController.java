@@ -8,210 +8,198 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import org.example.proyecto.Conexion.ConexionBD;
 import org.example.proyecto.Modelos.Pago;
-import org.example.proyecto.Modelos.Proveedor;
 
+import java.math.BigDecimal;
 import java.net.URL;
 import java.sql.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class RegistroPagoController implements Initializable {
 
-    @FXML private ComboBox<Proveedor> cmbProveedor;
-    @FXML private ComboBox<String> cmbMetodoPago;
-    @FXML private TextField txtNumFactura, txtMonto, txtBuscar;
-    @FXML private DatePicker dateFechaFactura, dateFechaPago;
-    @FXML private TableView<Pago> tblPagos;
-    @FXML private TableColumn<Pago, Integer> colId;
-    @FXML private TableColumn<Pago, String> colProveedor, colNumFactura, colMetodoPago, colEstado;
-    @FXML private TableColumn<Pago, LocalDate> colFechaPago;
-    @FXML private TableColumn<Pago, Double> colMonto;
-    @FXML private Label lblTotalPagar, lblEstado;
-    @FXML private Button btnNuevo, btnRegistrarPago, btnCancelar;
+    // ── Campos del formulario ────────────────────────────────────────────
+    @FXML private TextField   txtIdCuentaPago;
+    @FXML private TextField   txtReferencia;
+    @FXML private TextField   txtMonto;
+    @FXML private TextField   txtBuscar;
+    @FXML private DatePicker  dateFecha;
+    @FXML private ToggleButton tglEstado;
 
-    private ObservableList<Proveedor> listaProveedores = FXCollections.observableArrayList();
-    private ObservableList<Pago> listaPagos = FXCollections.observableArrayList();
+    // ── Tabla ────────────────────────────────────────────────────────────
+    @FXML private TableView<Pago>              tblPagos;
+    @FXML private TableColumn<Pago, Integer>   colId;
+    @FXML private TableColumn<Pago, Integer>   colIdCuenta;
+    @FXML private TableColumn<Pago, String>    colReferencia;
+    @FXML private TableColumn<Pago, LocalDateTime> colFecha;
+    @FXML private TableColumn<Pago, BigDecimal> colMonto;
+    @FXML private TableColumn<Pago, Boolean>   colEstado;
+
+    // ── Labels / Botones ─────────────────────────────────────────────────
+    @FXML private Label  lblTotalPagar;
+    @FXML private Label  lblIdPagoActual;
+    @FXML private Label  lblBadgeEstado;
+    @FXML private Label  lblEstadoHint;
+    @FXML private Button btnNuevo;
+    @FXML private Button btnRegistrarPago;
+    @FXML private Button btnCancelar;
+
+    // ── Estado interno ───────────────────────────────────────────────────
+    private final ObservableList<Pago> listaPagos = FXCollections.observableArrayList();
+    private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private Connection conexion;
     private int idPagoSeleccionado = 0;
 
+    // ════════════════════════════════════════════════════════════════════
+    // INICIALIZACIÓN
+    // ════════════════════════════════════════════════════════════════════
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         conexion = new ConexionBD().EstablecerConexion();
         configurarTabla();
-        configurarComboBoxes();
-        cargarProveedores();
         cargarPagos();
         configurarSeleccionTabla();
-        dateFechaPago.setValue(LocalDate.now());
+        dateFecha.setValue(LocalDate.now());
     }
 
+    // ── Columnas de la tabla ─────────────────────────────────────────────
     private void configurarTabla() {
         colId.setCellValueFactory(new PropertyValueFactory<>("idPago"));
-        colProveedor.setCellValueFactory(new PropertyValueFactory<>("nombreProveedor"));
-        colNumFactura.setCellValueFactory(new PropertyValueFactory<>("numeroFactura"));
-        colFechaPago.setCellValueFactory(new PropertyValueFactory<>("fechaPago"));
-        colMetodoPago.setCellValueFactory(new PropertyValueFactory<>("metodoPago"));
+        colIdCuenta.setCellValueFactory(new PropertyValueFactory<>("idCuentaPago"));
+        colReferencia.setCellValueFactory(new PropertyValueFactory<>("referencia"));
+
+        // Fecha formateada dd/MM/yyyy HH:mm
+        colFecha.setCellValueFactory(new PropertyValueFactory<>("fecha"));
+        colFecha.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(LocalDateTime item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : item.format(FMT));
+            }
+        });
+
+        // Monto con prefijo RD$
         colMonto.setCellValueFactory(new PropertyValueFactory<>("monto"));
+        colMonto.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(BigDecimal item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : "RD$ " + String.format("%.2f", item));
+            }
+        });
+
+        // Estado: true → Activo (verde), false → Inactivo (rojo)
         colEstado.setCellValueFactory(new PropertyValueFactory<>("estado"));
-    }
-
-    private void configurarComboBoxes() {
-        cmbMetodoPago.setItems(FXCollections.observableArrayList(
-                "Transferencia Bancaria", "Cheque", "Efectivo", "Tarjeta de Crédito"
-        ));
-    }
-
-    private void configurarSeleccionTabla() {
-        tblPagos.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-            if (newSelection != null) {
-                cargarDatosEnFormulario(newSelection);
+        colEstado.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(Boolean item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null); setStyle("");
+                } else if (item) {
+                    setText("Activo");
+                    setStyle("-fx-text-fill: #1A7A40; -fx-font-weight: bold;");
+                } else {
+                    setText("Inactivo");
+                    setStyle("-fx-text-fill: #C0392B; -fx-font-weight: bold;");
+                }
             }
         });
     }
 
-    private void cargarDatosEnFormulario(Pago pago) {
-        idPagoSeleccionado = pago.getIdPago();
-
-        // Buscar y seleccionar el proveedor
-        for (Proveedor p : cmbProveedor.getItems()) {
-            if (p.getIdProveedor() == pago.getIdProveedor()) {
-                cmbProveedor.setValue(p);
-                break;
-            }
-        }
-
-        txtNumFactura.setText(pago.getNumeroFactura());
-        dateFechaFactura.setValue(pago.getFechaFactura());
-        dateFechaPago.setValue(pago.getFechaPago());
-        cmbMetodoPago.setValue(pago.getMetodoPago());
-        txtMonto.setText(String.valueOf(pago.getMonto()));
-        lblTotalPagar.setText("RD$ " + String.format("%.2f", pago.getMonto()));
-        lblEstado.setText(pago.getEstado());
+    // ── Listener selección tabla → formulario ────────────────────────────
+    private void configurarSeleccionTabla() {
+        tblPagos.getSelectionModel().selectedItemProperty()
+                .addListener((obs, old, nuevo) -> {
+                    if (nuevo != null) cargarEnFormulario(nuevo);
+                });
     }
 
-    private void cargarProveedores() {
-        listaProveedores.clear();
-        String sql = "SELECT * FROM tbl_PROVEEDOR ORDER BY nombre";
-
-        try (Statement stmt = conexion.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-                Proveedor proveedor = new Proveedor();
-                proveedor.setIdProveedor(rs.getInt("id_proveedor"));
-                proveedor.setNombre(rs.getString("nombre"));
-
-                listaProveedores.add(proveedor);
-            }
-
-            cmbProveedor.setItems(listaProveedores);
-
-        } catch (SQLException e) {
-            mostrarAlerta("Error", "Error al cargar proveedores: " + e.getMessage(), Alert.AlertType.ERROR);
-            e.printStackTrace();
-        }
-    }
-
+    // ════════════════════════════════════════════════════════════════════
+    // CARGA DE DATOS
+    // ════════════════════════════════════════════════════════════════════
     @FXML
     private void cargarPagos() {
         listaPagos.clear();
-        String sql = "SELECT p.*, prov.nombre AS nombre_proveedor " +
-                "FROM tbl_PAGO_PROVEEDOR p " +
-                "INNER JOIN tbl_PROVEEDOR prov ON p.id_proveedor = prov.id_proveedor " +
-                "ORDER BY p.id_pago DESC";
+        String sql = "SELECT * FROM tbl_PAGO ORDER BY id_pago DESC";
 
         try (Statement stmt = conexion.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+             ResultSet rs   = stmt.executeQuery(sql)) {
 
-            while (rs.next()) {
-                Pago pago = new Pago();
-                pago.setIdPago(rs.getInt("id_pago"));
-                pago.setIdProveedor(rs.getInt("id_proveedor"));
-                pago.setNombreProveedor(rs.getString("nombre_proveedor"));
-                pago.setNumeroFactura(rs.getString("numero_factura"));
-
-                Date fechaFactura = rs.getDate("fecha_factura");
-                if (fechaFactura != null) {
-                    pago.setFechaFactura(fechaFactura.toLocalDate());
-                }
-
-                Date fechaPago = rs.getDate("fecha_pago");
-                if (fechaPago != null) {
-                    pago.setFechaPago(fechaPago.toLocalDate());
-                }
-
-                pago.setMetodoPago(rs.getString("metodo_pago"));
-                pago.setMonto(rs.getDouble("monto"));
-                pago.setEstado(rs.getString("estado"));
-
-                listaPagos.add(pago);
-            }
-
+            while (rs.next()) listaPagos.add(mapearPago(rs));
             tblPagos.setItems(listaPagos);
 
         } catch (SQLException e) {
-            mostrarAlerta("Error", "Error al cargar pagos: " + e.getMessage(), Alert.AlertType.ERROR);
-            e.printStackTrace();
+            mostrarAlerta("Error", "Error al cargar pagos:\n" + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
+    // ── Mapeo ResultSet → Pago ───────────────────────────────────────────
+    private Pago mapearPago(ResultSet rs) throws SQLException {
+        int           id         = rs.getInt("id_pago");
+        int           idCuenta   = rs.getInt("id_cuenta_pago");
+        BigDecimal    monto      = rs.getBigDecimal("monto");
+        String        referencia = rs.getString("referencia");
+        boolean       estado     = rs.getBoolean("estado");
+        LocalDateTime fecha      = null;
+
+        Timestamp ts = rs.getTimestamp("fecha");
+        if (ts != null) fecha = ts.toLocalDateTime();
+
+        return new Pago(id, idCuenta, monto, fecha, referencia, estado);
+    }
+
+    // ── Cargar fila seleccionada en el formulario ─────────────────────────
+    private void cargarEnFormulario(Pago p) {
+        idPagoSeleccionado = p.getIdPago();
+        txtIdCuentaPago.setText(String.valueOf(p.getIdCuentaPago()));
+        txtReferencia.setText(p.getReferencia());
+        txtMonto.setText(p.getMonto() != null ? p.getMonto().toPlainString() : "");
+
+        if (p.getFecha() != null) dateFecha.setValue(p.getFecha().toLocalDate());
+
+        boolean activo = p.isEstado();
+        tglEstado.setSelected(activo);
+        actualizarToggleEstilo(activo);
+        actualizarTotal(p.getMonto());
+        lblIdPagoActual.setText("ID: " + p.getIdPago());
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // ACCIONES
+    // ════════════════════════════════════════════════════════════════════
     @FXML
     private void buscarPago() {
         String busqueda = txtBuscar.getText().trim();
-
         if (busqueda.isEmpty()) {
-            mostrarAlerta("Advertencia", "Ingrese un término de búsqueda", Alert.AlertType.WARNING);
+            mostrarAlerta("Advertencia", "Ingrese un término de búsqueda.", Alert.AlertType.WARNING);
             return;
         }
 
         listaPagos.clear();
-        String sql = "SELECT p.*, prov.nombre AS nombre_proveedor " +
-                "FROM tbl_PAGO_PROVEEDOR p " +
-                "INNER JOIN tbl_PROVEEDOR prov ON p.id_proveedor = prov.id_proveedor " +
-                "WHERE prov.nombre LIKE ? OR p.numero_factura LIKE ? " +
-                "ORDER BY p.id_pago DESC";
+        // Busca por referencia o id_cuenta_pago (si el texto es numérico)
+        String sql = "SELECT * FROM tbl_PAGO " +
+                "WHERE referencia LIKE ? OR CAST(id_cuenta_pago AS CHAR) LIKE ? " +
+                "ORDER BY id_pago DESC";
 
-        try (PreparedStatement pstmt = conexion.prepareStatement(sql)) {
-            String parametro = "%" + busqueda + "%";
-            pstmt.setString(1, parametro);
-            pstmt.setString(2, parametro);
-
-            ResultSet rs = pstmt.executeQuery();
-
-            while (rs.next()) {
-                Pago pago = new Pago();
-                pago.setIdPago(rs.getInt("id_pago"));
-                pago.setIdProveedor(rs.getInt("id_proveedor"));
-                pago.setNombreProveedor(rs.getString("nombre_proveedor"));
-                pago.setNumeroFactura(rs.getString("numero_factura"));
-
-                Date fechaFactura = rs.getDate("fecha_factura");
-                if (fechaFactura != null) {
-                    pago.setFechaFactura(fechaFactura.toLocalDate());
-                }
-
-                Date fechaPago = rs.getDate("fecha_pago");
-                if (fechaPago != null) {
-                    pago.setFechaPago(fechaPago.toLocalDate());
-                }
-
-                pago.setMetodoPago(rs.getString("metodo_pago"));
-                pago.setMonto(rs.getDouble("monto"));
-                pago.setEstado(rs.getString("estado"));
-
-                listaPagos.add(pago);
-            }
-
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            String param = "%" + busqueda + "%";
+            ps.setString(1, param);
+            ps.setString(2, param);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) listaPagos.add(mapearPago(rs));
             tblPagos.setItems(listaPagos);
 
-            if (listaPagos.isEmpty()) {
-                mostrarAlerta("Información", "No se encontraron resultados", Alert.AlertType.INFORMATION);
-            }
+            if (listaPagos.isEmpty())
+                mostrarAlerta("Sin resultados",
+                        "No se encontraron pagos para: " + busqueda + "",
+                        Alert.AlertType.INFORMATION);
 
         } catch (SQLException e) {
-            mostrarAlerta("Error", "Error en la búsqueda: " + e.getMessage(), Alert.AlertType.ERROR);
-            e.printStackTrace();
+            mostrarAlerta("Error", "Error en búsqueda:\n" + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
@@ -224,53 +212,21 @@ public class RegistroPagoController implements Initializable {
     @FXML
     private void nuevoPago() {
         limpiarCampos();
-        cmbProveedor.requestFocus();
+        txtIdCuentaPago.requestFocus();
     }
 
     @FXML
     private void registrarPago() {
-        if (!validarCampos()) {
-            return;
-        }
+        if (!validarCampos()) return;
 
-        Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmacion.setTitle("Confirmar Pago");
-        confirmacion.setHeaderText("¿Registrar este pago?");
-        confirmacion.setContentText("Monto: RD$ " + txtMonto.getText());
+        BigDecimal monto = new BigDecimal(txtMonto.getText().trim());
 
-        Optional<ButtonType> resultado = confirmacion.showAndWait();
-
-        if (resultado.isPresent() && resultado.get() == ButtonType.OK) {
-            guardarPago();
-        }
-    }
-
-    private void guardarPago() {
-        String sql = "INSERT INTO tbl_PAGO_PROVEEDOR (id_proveedor, numero_factura, fecha_factura, fecha_pago, metodo_pago, monto, estado) " +
-                "VALUES (?, ?, ?, ?, ?, ?, 'Completado')";
-
-        try (PreparedStatement pstmt = conexion.prepareStatement(sql)) {
-            pstmt.setInt(1, cmbProveedor.getValue().getIdProveedor());
-            pstmt.setString(2, txtNumFactura.getText().trim());
-            pstmt.setDate(3, dateFechaFactura.getValue() != null ? Date.valueOf(dateFechaFactura.getValue()) : null);
-            pstmt.setDate(4, Date.valueOf(dateFechaPago.getValue()));
-            pstmt.setString(5, cmbMetodoPago.getValue());
-            pstmt.setDouble(6, Double.parseDouble(txtMonto.getText().trim()));
-
-            int filasAfectadas = pstmt.executeUpdate();
-
-            if (filasAfectadas > 0) {
-                mostrarAlerta("Éxito", " Pago registrado correctamente", Alert.AlertType.INFORMATION);
-                limpiarCampos();
-                cargarPagos();
-            }
-
-        } catch (SQLException e) {
-            mostrarAlerta("Error", "Error al registrar pago: " + e.getMessage(), Alert.AlertType.ERROR);
-            e.printStackTrace();
-        } catch (NumberFormatException e) {
-            mostrarAlerta("Error", "El monto debe ser un número válido", Alert.AlertType.ERROR);
-        }
+        Alert conf = new Alert(Alert.AlertType.CONFIRMATION);
+        conf.setTitle("Confirmar Pago");
+        conf.setHeaderText("¿Desea registrar este pago?");
+        conf.setContentText("Monto: RD$ " + String.format("%.2f", monto));
+        Optional<ButtonType> res = conf.showAndWait();
+        if (res.isPresent() && res.get() == ButtonType.OK) guardarPago();
     }
 
     @FXML
@@ -281,73 +237,147 @@ public class RegistroPagoController implements Initializable {
     @FXML
     private void calcularTotal() {
         try {
-            if (!txtMonto.getText().trim().isEmpty()) {
-                double monto = Double.parseDouble(txtMonto.getText().trim());
-                lblTotalPagar.setText("RD$ " + String.format("%.2f", monto));
-            }
+            String texto = txtMonto.getText().trim();
+            if (!texto.isEmpty()) actualizarTotal(new BigDecimal(texto));
         } catch (NumberFormatException e) {
-            lblTotalPagar.setText("RD$ 0.00");
+            actualizarTotal(BigDecimal.ZERO);
+        }
+    }
+
+    /** Cambia el estilo del ToggleButton al hacer clic */
+    @FXML
+    private void toggleEstado() {
+        actualizarToggleEstilo(tglEstado.isSelected());
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // PERSISTENCIA
+    // ════════════════════════════════════════════════════════════════════
+    private void guardarPago() {
+        String sql = "INSERT INTO tbl_PAGO (id_cuenta_pago, monto, fecha, referencia, estado) " +
+                "VALUES (?, ?, ?, ?, ?)";
+
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            // Combina fecha seleccionada + hora actual para el LocalDateTime
+            LocalDateTime fechaHora = LocalDateTime.of(
+                    dateFecha.getValue(), LocalTime.now());
+
+            ps.setInt(1, Integer.parseInt(txtIdCuentaPago.getText().trim()));
+            ps.setBigDecimal(2, new BigDecimal(txtMonto.getText().trim()));
+            ps.setTimestamp(3, Timestamp.valueOf(fechaHora));
+            ps.setString(4, txtReferencia.getText().trim());
+            ps.setBoolean(5, tglEstado.isSelected());
+
+            if (ps.executeUpdate() > 0) {
+                mostrarAlerta("✔ Éxito", "Pago registrado correctamente.", Alert.AlertType.INFORMATION);
+                limpiarCampos();
+                cargarPagos();
+            }
+
+        } catch (SQLException e) {
+            mostrarAlerta("Error de BD", "No se pudo registrar el pago:\n" + e.getMessage(),
+                    Alert.AlertType.ERROR);
+        } catch (NumberFormatException e) {
+            mostrarAlerta("Formato inválido", "Revise los campos numéricos.", Alert.AlertType.ERROR);
+        }
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // UTILIDADES
+    // ════════════════════════════════════════════════════════════════════
+    private void actualizarTotal(BigDecimal monto) {
+        if (monto == null) monto = BigDecimal.ZERO;
+        if (lblTotalPagar != null)
+            lblTotalPagar.setText("RD$ " + String.format("%.2f", monto));
+    }
+
+    private void actualizarToggleEstilo(boolean activo) {
+        if (activo) {
+            tglEstado.setText("✔  Activo (true)");
+            tglEstado.setStyle(
+                    "-fx-background-color: #DFF5E8; -fx-text-fill: #1A7A40;" +
+                            "-fx-font-weight: bold; -fx-font-size: 13px;" +
+                            "-fx-background-radius: 20; -fx-cursor: hand; -fx-padding: 6 18;");
+            if (lblEstadoHint != null) {
+                lblEstadoHint.setText("El pago se registrará como  Activo");
+                lblEstadoHint.setStyle("-fx-font-size: 11px; -fx-text-fill: #5DA87A;");
+            }
+            if (lblBadgeEstado != null) {
+                lblBadgeEstado.setText("● Activo");
+                lblBadgeEstado.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;" +
+                        "-fx-text-fill: #1A7A40; -fx-background-color: #DFF5E8;" +
+                        "-fx-padding: 6 14; -fx-background-radius: 20;");
+            }
+        } else {
+            tglEstado.setText("✕  Inactivo (false)");
+            tglEstado.setStyle(
+                    "-fx-background-color: #FDE8E8; -fx-text-fill: #C0392B;" +
+                            "-fx-font-weight: bold; -fx-font-size: 13px;" +
+                            "-fx-background-radius: 20; -fx-cursor: hand; -fx-padding: 6 18;");
+            if (lblEstadoHint != null) {
+                lblEstadoHint.setText("El pago se registrará como  Inactivo");
+                lblEstadoHint.setStyle("-fx-font-size: 11px; -fx-text-fill: #C0392B;");
+            }
+            if (lblBadgeEstado != null) {
+                lblBadgeEstado.setText("● Inactivo");
+                lblBadgeEstado.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;" +
+                        "-fx-text-fill: #C0392B; -fx-background-color: #FDE8E8;" +
+                        "-fx-padding: 6 14; -fx-background-radius: 20;");
+            }
         }
     }
 
     private void limpiarCampos() {
         idPagoSeleccionado = 0;
-        cmbProveedor.setValue(null);
-        txtNumFactura.clear();
-        dateFechaFactura.setValue(null);
-        dateFechaPago.setValue(LocalDate.now());
-        cmbMetodoPago.setValue(null);
+        txtIdCuentaPago.clear();
+        txtReferencia.clear();
         txtMonto.clear();
         txtBuscar.clear();
-        lblTotalPagar.setText("RD$ 0.00");
-        lblEstado.setText("Pendiente");
+        dateFecha.setValue(LocalDate.now());
+        tglEstado.setSelected(true);
+        actualizarToggleEstilo(true);
+        actualizarTotal(BigDecimal.ZERO);
+        lblIdPagoActual.setText("— Nuevo —");
         tblPagos.getSelectionModel().clearSelection();
     }
 
     private boolean validarCampos() {
-        if (cmbProveedor.getValue() == null) {
-            mostrarAlerta("Advertencia", "Seleccione un proveedor", Alert.AlertType.WARNING);
-            cmbProveedor.requestFocus();
-            return false;
+        if (txtIdCuentaPago.getText().trim().isEmpty()) {
+            mostrarAlerta("Campo requerido", "Ingrese el ID de la cuenta de pago.", Alert.AlertType.WARNING);
+            txtIdCuentaPago.requestFocus(); return false;
         }
-
-        if (dateFechaPago.getValue() == null) {
-            mostrarAlerta("Advertencia", "Seleccione la fecha de pago", Alert.AlertType.WARNING);
-            dateFechaPago.requestFocus();
-            return false;
-        }
-
-        if (cmbMetodoPago.getValue() == null) {
-            mostrarAlerta("Advertencia", "Seleccione un método de pago", Alert.AlertType.WARNING);
-            cmbMetodoPago.requestFocus();
-            return false;
-        }
-
-        if (txtMonto.getText().trim().isEmpty()) {
-            mostrarAlerta("Advertencia", "Ingrese el monto del pago", Alert.AlertType.WARNING);
-            txtMonto.requestFocus();
-            return false;
-        }
-
         try {
-            double monto = Double.parseDouble(txtMonto.getText().trim());
-            if (monto <= 0) {
-                mostrarAlerta("Advertencia", "El monto debe ser mayor a 0", Alert.AlertType.WARNING);
+            Integer.parseInt(txtIdCuentaPago.getText().trim());
+        } catch (NumberFormatException e) {
+            mostrarAlerta("Formato inválido", "El ID de cuenta debe ser un número entero.", Alert.AlertType.ERROR);
+            txtIdCuentaPago.requestFocus(); return false;
+        }
+        if (dateFecha.getValue() == null) {
+            mostrarAlerta("Campo requerido", "Seleccione la fecha del pago.", Alert.AlertType.WARNING);
+            dateFecha.requestFocus(); return false;
+        }
+        if (txtMonto.getText().trim().isEmpty()) {
+            mostrarAlerta("Campo requerido", "Ingrese el monto del pago.", Alert.AlertType.WARNING);
+            txtMonto.requestFocus(); return false;
+        }
+        try {
+            BigDecimal monto = new BigDecimal(txtMonto.getText().trim());
+            if (monto.compareTo(BigDecimal.ZERO) <= 0) {
+                mostrarAlerta("Valor inválido", "El monto debe ser mayor a RD$ 0.00.", Alert.AlertType.WARNING);
                 return false;
             }
         } catch (NumberFormatException e) {
-            mostrarAlerta("Error", "El monto debe ser un número válido", Alert.AlertType.ERROR);
+            mostrarAlerta("Formato inválido", "El monto debe ser un número válido (ej: 1500.00).", Alert.AlertType.ERROR);
             return false;
         }
-
         return true;
     }
 
     private void mostrarAlerta(String titulo, String mensaje, Alert.AlertType tipo) {
-        Alert alerta = new Alert(tipo);
-        alerta.setTitle(titulo);
-        alerta.setHeaderText(null);
-        alerta.setContentText(mensaje);
-        alerta.showAndWait();
+        Alert a = new Alert(tipo);
+        a.setTitle(titulo);
+        a.setHeaderText(null);
+        a.setContentText(mensaje);
+        a.showAndWait();
     }
 }

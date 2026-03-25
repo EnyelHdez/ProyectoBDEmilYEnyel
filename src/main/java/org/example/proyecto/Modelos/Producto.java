@@ -4,11 +4,11 @@ public class Producto {
 
     private int     idProducto;
     private int     idCategoria;
-    private Integer idProveedor;        // nullable en BD
+    private Integer idProveedor;        // null en BD
     private String  codigoBarra;        // codigo_barra (sin 's')
     private String  nombre;
-    private String  descripcion;        // nullable en BD
-    private double  precioCosto;        // precio_costo
+    private String  descripcion;        // null en BD
+    private double  precioCosto;
     private double  precioVenta;
     private int     stockActual;        // stock_actual
     private int     stockMinimo;        // stock_minimo
@@ -22,10 +22,10 @@ public class Producto {
     // Campo auxiliar (JOIN con categoria)
     private String nombreCategoria;
 
-    // ── Constructor vacío ────────────────────────────────────
+
     public Producto() {}
 
-    // ── Constructor completo ─────────────────────────────────
+
     public Producto(int idProducto, int idCategoria, Integer idProveedor,
                     String codigoBarra, String nombre, String descripcion,
                     double precioCosto, double precioVenta,
