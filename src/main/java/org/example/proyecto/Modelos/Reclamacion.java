@@ -11,6 +11,10 @@ public class Reclamacion {
     private String        descripcion;
     private String        estado;
 
+    public Reclamacion() {
+
+    }
+
     public int getIdReclamacion() {
         return idReclamacion;
     }

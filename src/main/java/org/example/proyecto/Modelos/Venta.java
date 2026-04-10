@@ -4,109 +4,75 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class Venta {
-    private int idVenta;
-    private Integer idCliente;
-    private int idEmpleado;
-    private Integer idComprobante;
+    private int           idVenta;
+    private Integer       idCliente;
+    private int           idEmpleado;
+    private Integer       idComprobante;
+    private Integer       idProducto;      // ← NUEVO
     private LocalDateTime fecha;
-    private BigDecimal subtotal;
-    private BigDecimal descuento;
-    private BigDecimal itbis;
-    private BigDecimal total;
+    private BigDecimal    subtotal;
+    private BigDecimal    descuento;
+    private BigDecimal    itbis;
+    private BigDecimal    total;
+    private String        estado;          // COMPLETADA | ANULADA | PENDIENTE
 
-    public int getIdVenta() {
-        return idVenta;
-    }
+    // Campo auxiliar para mostrar en tabla (no está en la BD)
+    private String nombreProducto;         // ← NUEVO
 
-    public void setIdVenta(int idVenta) {
-        this.idVenta = idVenta;
-    }
+    public Venta() {}
 
-    public Integer getIdCliente() {
-        return idCliente;
-    }
-
-    public void setIdCliente(Integer idCliente) {
-        this.idCliente = idCliente;
-    }
-
-    public Integer getIdEmpleado() {
-        return idEmpleado;
-    }
-
-    public void setIdEmpleado(int idEmpleado) {
-        this.idEmpleado = idEmpleado;
-    }
-
-    public Integer getIdComprobante() {
-        return idComprobante;
-    }
-
-    public void setIdComprobante(Integer idComprobante) {
+    public Venta(int idVenta, Integer idCliente, int idEmpleado, Integer idComprobante,
+                 LocalDateTime fecha, BigDecimal subtotal, BigDecimal descuento,
+                 BigDecimal itbis, BigDecimal total, String estado) {
+        this.idVenta       = idVenta;
+        this.idCliente     = idCliente;
+        this.idEmpleado    = idEmpleado;
         this.idComprobante = idComprobante;
+        this.fecha         = fecha;
+        this.subtotal      = subtotal;
+        this.descuento     = descuento;
+        this.itbis         = itbis;
+        this.total         = total;
+        this.estado        = estado;
     }
 
-    public LocalDateTime getFecha() {
-        return fecha;
-    }
+    // ── Getters y Setters ────────────────────────────────────────────────
 
-    public void setFecha(LocalDateTime fecha) {
-        this.fecha = fecha;
-    }
+    public int getIdVenta()                             { return idVenta; }
+    public void setIdVenta(int v)                       { this.idVenta = v; }
 
-    public BigDecimal getSubtotal() {
-        return subtotal;
-    }
+    public Integer getIdCliente()                       { return idCliente; }
+    public void setIdCliente(Integer v)                 { this.idCliente = v; }
 
-    public void setSubtotal(BigDecimal subtotal) {
-        this.subtotal = subtotal;
-    }
+    public Integer getIdEmpleado()                      { return idEmpleado; }
+    public void setIdEmpleado(int v)                    { this.idEmpleado = v; }
 
-    public BigDecimal getDescuento() {
-        return descuento;
-    }
+    public Integer getIdComprobante()                   { return idComprobante; }
+    public void setIdComprobante(Integer v)             { this.idComprobante = v; }
 
-    public void setDescuento(BigDecimal descuento) {
-        this.descuento = descuento;
-    }
+    /** ID del producto involucrado en esta venta (puede ser null) */
+    public Integer getIdProducto()                      { return idProducto; }
+    public void setIdProducto(Integer v)                { this.idProducto = v; }
 
-    public BigDecimal getItbis() {
-        return itbis;
-    }
+    public LocalDateTime getFecha()                     { return fecha; }
+    public void setFecha(LocalDateTime v)               { this.fecha = v; }
 
-    public void setItbis(BigDecimal itbis) {
-        this.itbis = itbis;
-    }
+    public BigDecimal getSubtotal()                     { return subtotal; }
+    public void setSubtotal(BigDecimal v)               { this.subtotal = v; }
 
-    public BigDecimal getTotal() {
-        return total;
-    }
+    public BigDecimal getDescuento()                    { return descuento; }
+    public void setDescuento(BigDecimal v)              { this.descuento = v; }
 
-    public void setTotal(BigDecimal total) {
-        this.total = total;
-    }
+    public BigDecimal getItbis()                        { return itbis; }
+    public void setItbis(BigDecimal v)                  { this.itbis = v; }
 
-    public String getEstado() {
-        return estado;
-    }
+    public BigDecimal getTotal()                        { return total; }
+    public void setTotal(BigDecimal v)                  { this.total = v; }
 
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
+    public String getEstado()                           { return estado; }
+    public void setEstado(String v)                     { this.estado = v; }
 
-    public Venta(int idVenta, Integer idCliente, int idEmpleado, Integer idComprobante, LocalDateTime fecha, BigDecimal subtotal, BigDecimal descuento, BigDecimal itbis, BigDecimal total, String estado) {
-        this.idVenta = idVenta;
-        this.idCliente = idCliente;
-        this.idEmpleado = idEmpleado;
-        this.idComprobante = idComprobante;
-        this.fecha = fecha;
-        this.subtotal = subtotal;
-        this.descuento = descuento;
-        this.itbis = itbis;
-        this.total = total;
-        this.estado = estado;
-    }
-
-    private String estado; // COMPLETADA, ANULADA, PENDIENTE
-
+    /** Nombre del producto (campo auxiliar, viene del JOIN) */
+    public String getNombreProducto()                   { return nombreProducto; }
+    public void setNombreProducto(String v)             { this.nombreProducto = v; }
 }

@@ -1,5 +1,6 @@
 package org.example.proyecto.Controladores;
 
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -8,512 +9,666 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import org.example.proyecto.Conexion.ConexionBD;
-import org.example.proyecto.Modelos.Compra;
-import org.example.proyecto.Modelos.DetalleCompra;
-import org.example.proyecto.Modelos.Proveedor;
+import org.example.proyecto.Modelos.OrdenCompra;
+import org.example.proyecto.Modelos.DetalleOrdenCompra;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URL;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class OrdenCompraController implements Initializable {
 
-    // ── Campos del formulario ──────────────────────────────────────
+    // Búsqueda
     @FXML private TextField txtBuscar;
-    @FXML private ComboBox<Proveedor> cmbProveedor;
+
+    // Tabla de órdenes
+    @FXML private TableView<OrdenCompra> tblOrdenes;
+    @FXML private TableColumn<OrdenCompra, Integer> colId;
+    @FXML private TableColumn<OrdenCompra, String> colProveedor;
+    @FXML private TableColumn<OrdenCompra, String> colEmpleado;
+    @FXML private TableColumn<OrdenCompra, String> colFechaOrden;
+    @FXML private TableColumn<OrdenCompra, String> colFechaEntrega;
+    @FXML private TableColumn<OrdenCompra, BigDecimal> colTotal;
+    @FXML private TableColumn<OrdenCompra, String> colEstado;
+
+    // Formulario principal
+    @FXML private ComboBox<String> cmbProveedor;
     @FXML private ComboBox<String> cmbEmpleado;
-    @FXML private TextField txtProducto;
-    @FXML private Spinner<Integer> spnCantidad;
-    @FXML private TextField txtPrecioEstimado;
-    @FXML private TextField txtLote;
-    @FXML private DatePicker dateFecha;
     @FXML private ComboBox<String> cmbEstado;
+    @FXML private ComboBox<String> cmbCondicionPago;
+    @FXML private DatePicker dateFechaOrden;
+    @FXML private DatePicker dateFechaEntrega;
+    @FXML private TextArea txtObservaciones;
 
-    // ── Tabla de compras (cabeceras) ──────────────────────────────
-    @FXML private TableView<Compra> tblOrdenes;
-    @FXML private TableColumn<Compra, Integer> colId;
-    @FXML private TableColumn<Compra, Integer> colProveedor;
-    @FXML private TableColumn<Compra, Integer> colEmpleado;
-    @FXML private TableColumn<Compra, String> colFecha;
-    @FXML private TableColumn<Compra, BigDecimal> colSubtotal;
-    @FXML private TableColumn<Compra, BigDecimal> colDescuento;
-    @FXML private TableColumn<Compra, BigDecimal> colItbis;
-    @FXML private TableColumn<Compra, BigDecimal> colTotal;
-    @FXML private TableColumn<Compra, String> colEstado;
+    // Detalle de productos
+    @FXML private ComboBox<String> cmbProducto;
+    @FXML private TextField txtCantidad;
+    @FXML private TextField txtPrecioUnitario;
+    @FXML private TableView<DetalleOrdenCompra> tblDetalleProductos;
+    @FXML private TableColumn<DetalleOrdenCompra, String> colProdNombre;
+    @FXML private TableColumn<DetalleOrdenCompra, Integer> colProdCantidad;
+    @FXML private TableColumn<DetalleOrdenCompra, BigDecimal> colProdPrecio;
+    @FXML private TableColumn<DetalleOrdenCompra, BigDecimal> colProdSubtotal;
+    @FXML private TableColumn<DetalleOrdenCompra, Void> colProdAcciones;
 
-    // ── Tabla de detalles temporales (productos a ordenar) ─────────
-    @FXML private TableView<DetalleCompra> tblDetalles;
-    @FXML private TableColumn<DetalleCompra, String> colDetalleProducto;
-    @FXML private TableColumn<DetalleCompra, Integer> colDetalleCantidad;
-    @FXML private TableColumn<DetalleCompra, Double> colDetallePrecio;
-    @FXML private TableColumn<DetalleCompra, String> colDetalleLote;
-    @FXML private TableColumn<DetalleCompra, Double> colDetalleSubtotal;
+    // Totales
+    @FXML private TextField txtSubtotal;
+    @FXML private TextField txtTotal;
 
-    @FXML private Label lblTotal;
-
-    private int idCompraSeleccionada = 0;
-    private final ObservableList<Proveedor> listaProveedores = FXCollections.observableArrayList();
-    private final ObservableList<DetalleCompra> listaDetalles = FXCollections.observableArrayList();
-    private final ObservableList<Compra> listaCompras = FXCollections.observableArrayList();
+    // Estado interno
+    private int idOrdenSeleccionada = 0;
+    private final ObservableList<OrdenCompra> listaOrdenes = FXCollections.observableArrayList();
+    private final ObservableList<DetalleOrdenCompra> listaDetalle = FXCollections.observableArrayList();
     private Connection conexion;
-    private double totalOrden = 0.0;
+    private Map<Integer, String> mapaProductos = new HashMap<>();
 
     @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
-        conexion = new ConexionBD().EstablecerConexion();
+    public void initialize(URL url, ResourceBundle rb) {
+        try {
+            conexion = new ConexionBD().EstablecerConexion();
 
-        // Configurar ComboBoxes
-        cmbEstado.setItems(FXCollections.observableArrayList(
-                "PENDIENTE", "APROBADA", "ENVIADA", "RECIBIDA", "ANULADA"
-        ));
-        dateFecha.setValue(LocalDate.now());
+            // Configurar combos
+            cmbEstado.setItems(FXCollections.observableArrayList(
+                    "PENDIENTE", "APROBADA", "ENVIADA", "RECIBIDA", "CANCELADA"));
+            cmbCondicionPago.setItems(FXCollections.observableArrayList(
+                    "CONTADO", "CRÉDITO 15 DÍAS", "CRÉDITO 30 DÍAS", "CRÉDITO 45 DÍAS", "CRÉDITO 60 DÍAS"));
 
-        configurarSpinner();
-        configurarTablas();
-        cargarProveedores();
-        cargarEmpleados();
-        cargarCompras();
+            cargarProveedores();
+            cargarEmpleados();
+            cargarProductos();
 
-        // Listener para selección en tabla de compras
-        tblOrdenes.getSelectionModel().selectedItemProperty().addListener(
-                (obs, oldVal, sel) -> {
-                    if (sel != null) {
-                        idCompraSeleccionada = sel.getIdCompra();
-                        cargarDetallesCompra(sel.getIdCompra());
-                        rellenarFormularioCompra(sel);
-                    }
-                });
-    }
+            dateFechaOrden.setValue(LocalDate.now());
 
-    private void configurarSpinner() {
-        SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10000, 1);
-        spnCantidad.setValueFactory(valueFactory);
-        spnCantidad.setEditable(true);
-    }
+            configurarTablaOrdenes();
+            configurarTablaDetalle();
+            cargarTablaOrdenes();
 
-    private void configurarTablas() {
-        // Configurar tabla de compras
-        colId.setCellValueFactory(new PropertyValueFactory<>("idCompra"));
-        colProveedor.setCellValueFactory(new PropertyValueFactory<>("idProveedor"));
-        colEmpleado.setCellValueFactory(new PropertyValueFactory<>("idEmpleado"));
-        colFecha.setCellValueFactory(new PropertyValueFactory<>("fecha"));
-        colSubtotal.setCellValueFactory(new PropertyValueFactory<>("subtotal"));
-        colDescuento.setCellValueFactory(new PropertyValueFactory<>("descuento"));
-        colItbis.setCellValueFactory(new PropertyValueFactory<>("itbis"));
-        colTotal.setCellValueFactory(new PropertyValueFactory<>("total"));
-        colEstado.setCellValueFactory(new PropertyValueFactory<>("estado"));
+            tblOrdenes.getSelectionModel().selectedItemProperty().addListener(
+                    (obs, oldVal, sel) -> {
+                        if (sel != null) {
+                            idOrdenSeleccionada = sel.getIdOrden();
+                            rellenarFormulario(sel);
+                            cargarDetalleOrden(sel.getIdOrden());
+                        }
+                    });
 
-        // Configurar tabla de detalles
-        colDetalleProducto.setCellValueFactory(new PropertyValueFactory<>("nombreProducto"));
-        colDetalleCantidad.setCellValueFactory(new PropertyValueFactory<>("cantidad"));
-        colDetallePrecio.setCellValueFactory(new PropertyValueFactory<>("precioUnitario"));
-        colDetalleLote.setCellValueFactory(new PropertyValueFactory<>("lote"));
-        colDetalleSubtotal.setCellValueFactory(new PropertyValueFactory<>("subtotal"));
-
-        tblOrdenes.setItems(listaCompras);
-        tblDetalles.setItems(listaDetalles);
+        } catch (Exception e) {
+            e.printStackTrace();
+            mostrarError("Error al inicializar: " + e.getMessage());
+        }
     }
 
     private void cargarProveedores() {
-        listaProveedores.clear();
-        String sql = "SELECT id_proveedor, nombre_comercial, rnc, telefono FROM tbl_PROVEEDOR WHERE estado_temp = 'Activo' ORDER BY nombre_comercial";
-
-        try (Statement stmt = conexion.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-                Proveedor proveedor = new Proveedor();
-                proveedor.setIdProveedor(rs.getInt("id_proveedor"));
-                proveedor.setNombreComercial(rs.getString("nombre_comercial"));
-                proveedor.setRnc(rs.getString("rnc"));
-                proveedor.setTelefono(rs.getString("telefono"));
-                listaProveedores.add(proveedor);
-            }
-            cmbProveedor.setItems(listaProveedores);
-
+        ObservableList<String> proveedores = FXCollections.observableArrayList();
+        String sql = "SELECT id_proveedor, razon_social FROM tbl_PROVEEDOR WHERE estado_temp = 'Activo' ORDER BY razon_social";
+        try (Statement stmt = conexion.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next())
+                proveedores.add(rs.getInt("id_proveedor") + " - " + rs.getString("razon_social"));
+            cmbProveedor.setItems(proveedores);
         } catch (SQLException e) {
-            mostrarAlerta("Error", "Error al cargar proveedores: " + e.getMessage(), Alert.AlertType.ERROR);
-            e.printStackTrace();
+            try {
+                String sql2 = "SELECT id_proveedor, nombre_comercial FROM tbl_PROVEEDOR WHERE estado_temp = 'Activo' ORDER BY nombre_comercial";
+                try (Statement s2 = conexion.createStatement(); ResultSet rs2 = s2.executeQuery(sql2)) {
+                    while (rs2.next())
+                        proveedores.add(rs2.getInt("id_proveedor") + " - " + rs2.getString("nombre_comercial"));
+                    cmbProveedor.setItems(proveedores);
+                }
+            } catch (SQLException e2) {
+                mostrarError("Error al cargar proveedores: " + e.getMessage());
+            }
         }
     }
 
     private void cargarEmpleados() {
         ObservableList<String> empleados = FXCollections.observableArrayList();
-        String sql = "SELECT id_empleado, nombres FROM tbl_EMPLEADO WHERE estado_temp = 'Activo' ORDER BY nombres";
-
-        try (Statement stmt = conexion.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
+        String sql = "SELECT id_empleado, nombres FROM tbl_EMPLEADO ORDER BY nombres";
+        try (Statement stmt = conexion.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next())
                 empleados.add(rs.getInt("id_empleado") + " - " + rs.getString("nombres"));
-            }
             cmbEmpleado.setItems(empleados);
         } catch (SQLException e) {
-            mostrarAlerta("Error", "Error al cargar empleados: " + e.getMessage(), Alert.AlertType.ERROR);
-            e.printStackTrace();
+            mostrarError("Error al cargar empleados: " + e.getMessage());
         }
     }
 
-    private void cargarCompras() {
-        listaCompras.clear();
-        String sql = "SELECT * FROM tbl_COMPRA ORDER BY id_compra DESC";
-
-        try (Statement stmt = conexion.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-
+    private void cargarProductos() {
+        ObservableList<String> lista = FXCollections.observableArrayList();
+        String sql = "SELECT id_producto, nombre, precio_costo FROM tbl_PRODUCTO ORDER BY nombre";
+        try (Statement st = conexion.createStatement(); ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
-                Compra compra = new Compra(
-                        rs.getInt("id_compra"),
-                        rs.getInt("id_proveedor"),
-                        rs.getInt("id_empleado"),
-                        rs.getObject("id_comprobante") != null ? rs.getInt("id_comprobante") : null,
-                        rs.getTimestamp("fecha") != null ? rs.getTimestamp("fecha").toLocalDateTime() : null,
-                        rs.getString("nro_factura_prov"),
-                        rs.getBigDecimal("subtotal"),
-                        rs.getBigDecimal("descuento"),
-                        rs.getBigDecimal("itbis"),
-                        rs.getBigDecimal("total"),
-                        rs.getString("estado_temp")
-                );
-                listaCompras.add(compra);
+                int id = rs.getInt("id_producto");
+                String nombre = rs.getString("nombre");
+                lista.add(id + " - " + nombre);
+                mapaProductos.put(id, nombre);
             }
-
         } catch (SQLException e) {
-            mostrarAlerta("Error", "Error al cargar compras: " + e.getMessage(), Alert.AlertType.ERROR);
-            e.printStackTrace();
+            mostrarError("Error al cargar productos: " + e.getMessage());
         }
+        cmbProducto.setItems(lista);
+
+        // Auto-completar precio al seleccionar producto
+        cmbProducto.setOnAction(e -> {
+            String selected = cmbProducto.getValue();
+            if (selected != null && !selected.isEmpty()) {
+                int idProducto = Integer.parseInt(selected.split(" - ")[0]);
+                cargarPrecioProducto(idProducto);
+            }
+        });
     }
 
-    private void cargarDetallesCompra(int idCompra) {
-        listaDetalles.clear();
-        String sql = "SELECT dc.*, p.nombre as nombre_producto " +
-                "FROM tbl_DETALLE_COMPRA dc " +
-                "LEFT JOIN tbl_PRODUCTO p ON dc.id_producto = p.id_producto " +
-                "WHERE dc.id_det_compra = ?";
-
+    private void cargarPrecioProducto(int idProducto) {
+        String sql = "SELECT precio_compra FROM tbl_PRODUCTO WHERE id_producto = ?";
         try (PreparedStatement ps = conexion.prepareStatement(sql)) {
-            ps.setInt(1, idCompra);
+            ps.setInt(1, idProducto);
             ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                DetalleCompra detalle = new DetalleCompra(
-                        rs.getInt("id_det_compra"),
-                        rs.getInt("id_compra"),
-                        rs.getInt("id_producto"),
-                        rs.getString("nombre_producto"),
-                        rs.getInt("cantidad"),
-                        rs.getDouble("descuento"),
-                        rs.getString("lote"),
-                        rs.getDouble("subtotal"),
-                        rs.getString("fecha_vencimiento")
-                );
-                listaDetalles.add(detalle);
+            if (rs.next()) {
+                BigDecimal precio = rs.getBigDecimal("precio_compra");
+                if (precio != null) {
+                    txtPrecioUnitario.setText(precio.toString());
+                }
             }
-
         } catch (SQLException e) {
-            mostrarAlerta("Error", "Error al cargar detalles: " + e.getMessage(), Alert.AlertType.ERROR);
-            e.printStackTrace();
+            System.err.println("Error al cargar precio: " + e.getMessage());
         }
     }
 
-    private void rellenarFormularioCompra(Compra c) {
-        // Seleccionar proveedor en ComboBox
-        for (Proveedor p : listaProveedores) {
-            if (p.getIdProveedor() == c.getIdProveedor()) {
-                cmbProveedor.setValue(p);
-                break;
+    private void configurarTablaOrdenes() {
+        colId.setCellValueFactory(new PropertyValueFactory<>("idOrden"));
+        colProveedor.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().getNombreProveedor()));
+        colEmpleado.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().getNombreEmpleado()));
+        colFechaOrden.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().getFechaOrden() != null ?
+                        cellData.getValue().getFechaOrden().toLocalDate().toString() : ""));
+        colFechaEntrega.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().getFechaEntrega() != null ?
+                        cellData.getValue().getFechaEntrega().toLocalDate().toString() : "Pendiente"));
+        colTotal.setCellValueFactory(new PropertyValueFactory<>("total"));
+        colEstado.setCellValueFactory(new PropertyValueFactory<>("estado"));
+
+        // Colorear filas según estado
+        tblOrdenes.setRowFactory(tv -> new TableRow<OrdenCompra>() {
+            @Override
+            protected void updateItem(OrdenCompra item, boolean empty) {
+                super.updateItem(item, empty);
+                if (item == null || empty) {
+                    setStyle("");
+                } else {
+                    switch (item.getEstado()) {
+                        case "PENDIENTE":
+                            setStyle("-fx-background-color: #FEF3C7;");
+                            break;
+                        case "APROBADA":
+                            setStyle("-fx-background-color: #DBEAFE;");
+                            break;
+                        case "ENVIADA":
+                            setStyle("-fx-background-color: #E0E7FF;");
+                            break;
+                        case "RECIBIDA":
+                            setStyle("-fx-background-color: #D1FAE5;");
+                            break;
+                        case "CANCELADA":
+                            setStyle("-fx-background-color: #FEE2E2;");
+                            break;
+                        default:
+                            setStyle("");
+                    }
+                }
             }
-        }
+        });
 
-        // Seleccionar empleado
-        String empleadoStr = c.getIdEmpleado() + " - ";
-        for (String e : cmbEmpleado.getItems()) {
-            if (e.startsWith(empleadoStr)) {
-                cmbEmpleado.setValue(e);
-                break;
-            }
-        }
-
-        dateFecha.setValue(c.getFecha() != null ? c.getFecha().toLocalDate() : LocalDate.now());
-        cmbEstado.setValue(c.getEstado());
-
-        // Limpiar tabla de detalles temporal
-        listaDetalles.clear();
-        calcularTotal();
+        tblOrdenes.setItems(listaOrdenes);
     }
 
-    private Integer obtenerIdEmpleadoFromCombo(String comboValue) {
-        if (comboValue == null) return null;
-        try {
-            return Integer.parseInt(comboValue.split(" - ")[0]);
-        } catch (Exception e) {
-            return null;
+    private void configurarTablaDetalle() {
+        colProdNombre.setCellValueFactory(new PropertyValueFactory<>("nombreProducto"));
+        colProdCantidad.setCellValueFactory(new PropertyValueFactory<>("cantidad"));
+        colProdPrecio.setCellValueFactory(new PropertyValueFactory<>("precioUnitario"));
+        colProdSubtotal.setCellValueFactory(new PropertyValueFactory<>("subtotal"));
+
+        // Botón eliminar
+        colProdAcciones.setCellFactory(param -> new TableCell<>() {
+            private final Button btnEliminar = new Button("🗑️");
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    btnEliminar.setStyle("-fx-background-color: #EF4444; -fx-text-fill: white; -fx-cursor: hand;");
+                    btnEliminar.setOnAction(event -> {
+                        DetalleOrdenCompra detalle = getTableView().getItems().get(getIndex());
+                        listaDetalle.remove(detalle);
+                        actualizarTotales();
+                    });
+                    setGraphic(btnEliminar);
+                }
+            }
+        });
+
+        tblDetalleProductos.setItems(listaDetalle);
+    }
+
+    private void cargarTablaOrdenes() {
+        listaOrdenes.clear();
+        String sql = "SELECT o.*, p.razon_social as nombre_proveedor, e.nombres as nombre_empleado " +
+                "FROM tbl_ORDEN_COMPRA o " +
+                "LEFT JOIN tbl_PROVEEDOR p ON o.id_proveedor = p.id_proveedor " +
+                "LEFT JOIN tbl_EMPLEADO e ON o.id_empleado = e.id_empleado " +
+                "ORDER BY o.id_orden DESC";
+        try (Statement stmt = conexion.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                OrdenCompra o = new OrdenCompra();
+                o.setIdOrden(rs.getInt("id_orden"));
+                o.setIdProveedor(rs.getInt("id_proveedor"));
+                o.setNombreProveedor(rs.getString("nombre_proveedor"));
+                o.setIdEmpleado(rs.getInt("id_empleado"));
+                o.setNombreEmpleado(rs.getString("nombre_empleado"));
+                Timestamp tsOrden = rs.getTimestamp("fecha_orden");
+                if (tsOrden != null) o.setFechaOrden(tsOrden.toLocalDateTime());
+                Timestamp tsEntrega = rs.getTimestamp("fecha_entrega");
+                if (tsEntrega != null) o.setFechaEntrega(tsEntrega.toLocalDateTime());
+                o.setCondicionPago(rs.getString("condicion_pago"));
+                o.setObservaciones(rs.getString("observaciones"));
+                o.setSubtotal(rs.getBigDecimal("subtotal"));
+                o.setTotal(rs.getBigDecimal("total"));
+                o.setEstado(rs.getString("estado"));
+                listaOrdenes.add(o);
+            }
+        } catch (SQLException e) {
+            mostrarError("Error al cargar las órdenes:\n" + e.getMessage());
+        }
+    }
+
+    private void cargarDetalleOrden(int idOrden) {
+        listaDetalle.clear();
+        String sql = "SELECT d.*, p.nombre as nombre_producto " +
+                "FROM tbl_DETALLE_ORDEN_COMPRA d " +
+                "JOIN tbl_PRODUCTO p ON d.id_producto = p.id_producto " +
+                "WHERE d.id_orden = ?";
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            ps.setInt(1, idOrden);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                DetalleOrdenCompra d = new DetalleOrdenCompra();
+                d.setIdDetalle(rs.getInt("id_detalle"));
+                d.setIdOrden(rs.getInt("id_orden"));
+                d.setIdProducto(rs.getInt("id_producto"));
+                d.setNombreProducto(rs.getString("nombre_producto"));
+                d.setCantidad(rs.getInt("cantidad"));
+                d.setPrecioUnitario(rs.getBigDecimal("precio_unitario"));
+                d.setSubtotal(rs.getBigDecimal("subtotal"));
+                listaDetalle.add(d);
+            }
+            actualizarTotales();
+        } catch (SQLException e) {
+            mostrarError("Error al cargar detalle: " + e.getMessage());
         }
     }
 
     @FXML
-    private void agregarProducto() {
-        if (cmbProveedor.getValue() == null) {
-            mostrarAlerta("Advertencia", "Seleccione un proveedor primero", Alert.AlertType.WARNING);
+    private void agregarProducto(ActionEvent event) {
+        if (cmbProducto.getValue() == null) {
+            mostrarError("Seleccione un producto");
             return;
         }
 
-        String sql = "insert into tbl_DETALLE_COMPRA(int id_det_compra, id_compra, id_producto, cantidad, precio_costo, descuento, itibis, subtotal, lote)";
-
-
-        String nombreProducto = txtProducto.getText().trim();
-        if (nombreProducto.isEmpty()) {
-            mostrarAlerta("Advertencia", "Ingrese el nombre del producto", Alert.AlertType.WARNING);
+        String cantStr = txtCantidad.getText().trim();
+        if (cantStr.isEmpty()) {
+            mostrarError("Ingrese la cantidad");
             return;
         }
 
-        int cantidad = spnCantidad.getValue();
-        double precioEstimado;
-        String lote = txtLote.getText().trim();
+        String precioStr = txtPrecioUnitario.getText().trim();
+        if (precioStr.isEmpty()) {
+            mostrarError("Ingrese el precio unitario");
+            return;
+        }
 
         try {
-            precioEstimado = Double.parseDouble(txtPrecioEstimado.getText().trim());
+            int cantidad = Integer.parseInt(cantStr);
+            BigDecimal precio = new BigDecimal(precioStr);
+
+            String productoSeleccionado = cmbProducto.getValue();
+            int idProducto = Integer.parseInt(productoSeleccionado.split(" - ")[0]);
+            String nombreProducto = productoSeleccionado.split(" - ")[1];
+
+            DetalleOrdenCompra detalle = new DetalleOrdenCompra(idProducto, nombreProducto, cantidad, precio);
+            listaDetalle.add(detalle);
+
+            actualizarTotales();
+            limpiarCamposProducto();
+
         } catch (NumberFormatException e) {
-            mostrarAlerta("Advertencia", "Ingrese un precio estimado válido", Alert.AlertType.WARNING);
-            return;
-        }
-
-        // Verificar si el producto ya está en la lista
-        boolean existe = false;
-        for (DetalleCompra detalle : listaDetalles) {
-            if (detalle.getNombreProducto().equalsIgnoreCase(nombreProducto)) {
-                detalle.setCantidad(detalle.getCantidad() + cantidad);
-                detalle.setSubtotal(detalle.getCantidad() * detalle.getPrecioUnitario());
-                existe = true;
-                break;
-            }
-        }
-
-        if (!existe) {
-            // Obtener ID del producto si existe, sino usar 0 temporal
-            int idProducto = obtenerIdProducto(nombreProducto);
-
-
+            mostrarError("Valores numéricos inválidos");
         }
     }
 
     @FXML
-    private void quitarProducto() {
-        DetalleCompra seleccionado = tblDetalles.getSelectionModel().getSelectedItem();
+    private void eliminarProductoSeleccionado(ActionEvent event) {
+        DetalleOrdenCompra seleccionado = tblDetalleProductos.getSelectionModel().getSelectedItem();
+        if (seleccionado != null) {
+            listaDetalle.remove(seleccionado);
+            actualizarTotales();
+        } else {
+            mostrarError("Seleccione un producto para eliminar");
+        }
+    }
 
-        if (seleccionado == null) {
-            mostrarAlerta("Advertencia", "Seleccione un producto de la tabla", Alert.AlertType.WARNING);
-            return;
+    private void actualizarTotales() {
+        BigDecimal subtotal = BigDecimal.ZERO;
+
+        for (DetalleOrdenCompra d : listaDetalle) {
+            subtotal = subtotal.add(d.getSubtotal());
         }
 
-        listaDetalles.remove(seleccionado);
-        calcularTotal();
+        txtSubtotal.setText(subtotal.setScale(2, RoundingMode.HALF_UP).toString());
+        txtTotal.setText(subtotal.setScale(2, RoundingMode.HALF_UP).toString());
+    }
+
+    private void limpiarCamposProducto() {
+        cmbProducto.setValue(null);
+        txtCantidad.clear();
+        txtPrecioUnitario.clear();
     }
 
     @FXML
     private void guardarOrden(ActionEvent event) {
-        if (cmbProveedor.getValue() == null) {
-            mostrarAlerta("Advertencia", "Seleccione un proveedor", Alert.AlertType.WARNING);
-            return;
-        }
-
-        if (cmbEmpleado.getValue() == null) {
-            mostrarAlerta("Advertencia", "Seleccione un empleado", Alert.AlertType.WARNING);
-            return;
-        }
-
-        if (listaDetalles.isEmpty()) {
-            mostrarAlerta("Advertencia", "Agregue productos a la orden", Alert.AlertType.WARNING);
-            return;
-        }
-
-        if (idCompraSeleccionada == 0) {
-            registrarOrden();
-        } else {
-            actualizarOrden();
-        }
+        if (idOrdenSeleccionada == 0) NuevaOrden();
+        else actualizarOrden();
     }
 
-    private void registrarOrden() {
-        Integer idEmpleado = obtenerIdEmpleadoFromCombo(cmbEmpleado.getValue());
-        BigDecimal subtotal = BigDecimal.valueOf(totalOrden);
-        BigDecimal descuento = BigDecimal.ZERO;
-        BigDecimal itbis = subtotal.multiply(BigDecimal.valueOf(0.18)); // 18% ITBIS
-        BigDecimal total = subtotal.add(itbis).subtract(descuento);
+    public void NuevaOrden() {
+        if (!validar()) return;
+        if (listaDetalle.isEmpty()) {
+            mostrarError("Debe agregar al menos un producto a la orden");
+            return;
+        }
 
-        String sqlCompra = "INSERT INTO tbl_COMPRA (id_proveedor, id_empleado, fecha, " +
-                "subtotal, descuento, itbis, total, estado) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sqlOrden = "INSERT INTO tbl_ORDEN_COMPRA " +
+                "(id_proveedor, id_empleado, fecha_orden, fecha_entrega, condicion_pago, " +
+                " observaciones, subtotal, total, estado) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement ps = conexion.prepareStatement(sqlCompra, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, cmbProveedor.getValue().getIdProveedor());
-            ps.setInt(2, idEmpleado);
-            ps.setTimestamp(3, Timestamp.valueOf(LocalDateTime.of(dateFecha.getValue(), LocalTime.now())));
-            ps.setBigDecimal(4, subtotal);
-            ps.setBigDecimal(5, descuento);
-            ps.setBigDecimal(6, itbis);
-            ps.setBigDecimal(7, total);
-            ps.setString(8, cmbEstado.getValue() != null ? cmbEstado.getValue() : "PENDIENTE");
+        try {
+            conexion.setAutoCommit(false);
 
-            ps.executeUpdate();
+            try (PreparedStatement psOrden = conexion.prepareStatement(sqlOrden, Statement.RETURN_GENERATED_KEYS)) {
+                setearParametrosOrden(psOrden);
+                psOrden.executeUpdate();
 
-            ResultSet keys = ps.getGeneratedKeys();
-            int idCompraGenerado = keys.next() ? keys.getInt(1) : -1;
+                ResultSet keys = psOrden.getGeneratedKeys();
+                if (!keys.next()) throw new SQLException("No se generó ID de orden");
+                int idOrdenGenerada = keys.getInt(1);
 
-            if (idCompraGenerado > 0) {
-                // Guardar detalles
-                String sqlDetalle = "INSERT INTO tbl_DETALLE_COMPRA (id_compra, id_producto, cantidad, precio_unitario, lote, subtotal) VALUES (?, ?, ?, ?, ?, ?)";
+                // Insertar detalles
+                String sqlDetalle = "INSERT INTO tbl_DETALLE_ORDEN_COMPRA " +
+                        "(id_orden, id_producto, cantidad, precio_unitario, subtotal) " +
+                        "VALUES (?, ?, ?, ?, ?)";
 
+                try (PreparedStatement psDetalle = conexion.prepareStatement(sqlDetalle)) {
+                    for (DetalleOrdenCompra d : listaDetalle) {
+                        psDetalle.setInt(1, idOrdenGenerada);
+                        psDetalle.setInt(2, d.getIdProducto());
+                        psDetalle.setInt(3, d.getCantidad());
+                        psDetalle.setBigDecimal(4, d.getPrecioUnitario());
+                        psDetalle.setBigDecimal(5, d.getSubtotal());
+                        psDetalle.executeUpdate();
+                    }
+                }
 
-                mostrarAlerta("Éxito", "Orden de compra registrada correctamente.\nID: " + idCompraGenerado, Alert.AlertType.INFORMATION);
+                conexion.commit();
+                mostrarExito("Orden de compra registrada correctamente.\nID generado: " + idOrdenGenerada);
                 limpiarTodo();
-                cargarCompras();
+                cargarTablaOrdenes();
+
+            } catch (SQLException e) {
+                conexion.rollback();
+                throw e;
+            } finally {
+                conexion.setAutoCommit(true);
             }
 
         } catch (SQLException e) {
-            mostrarAlerta("Error", "Error al registrar orden: " + e.getMessage(), Alert.AlertType.ERROR);
-            e.printStackTrace();
+            mostrarError("Error al registrar la orden:\n" + e.getMessage());
         }
     }
 
     private void actualizarOrden() {
-        if (idCompraSeleccionada == 0) {
-            mostrarAlerta("Error", "No hay orden seleccionada", Alert.AlertType.ERROR);
+        if (!validar()) return;
+        if (listaDetalle.isEmpty()) {
+            mostrarError("Debe agregar al menos un producto a la orden");
             return;
         }
 
-        Integer idEmpleado = obtenerIdEmpleadoFromCombo(cmbEmpleado.getValue());
+        String sqlOrden = "UPDATE tbl_ORDEN_COMPRA " +
+                "SET id_proveedor=?, id_empleado=?, fecha_orden=?, fecha_entrega=?, " +
+                "    condicion_pago=?, observaciones=?, subtotal=?, total=?, estado=? " +
+                "WHERE id_orden=?";
 
-        // Calcular totales
-        BigDecimal subtotal = BigDecimal.valueOf(totalOrden);
-        BigDecimal descuento = BigDecimal.ZERO;
-        BigDecimal itbis = subtotal.multiply(BigDecimal.valueOf(0.18));
-        BigDecimal total = subtotal.add(itbis).subtract(descuento);
-
-        String sqlCompra = "UPDATE tbl_COMPRA SET id_proveedor = ?, id_empleado = ?, fecha = ?, " +
-                "subtotal = ?, descuento = ?, itbis = ?, total = ?, estado = ? " +
-                "WHERE id_compra = ?";
-
-        try (PreparedStatement ps = conexion.prepareStatement(sqlCompra)) {
-            ps.setInt(1, cmbProveedor.getValue().getIdProveedor());
-            ps.setInt(2, idEmpleado);
-            ps.setTimestamp(3, Timestamp.valueOf(LocalDateTime.of(dateFecha.getValue(), LocalTime.now())));
-            ps.setBigDecimal(4, subtotal);
-            ps.setBigDecimal(5, descuento);
-            ps.setBigDecimal(6, itbis);
-            ps.setBigDecimal(7, total);
-            ps.setString(8, cmbEstado.getValue());
-            ps.setInt(9, idCompraSeleccionada);
-
-            ps.executeUpdate();
+        try {
+            conexion.setAutoCommit(false);
 
             // Eliminar detalles antiguos
-            String sqlDelete = "DELETE FROM tbl_DETALLE_COMPRA WHERE id_compra = ?";
-            try (PreparedStatement psDelete = conexion.prepareStatement(sqlDelete)) {
-                psDelete.setInt(1, idCompraSeleccionada);
+            try (PreparedStatement psDelete = conexion.prepareStatement(
+                    "DELETE FROM tbl_DETALLE_ORDEN_COMPRA WHERE id_orden = ?")) {
+                psDelete.setInt(1, idOrdenSeleccionada);
                 psDelete.executeUpdate();
             }
 
+            // Actualizar orden
+            try (PreparedStatement psOrden = conexion.prepareStatement(sqlOrden)) {
+                setearParametrosOrden(psOrden);
+                psOrden.setInt(10, idOrdenSeleccionada);
+                psOrden.executeUpdate();
+            }
+
             // Insertar nuevos detalles
-            String sqlDetalle = "INSERT INTO tbl_DETALLE_COMPRA (id_compra, id_producto cantidad, precio_unitario, lote, subtotal) VALUES (?, ?, ?, ?, ?, ?)";
+            String sqlDetalle = "INSERT INTO tbl_DETALLE_ORDEN_COMPRA " +
+                    "(id_orden, id_producto, cantidad, precio_unitario, subtotal) " +
+                    "VALUES (?, ?, ?, ?, ?)";
 
             try (PreparedStatement psDetalle = conexion.prepareStatement(sqlDetalle)) {
-                for (DetalleCompra detalle : listaDetalles) {
-                    int idProducto = detalle.getIdProducto();
-                    if (idProducto == 0) {
-                        idProducto = obtenerIdProducto(detalle.getNombreProducto());
-                    }
-
-                    psDetalle.setInt(1, idCompraSeleccionada);
-                    psDetalle.setInt(2, idProducto);
-                    psDetalle.setInt(3, detalle.getCantidad());
-                    psDetalle.setDouble(4, detalle.getPrecioUnitario());
-                    psDetalle.setString(5, detalle.getLote());
-                    psDetalle.setDouble(6, detalle.getSubtotal());
+                for (DetalleOrdenCompra d : listaDetalle) {
+                    psDetalle.setInt(1, idOrdenSeleccionada);
+                    psDetalle.setInt(2, d.getIdProducto());
+                    psDetalle.setInt(3, d.getCantidad());
+                    psDetalle.setBigDecimal(4, d.getPrecioUnitario());
+                    psDetalle.setBigDecimal(5, d.getSubtotal());
                     psDetalle.executeUpdate();
                 }
             }
 
-            mostrarAlerta("Éxito", "Orden actualizada correctamente", Alert.AlertType.INFORMATION);
+            conexion.commit();
+            mostrarExito("Orden actualizada correctamente.");
             limpiarTodo();
-            cargarCompras();
+            cargarTablaOrdenes();
 
         } catch (SQLException e) {
-            mostrarAlerta("Error", "Error al actualizar orden: " + e.getMessage(), Alert.AlertType.ERROR);
-            e.printStackTrace();
-        }
-    }
-
-    @FXML
-    private void eliminarOrden(ActionEvent event) {
-        if (idCompraSeleccionada == 0) {
-            mostrarAlerta("Advertencia", "Seleccione una orden de la tabla", Alert.AlertType.WARNING);
-            return;
-        }
-
-        Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmacion.setTitle("Confirmar");
-        confirmacion.setHeaderText("¿Eliminar orden?");
-        confirmacion.setContentText("Esta acción no se puede deshacer. Se eliminarán también todos los detalles.");
-
-        Optional<ButtonType> result = confirmacion.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
-                // Eliminar detalles primero
-                String sqlDeleteDetalles = "DELETE FROM tbl_DETALLE_COMPRA WHERE id_compra = ?";
-                try (PreparedStatement ps = conexion.prepareStatement(sqlDeleteDetalles)) {
-                    ps.setInt(1, idCompraSeleccionada);
-                    ps.executeUpdate();
-                }
-
-                // Eliminar cabecera
-                String sqlDeleteCompra = "DELETE FROM tbl_COMPRA WHERE id_compra = ?";
-                try (PreparedStatement ps = conexion.prepareStatement(sqlDeleteCompra)) {
-                    ps.setInt(1, idCompraSeleccionada);
-                    ps.executeUpdate();
-                }
-
-                mostrarAlerta("Éxito", "Orden eliminada correctamente", Alert.AlertType.INFORMATION);
-                limpiarTodo();
-                cargarCompras();
-
+                conexion.rollback();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+            mostrarError("Error al actualizar:\n" + e.getMessage());
+        } finally {
+            try {
+                conexion.setAutoCommit(true);
             } catch (SQLException e) {
-                mostrarAlerta("Error", "Error al eliminar orden: " + e.getMessage(), Alert.AlertType.ERROR);
                 e.printStackTrace();
             }
         }
     }
 
-    @FXML
-    private void cancelar(ActionEvent event) {
-        Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmacion.setTitle("Confirmar");
-        confirmacion.setHeaderText("¿Cancelar?");
-        confirmacion.setContentText("Se perderán todos los datos no guardados");
+    private void setearParametrosOrden(PreparedStatement ps) throws SQLException {
+        ps.setInt(1, obtenerIdFromCombo(cmbProveedor.getValue()));
+        ps.setInt(2, obtenerIdFromCombo(cmbEmpleado.getValue()));
 
-        if (confirmacion.showAndWait().get() == ButtonType.OK) {
-            limpiarTodo();
+        ps.setTimestamp(3, Timestamp.valueOf(
+                LocalDateTime.of(dateFechaOrden.getValue(), LocalTime.now())));
+
+        if (dateFechaEntrega.getValue() != null) {
+            ps.setTimestamp(4, Timestamp.valueOf(
+                    LocalDateTime.of(dateFechaEntrega.getValue(), LocalTime.now())));
+        } else {
+            ps.setNull(4, Types.TIMESTAMP);
         }
+
+        ps.setString(5, cmbCondicionPago.getValue());
+        ps.setString(6, txtObservaciones.getText().trim());
+        ps.setBigDecimal(7, new BigDecimal(txtSubtotal.getText().trim()));
+        ps.setBigDecimal(8, new BigDecimal(txtTotal.getText().trim()));
+        ps.setString(9, cmbEstado.getValue() != null ? cmbEstado.getValue() : "PENDIENTE");
+    }
+
+    @FXML
+    private void cambiarEstado(ActionEvent event) {
+        if (idOrdenSeleccionada == 0) {
+            mostrarError("Seleccione una orden de la tabla");
+            return;
+        }
+
+        OrdenCompra orden = tblOrdenes.getSelectionModel().getSelectedItem();
+        if (orden == null) {
+            mostrarError("Seleccione una orden de la tabla");
+            return;
+        }
+
+        String estadoActual = orden.getEstado();
+        String nuevoEstado = null;
+
+        switch (estadoActual) {
+            case "PENDIENTE":
+                nuevoEstado = "APROBADA";
+                break;
+            case "APROBADA":
+                nuevoEstado = "ENVIADA";
+                break;
+            case "ENVIADA":
+                nuevoEstado = "RECIBIDA";
+                break;
+            default:
+                mostrarError("No se puede cambiar el estado de " + estadoActual);
+                return;
+        }
+
+        try (PreparedStatement ps = conexion.prepareStatement(
+                "UPDATE tbl_ORDEN_COMPRA SET estado = ? WHERE id_orden = ?")) {
+            ps.setString(1, nuevoEstado);
+            ps.setInt(2, idOrdenSeleccionada);
+            ps.executeUpdate();
+
+            mostrarExito("Estado cambiado a: " + nuevoEstado);
+            cargarTablaOrdenes();
+
+            // Si se recibe, actualizar stock
+            if (nuevoEstado.equals("RECIBIDA")) {
+                recibirOrden(idOrdenSeleccionada);
+            }
+
+        } catch (SQLException e) {
+            mostrarError("Error al cambiar estado: " + e.getMessage());
+        }
+    }
+
+    private void recibirOrden(int idOrden) {
+        try {
+            // Actualizar stock de productos
+            String sql = "SELECT id_producto, cantidad FROM tbl_DETALLE_ORDEN_COMPRA WHERE id_orden = ?";
+            try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+                ps.setInt(1, idOrden);
+                ResultSet rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    actualizarStock(rs.getInt("id_producto"), rs.getInt("cantidad"));
+                }
+            }
+
+            mostrarExito("Stock actualizado correctamente");
+        } catch (SQLException e) {
+            mostrarError("Error al actualizar stock: " + e.getMessage());
+        }
+    }
+
+    private void actualizarStock(int idProducto, int cantidad) {
+        String sql = "UPDATE tbl_PRODUCTO SET stock = stock + ? WHERE id_producto = ?";
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            ps.setInt(1, cantidad);
+            ps.setInt(2, idProducto);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Error al actualizar stock: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void cancelarOrden(ActionEvent event) {
+        if (idOrdenSeleccionada == 0) {
+            mostrarError("Seleccione una orden de la tabla");
+            return;
+        }
+
+        Alert conf = new Alert(Alert.AlertType.CONFIRMATION);
+        conf.setTitle("Confirmar cancelación");
+        conf.setHeaderText("¿Está seguro de cancelar esta orden?");
+        conf.setContentText("Esta acción no se puede deshacer.");
+        Optional<ButtonType> result = conf.showAndWait();
+
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            try (PreparedStatement ps = conexion.prepareStatement(
+                    "UPDATE tbl_ORDEN_COMPRA SET estado = 'CANCELADA' WHERE id_orden = ?")) {
+                ps.setInt(1, idOrdenSeleccionada);
+                ps.executeUpdate();
+
+                mostrarExito("Orden cancelada correctamente.");
+                cargarTablaOrdenes();
+
+            } catch (SQLException e) {
+                mostrarError("Error al cancelar orden: " + e.getMessage());
+            }
+        }
+    }
+
+    private void rellenarFormulario(OrdenCompra o) {
+        cmbProveedor.getItems().stream()
+                .filter(s -> s.startsWith(o.getIdProveedor() + " - "))
+                .findFirst().ifPresent(cmbProveedor::setValue);
+
+        cmbEmpleado.getItems().stream()
+                .filter(s -> s.startsWith(o.getIdEmpleado() + " - "))
+                .findFirst().ifPresent(cmbEmpleado::setValue);
+
+        dateFechaOrden.setValue(o.getFechaOrden() != null ? o.getFechaOrden().toLocalDate() : LocalDate.now());
+        dateFechaEntrega.setValue(o.getFechaEntrega() != null ? o.getFechaEntrega().toLocalDate() : null);
+        cmbCondicionPago.setValue(o.getCondicionPago());
+        txtObservaciones.setText(o.getObservaciones() != null ? o.getObservaciones() : "");
+        cmbEstado.setValue(o.getEstado());
     }
 
     @FXML
     private void buscarOrden(ActionEvent event) {
         String busqueda = txtBuscar.getText().trim().toLowerCase();
         if (busqueda.isEmpty()) {
-            cargarCompras();
+            cargarTablaOrdenes();
             return;
         }
 
-        ObservableList<Compra> filtrados = FXCollections.observableArrayList();
-        for (Compra compra : listaCompras) {
-            if (String.valueOf(compra.getIdCompra()).contains(busqueda) ||
-                    String.valueOf(compra.getIdProveedor()).contains(busqueda) ||
-                    (compra.getEstado() != null && compra.getEstado().toLowerCase().contains(busqueda))) {
-                filtrados.add(compra);
+        ObservableList<OrdenCompra> filtrados = FXCollections.observableArrayList();
+        for (OrdenCompra o : listaOrdenes) {
+            if (String.valueOf(o.getIdOrden()).contains(busqueda) ||
+                    (o.getNombreProveedor() != null && o.getNombreProveedor().toLowerCase().contains(busqueda)) ||
+                    (o.getEstado() != null && o.getEstado().toLowerCase().contains(busqueda))) {
+                filtrados.add(o);
             }
         }
         tblOrdenes.setItems(filtrados);
@@ -521,7 +676,7 @@ public class OrdenCompraController implements Initializable {
 
     @FXML
     private void mostrarTodos(ActionEvent event) {
-        cargarCompras();
+        cargarTablaOrdenes();
         txtBuscar.clear();
     }
 
@@ -530,60 +685,58 @@ public class OrdenCompraController implements Initializable {
         limpiarTodo();
     }
 
-    private int obtenerIdProducto(String nombreProducto) {
-        String sql = "SELECT id_producto FROM tbl_PRODUCTO WHERE nombre LIKE ?";
-
-        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
-            ps.setString(1, "%" + nombreProducto + "%");
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                return rs.getInt("id_producto");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    private void calcularTotal() {
-        totalOrden = 0.0;
-        for (DetalleCompra detalle : listaDetalles) {
-            totalOrden += detalle.getSubtotal();
-        }
-        lblTotal.setText("RD$ " + String.format("%.2f", totalOrden));
-    }
-
-    private void limpiarCamposProducto() {
-        txtProducto.clear();
-        txtPrecioEstimado.clear();
-        txtLote.clear();
-        spnCantidad.getValueFactory().setValue(1);
-        txtProducto.requestFocus();
-    }
-
     private void limpiarTodo() {
         cmbProveedor.setValue(null);
         cmbEmpleado.setValue(null);
-        dateFecha.setValue(LocalDate.now());
         cmbEstado.setValue("PENDIENTE");
-        txtProducto.clear();
-        txtPrecioEstimado.clear();
-        txtLote.clear();
-        spnCantidad.getValueFactory().setValue(1);
-        listaDetalles.clear();
-        totalOrden = 0.0;
-        lblTotal.setText("RD$ 0.00");
-        idCompraSeleccionada = 0;
+        cmbCondicionPago.setValue(null);
+        dateFechaOrden.setValue(LocalDate.now());
+        dateFechaEntrega.setValue(null);
+        txtObservaciones.clear();
+
+        listaDetalle.clear();
+        limpiarCamposProducto();
+        actualizarTotales();
+
+        idOrdenSeleccionada = 0;
         tblOrdenes.getSelectionModel().clearSelection();
-        tblDetalles.setItems(listaDetalles);
     }
 
-    private void mostrarAlerta(String titulo, String mensaje, Alert.AlertType tipo) {
-        Alert alerta = new Alert(tipo);
-        alerta.setTitle(titulo);
-        alerta.setHeaderText(null);
-        alerta.setContentText(mensaje);
-        alerta.showAndWait();
+    private boolean validar() {
+        if (cmbProveedor.getValue() == null) {
+            mostrarError("Seleccione un proveedor.");
+            cmbProveedor.requestFocus(); return false;
+        }
+        if (cmbEmpleado.getValue() == null) {
+            mostrarError("Seleccione un empleado.");
+            cmbEmpleado.requestFocus(); return false;
+        }
+        if (dateFechaOrden.getValue() == null) {
+            mostrarError("Seleccione una fecha de orden.");
+            dateFechaOrden.requestFocus(); return false;
+        }
+        return true;
+    }
+
+    private int obtenerIdFromCombo(String val) {
+        if (val == null) return 0;
+        try { return Integer.parseInt(val.split(" - ")[0]); }
+        catch (NumberFormatException e) { return 0; }
+    }
+
+    private void mostrarError(String mensaje) {
+        Alert a = new Alert(Alert.AlertType.ERROR);
+        a.setTitle("Error");
+        a.setHeaderText(null);
+        a.setContentText(mensaje);
+        a.showAndWait();
+    }
+
+    private void mostrarExito(String mensaje) {
+        Alert a = new Alert(Alert.AlertType.INFORMATION);
+        a.setTitle("Éxito");
+        a.setHeaderText(null);
+        a.setContentText(mensaje);
+        a.showAndWait();
     }
 }

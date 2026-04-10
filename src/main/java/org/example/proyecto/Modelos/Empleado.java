@@ -18,6 +18,13 @@ public class Empleado {
     private BigDecimal salarioBase;
     private char    estado_temp;
 
+    public Empleado() {
+
+    }
+
+    public Empleado(int idEmpleado, int idCargo, Integer idDireccion, String cedula, String nombres, String apellidos, LocalDate fechaNacimiento, char sexo, String telefono, String email, LocalDate fechaIngreso, BigDecimal salarioBase, String s) {
+    }
+
     public int getIdEmpleado() {
         return idEmpleado;
     }
@@ -122,6 +129,10 @@ public class Empleado {
         this.estado_temp = estado;
     }
 
+    public char getEstado_temp() {
+        return estado_temp;
+    }
+
     public Empleado(int idEmpleado, int idCargo, Integer idDireccion, String cedula, String nombres, String apellidos, LocalDate fechaNacimiento, char sexo, String telefono, String email, LocalDate fechaIngreso, BigDecimal salarioBase, char estado) {
         this.idEmpleado = idEmpleado;
         this.idCargo = idCargo;
@@ -137,4 +148,5 @@ public class Empleado {
         this.salarioBase = salarioBase;
         this.estado_temp = estado;
     }
+
 }

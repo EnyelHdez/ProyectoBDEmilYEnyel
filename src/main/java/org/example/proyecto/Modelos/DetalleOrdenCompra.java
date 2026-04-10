@@ -2,39 +2,36 @@ package org.example.proyecto.Modelos;
 
 import java.math.BigDecimal;
 
-public class DetalleCompra {
+public class DetalleOrdenCompra {
     private int idDetalle;
-    private int idCompra;
+    private int idOrden;
     private int idProducto;
     private String nombreProducto;
     private int cantidad;
     private BigDecimal precioUnitario;
-    private BigDecimal descuento;
     private BigDecimal subtotal;
 
-    public DetalleCompra() {}
+    public DetalleOrdenCompra() {}
 
-    public DetalleCompra(int idProducto, String nombreProducto, int cantidad,
-                         BigDecimal precioUnitario, BigDecimal descuento) {
+    public DetalleOrdenCompra(int idProducto, String nombreProducto, int cantidad,
+                              BigDecimal precioUnitario) {
         this.idProducto = idProducto;
         this.nombreProducto = nombreProducto;
         this.cantidad = cantidad;
         this.precioUnitario = precioUnitario;
-        this.descuento = descuento != null ? descuento : BigDecimal.ZERO;
         calcularSubtotal();
     }
 
     private void calcularSubtotal() {
-        BigDecimal totalSinDescuento = precioUnitario.multiply(new BigDecimal(cantidad));
-        this.subtotal = totalSinDescuento.subtract(descuento);
+        this.subtotal = new BigDecimal(cantidad).multiply(precioUnitario);
     }
 
     // Getters y Setters
     public int getIdDetalle() { return idDetalle; }
     public void setIdDetalle(int idDetalle) { this.idDetalle = idDetalle; }
 
-    public int getIdCompra() { return idCompra; }
-    public void setIdCompra(int idCompra) { this.idCompra = idCompra; }
+    public int getIdOrden() { return idOrden; }
+    public void setIdOrden(int idOrden) { this.idOrden = idOrden; }
 
     public int getIdProducto() { return idProducto; }
     public void setIdProducto(int idProducto) { this.idProducto = idProducto; }
@@ -51,12 +48,6 @@ public class DetalleCompra {
     public BigDecimal getPrecioUnitario() { return precioUnitario; }
     public void setPrecioUnitario(BigDecimal precioUnitario) {
         this.precioUnitario = precioUnitario;
-        calcularSubtotal();
-    }
-
-    public BigDecimal getDescuento() { return descuento; }
-    public void setDescuento(BigDecimal descuento) {
-        this.descuento = descuento != null ? descuento : BigDecimal.ZERO;
         calcularSubtotal();
     }
 

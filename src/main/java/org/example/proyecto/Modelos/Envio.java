@@ -23,6 +23,10 @@ public class Envio {
         this.estado = estado;
     }
 
+    public Envio() {
+
+    }
+
     public int getIdEnvio() {
         return idEnvio;
     }

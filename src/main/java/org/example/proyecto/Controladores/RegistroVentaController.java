@@ -2,7 +2,6 @@ package org.example.proyecto.Controladores;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -21,167 +20,128 @@ import java.util.ResourceBundle;
 
 public class RegistroVentaController implements Initializable {
 
-    // ── Campos del formulario ──────────────────────────────────────
+    // ── Búsqueda ──────────────────────────────────────────────────
     @FXML private TextField txtBuscar;
-    @FXML private ComboBox<String> cmbCliente;
-    @FXML private ComboBox<String> cmbEmpleado;
-    @FXML private ComboBox<String> cmbComprobante;
-    @FXML private DatePicker dateFecha;
-    @FXML private TextField txtSubtotal;
-    @FXML private TextField txtDescuento;
-    @FXML private TextField txtItbis;
-    @FXML private TextField txtTotal;
-    @FXML private ComboBox<String> cmbEstado;
 
-    // ── Tabla ──────────────────────────────────────────────────────
-    @FXML private TableView<Venta> tblVentas;
-    @FXML private TableColumn<Venta, Integer> colId;
-    @FXML private TableColumn<Venta, Integer> colIdCliente;
-    @FXML private TableColumn<Venta, Integer> colIdEmpleado;
-    @FXML private TableColumn<Venta, Integer> colIdComprobante;
-    @FXML private TableColumn<Venta, String> colFecha;
+    // ── Tabla ─────────────────────────────────────────────────────
+    @FXML private TableView<Venta>               tblVentas;
+    @FXML private TableColumn<Venta, Integer>    colId;
+    @FXML private TableColumn<Venta, Integer>    colIdCliente;
+    @FXML private TableColumn<Venta, Integer>    colIdEmpleado;
+    @FXML private TableColumn<Venta, Integer>    colIdComprobante;
+    @FXML private TableColumn<Venta, String>     colFecha;
     @FXML private TableColumn<Venta, BigDecimal> colSubtotal;
     @FXML private TableColumn<Venta, BigDecimal> colDescuento;
     @FXML private TableColumn<Venta, BigDecimal> colItbis;
     @FXML private TableColumn<Venta, BigDecimal> colTotal;
-    @FXML private TableColumn<Venta, String> colEstado;
+    @FXML private TableColumn<Venta, String>     colEstado;
+    // ← NUEVO: columna producto
+    @FXML private TableColumn<Venta, String>     colProducto;
 
+    // ── Formulario ────────────────────────────────────────────────
+    @FXML private ComboBox<String>  cmbCliente;
+    @FXML private ComboBox<String>  cmbEmpleado;
+    @FXML private ComboBox<String>  cmbComprobante;
+    @FXML private ComboBox<String>  cmbEstado;
+    // ← NUEVO: combo producto
+    @FXML private ComboBox<String>  cmbProducto;
+    @FXML private DatePicker        dateFecha;
+    @FXML private TextField         txtSubtotal;
+    @FXML private TextField         txtDescuento;
+    @FXML private TextField         txtItbis;
+    @FXML private TextField         txtTotal;
+
+    // ── Labels ────────────────────────────────────────────────────
+    @FXML private Label lblBadgeEstado;
+
+    // ── Estado interno ────────────────────────────────────────────
+    private Connection conexion;
     private int idVentaSeleccionada = 0;
     private final ObservableList<Venta> listaVentas = FXCollections.observableArrayList();
-    private Connection conexion;
 
+    // ─────────────────────────────────────────────────────────────
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        conexion = new ConexionBD().EstablecerConexion();
+        try {
+            conexion = new ConexionBD().EstablecerConexion();
 
+            cargarClientes();
+            cargarEmpleados();
+            cargarComprobantes();
+            cargarProductos();   // ← NUEVO
 
-        // Cargar clientes desde BD
-        cargarClientes();
+            cmbEstado.setItems(FXCollections.observableArrayList(
+                    "COMPLETADA", "PENDIENTE", "ANULADA"));
+            cmbEstado.setValue("PENDIENTE");
 
-        // Cargar empleados desde BD
-        cargarEmpleados();
+            dateFecha.setValue(LocalDate.now());
 
-        // Cargar comprobantes desde BD
-        cargarComprobantes();
+            configurarTabla();
+            cargarVentas();
+            configurarSeleccionTabla();
 
-        dateFecha.setValue(LocalDate.now());
-
-        configurarTabla();
-        cargarTabla();
-
-        // Listener para selección en tabla
-        tblVentas.getSelectionModel().selectedItemProperty().addListener(
-                (obs, oldVal, sel) -> {
-                    if (sel != null) {
-                        idVentaSeleccionada = sel.getIdVenta();
-                        rellenarFormulario(sel);
-                    }
-                });
+        } catch (Exception e) {
+            e.printStackTrace();
+            mostrarAlerta("Error", "Error al inicializar: " + e.getMessage(), Alert.AlertType.ERROR);
+        }
     }
 
-    private void cargarClientes() {
-        ObservableList<String> clientes = FXCollections.observableArrayList();
-        String sql = "SELECT id_cliente, nombres FROM tbl_CLIENTE WHERE estado = 1 ORDER BY nombres";
+    // ── Carga de combos ──────────────────────────────────────────
 
-        try (Statement stmt = conexion.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                clientes.add(rs.getInt("id_cliente") + " - " + rs.getString("nombres"));
-            }
-            cmbCliente.setItems(clientes);
+    private void cargarClientes() {
+        ObservableList<String> lista = FXCollections.observableArrayList();
+        String sql = "SELECT id_cliente, nombres FROM tbl_CLIENTE WHERE estado = 1 ORDER BY nombres";
+        try (Statement st = conexion.createStatement(); ResultSet rs = st.executeQuery(sql)) {
+            while (rs.next())
+                lista.add(rs.getInt("id_cliente") + " - " + rs.getString("nombres"));
+            cmbCliente.setItems(lista);
         } catch (SQLException e) {
-            mostrarError("Error al cargar clientes: " + e.getMessage());
-            e.printStackTrace();
+            mostrarAlerta("Error", "Error al cargar clientes: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
     private void cargarEmpleados() {
-        ObservableList<String> empleados = FXCollections.observableArrayList();
-        String sql = "SELECT id_empleado, nombres FROM tbl_EMPLEADO";
-
-        try (Statement stmt = conexion.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                empleados.add(rs.getInt("id_empleado") + " - " + rs.getString("nombres"));
-            }
-            cmbEmpleado.setItems(empleados);
+        ObservableList<String> lista = FXCollections.observableArrayList();
+        String sql = "SELECT id_empleado, nombres FROM tbl_EMPLEADO ORDER BY nombres";
+        try (Statement st = conexion.createStatement(); ResultSet rs = st.executeQuery(sql)) {
+            while (rs.next())
+                lista.add(rs.getInt("id_empleado") + " - " + rs.getString("nombres"));
+            cmbEmpleado.setItems(lista);
         } catch (SQLException e) {
-            mostrarError("Error al cargar empleados: " + e.getMessage());
-            e.printStackTrace();
+            mostrarAlerta("Error", "Error al cargar empleados: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
     private void cargarComprobantes() {
-        ObservableList<String> comprobantes = FXCollections.observableArrayList();
-
-        // Agregar opción "NINGUNO" por defecto
-        comprobantes.add("NINGUNO");
-
-        try {
-            // Verificar qué columnas existen en la tabla
-            String sql = "SELECT id_comprobante, nfc FROM tbl_COMPROBANTE_FISCAL WHERE estado = 'EMITIDO' ORDER BY nfc";
-
-            try (Statement stmt = conexion.createStatement();
-                 ResultSet rs = stmt.executeQuery(sql)) {
-
-                boolean hayDatos = false;
-                while (rs.next()) {
-                    int id = rs.getInt("id_comprobante");
-                    String nfc = rs.getString("nfc");
-                    if (nfc != null && !nfc.trim().isEmpty()) {
-                        comprobantes.add(id + " - " + nfc);
-                        hayDatos = true;
-                    } else {
-                        comprobantes.add(String.valueOf(id));
-                        hayDatos = true;
-                    }
-                }
-
-                if (!hayDatos) {
-                    System.out.println("No hay comprobantes fiscales registrados");
-                }
-
-                cmbComprobante.setItems(comprobantes);
-
-            } catch (SQLException e) {
-                // Si la columna nfc no existe, intentar con otra columna
-                System.out.println("Error con columna nfc, intentando con nombre...");
-                try {
-                    String sql2 = "SELECT id_comprobante, nfc FROM tbl_COMPROBANTE_FISCAL WHERE estado = 'EMITIDO' ORDER BY nfc";
-                    try (Statement stmt2 = conexion.createStatement();
-                         ResultSet rs2 = stmt2.executeQuery(sql2)) {
-                        while (rs2.next()) {
-                            comprobantes.add(rs2.getInt("id_comprobante") + " - " + rs2.getString("nfc"));
-                        }
-                        cmbComprobante.setItems(comprobantes);
-                    }
-                } catch (SQLException e2) {
-                    // Si no encuentra la tabla o columnas, solo mostrar IDs
-                    try {
-                        String sql3 = "SELECT id_comprobante FROM tbl_COMPROBANTE_FISCAL WHERE estado = 'Activo' ORDER BY id_comprobante";
-                        try (Statement stmt3 = conexion.createStatement();
-                             ResultSet rs3 = stmt3.executeQuery(sql3)) {
-                            while (rs3.next()) {
-                                comprobantes.add(String.valueOf(rs3.getInt("id_comprobante")));
-                            }
-                            cmbComprobante.setItems(comprobantes);
-                        }
-                    } catch (SQLException e3) {
-                        System.out.println("Tabla tbl_COMPROBANTE_FISCAL no encontrada o no tiene datos");
-                        cmbComprobante.setItems(comprobantes);
-                    }
-                }
-            }
-
-            // Seleccionar NINGUNO por defecto
-            cmbComprobante.setValue("NINGUNO");
-
-        } catch (Exception e) {
-            System.out.println("Error al cargar comprobantes: " + e.getMessage());
-            cmbComprobante.setItems(comprobantes);
-            cmbComprobante.setValue("NINGUNO");
+        ObservableList<String> lista = FXCollections.observableArrayList();
+        lista.add("NINGUNO");
+        String sql = "SELECT id_comprobante, ncf FROM tbl_COMPROBANTE_FISCAL ORDER BY ncf";
+        try (Statement st = conexion.createStatement(); ResultSet rs = st.executeQuery(sql)) {
+            while (rs.next())
+                lista.add(rs.getInt("id_comprobante") + " - " + rs.getString("ncf"));
+        } catch (SQLException e) {
+            System.out.println("Nota: tabla tbl_COMPROBANTE_FISCAL no disponible: " + e.getMessage());
         }
+        cmbComprobante.setItems(lista);
+        cmbComprobante.setValue("NINGUNO");
     }
+
+    // ← NUEVO: carga los productos disponibles
+    private void cargarProductos() {
+        ObservableList<String> lista = FXCollections.observableArrayList();
+        lista.add("NINGUNO");
+        String sql = "SELECT id_producto, nombre FROM tbl_PRODUCTO ORDER BY nombre";
+        try (Statement st = conexion.createStatement(); ResultSet rs = st.executeQuery(sql)) {
+            while (rs.next())
+                lista.add(rs.getInt("id_producto") + " - " + rs.getString("nombre"));
+        } catch (SQLException e) {
+            mostrarAlerta("Error", "Error al cargar productos: " + e.getMessage(), Alert.AlertType.ERROR);
+        }
+        cmbProducto.setItems(lista);
+        cmbProducto.setValue("NINGUNO");
+    }
+
+    // ── Tabla ────────────────────────────────────────────────────
 
     private void configurarTabla() {
         colId.setCellValueFactory(new PropertyValueFactory<>("idVenta"));
@@ -194,71 +154,44 @@ public class RegistroVentaController implements Initializable {
         colItbis.setCellValueFactory(new PropertyValueFactory<>("itbis"));
         colTotal.setCellValueFactory(new PropertyValueFactory<>("total"));
         colEstado.setCellValueFactory(new PropertyValueFactory<>("estado"));
-
+        // ← NUEVO
+        colProducto.setCellValueFactory(new PropertyValueFactory<>("nombreProducto"));
         tblVentas.setItems(listaVentas);
     }
 
-    private void cargarTabla() {
-        listaVentas.clear();
-        String sql = "SELECT * FROM tbl_VENTA ORDER BY id_venta DESC";
-
-        try (Statement stmt = conexion.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-                Venta venta = new Venta(
-                        rs.getInt("id_venta"),
-                        rs.getObject("id_cliente") != null ? rs.getInt("id_cliente") : null,
-                        rs.getInt("id_empleado"),
-                        rs.getObject("id_comprobante") != null ? rs.getInt("id_comprobante") : null,
-                        rs.getTimestamp("fecha") != null ? rs.getTimestamp("fecha").toLocalDateTime() : null,
-                        rs.getBigDecimal("subtotal"),
-                        rs.getBigDecimal("descuento"),
-                        rs.getBigDecimal("itbis"),
-                        rs.getBigDecimal("total"),
-                        rs.getString("estado")
-                );
-                listaVentas.add(venta);
-            }
-
-        } catch (SQLException e) {
-            mostrarError("Error al cargar las ventas:\n" + e.getMessage());
-            e.printStackTrace();
-        }
+    private void configurarSeleccionTabla() {
+        tblVentas.getSelectionModel().selectedItemProperty()
+                .addListener((obs, oldVal, newVal) -> {
+                    if (newVal != null) cargarDatosEnFormulario(newVal);
+                });
     }
 
-    private void rellenarFormulario(Venta v) {
-        // Rellenar cliente
-        if (v.getIdCliente() != null) {
-            String clienteStr = v.getIdCliente() + " - ";
-            for (String c : cmbCliente.getItems()) {
-                if (c.startsWith(clienteStr)) {
-                    cmbCliente.setValue(c);
-                    break;
-                }
-            }
-        }
+    private void cargarDatosEnFormulario(Venta v) {
+        idVentaSeleccionada = v.getIdVenta();
 
-        // Rellenar empleado
-        String empleadoStr = v.getIdEmpleado() + " - ";
-        for (String e : cmbEmpleado.getItems()) {
-            if (e.startsWith(empleadoStr)) {
-                cmbEmpleado.setValue(e);
-                break;
-            }
-        }
+        cmbCliente.getItems().stream()
+                .filter(s -> s.startsWith(v.getIdCliente() + " - "))
+                .findFirst().ifPresent(cmbCliente::setValue);
 
-        // Rellenar comprobante
-        if (v.getIdComprobante() != null) {
-            String comprobanteStr = v.getIdComprobante() + " - ";
-            for (String comp : cmbComprobante.getItems()) {
-                if (comp.startsWith(comprobanteStr)) {
-                    cmbComprobante.setValue(comp);
-                    break;
-                }
-            }
+        cmbEmpleado.getItems().stream()
+                .filter(s -> s.startsWith(v.getIdEmpleado() + " - "))
+                .findFirst().ifPresent(cmbEmpleado::setValue);
+
+        if (v.getIdComprobante() != null && v.getIdComprobante() > 0) {
+            cmbComprobante.getItems().stream()
+                    .filter(s -> s.startsWith(v.getIdComprobante() + " - "))
+                    .findFirst().ifPresent(cmbComprobante::setValue);
         } else {
             cmbComprobante.setValue("NINGUNO");
+        }
+
+        // ← NUEVO: restaurar producto
+        if (v.getIdProducto() != null && v.getIdProducto() > 0) {
+            cmbProducto.getItems().stream()
+                    .filter(s -> s.startsWith(v.getIdProducto() + " - "))
+                    .findFirst().ifPresent(cmbProducto::setValue);
+        } else {
+            cmbProducto.setValue("NINGUNO");
         }
 
         dateFecha.setValue(v.getFecha() != null ? v.getFecha().toLocalDate() : LocalDate.now());
@@ -266,258 +199,270 @@ public class RegistroVentaController implements Initializable {
         txtDescuento.setText(v.getDescuento() != null ? v.getDescuento().toPlainString() : "");
         txtItbis.setText(v.getItbis() != null ? v.getItbis().toPlainString() : "");
         txtTotal.setText(v.getTotal() != null ? v.getTotal().toPlainString() : "");
-        cmbEstado.setValue(v.getEstado());
+        cmbEstado.setValue(v.getEstado() != null ? v.getEstado() : "PENDIENTE");
     }
+
+    // ── Carga / búsqueda ─────────────────────────────────────────
 
     @FXML
-    private void guardarVenta(ActionEvent event) {
-        if (idVentaSeleccionada == 0) {
-            registrarVenta();
-        } else {
-            actualizarVenta();
-        }
-    }
-
-    private Integer obtenerIdFromCombo(String comboValue) {
-        if (comboValue == null || comboValue.equals("NINGUNO")) return null;
-        try {
-            return Integer.parseInt(comboValue.split(" - ")[0]);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private void registrarVenta() {
-        if (!validar()) return;
-
-        Integer idCliente = obtenerIdFromCombo(cmbCliente.getValue());
-        Integer idEmpleado = obtenerIdFromCombo(cmbEmpleado.getValue());
-        Integer idComprobante = obtenerIdFromCombo(cmbComprobante.getValue());
-
-        String sql = "INSERT INTO tbl_VENTA (id_cliente, id_empleado, id_comprobante, fecha, " +
-                "subtotal, descuento, itbis, total, estado) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        try (PreparedStatement ps = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            if (idCliente != null) ps.setInt(1, idCliente);
-            else ps.setNull(1, Types.INTEGER);
-
-            ps.setInt(2, idEmpleado);
-
-            if (idComprobante != null) ps.setInt(3, idComprobante);
-            else ps.setNull(3, Types.INTEGER);
-
-            ps.setTimestamp(4, Timestamp.valueOf(LocalDateTime.of(dateFecha.getValue(), LocalTime.now())));
-            ps.setBigDecimal(5, new BigDecimal(txtSubtotal.getText().trim()));
-            ps.setBigDecimal(6, new BigDecimal(txtDescuento.getText().trim()));
-            ps.setBigDecimal(7, new BigDecimal(txtItbis.getText().trim()));
-            ps.setBigDecimal(8, new BigDecimal(txtTotal.getText().trim()));
-            ps.setString(9, cmbEstado.getValue());
-
-            ps.executeUpdate();
-
-            ResultSet keys = ps.getGeneratedKeys();
-            int idGenerado = keys.next() ? keys.getInt(1) : -1;
-
-            mostrarExito("Venta registrada correctamente.\nID generado: " + idGenerado);
-            limpiarCampos();
-            cargarTabla();
-
+    private void cargarVentas() {
+        listaVentas.clear();
+        // ← JOIN con tbl_PRODUCTO para traer el nombre del producto
+        String sql = "SELECT v.*, p.nombre AS nombre_producto " +
+                "FROM tbl_VENTA v " +
+                "LEFT JOIN tbl_PRODUCTO p ON v.id_producto = p.id_producto " +
+                "ORDER BY v.id_venta DESC";
+        try (Statement st = conexion.createStatement(); ResultSet rs = st.executeQuery(sql)) {
+            while (rs.next()) listaVentas.add(mapear(rs));
         } catch (SQLException e) {
-            mostrarError("Error al registrar la venta:\n" + e.getMessage());
-            e.printStackTrace();
+            mostrarAlerta("Error", "Error al cargar ventas: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
-    private void actualizarVenta() {
-
+    private Venta mapear(ResultSet rs) throws SQLException {
+        Venta v = new Venta();
+        v.setIdVenta(rs.getInt("id_venta"));
+        v.setIdCliente(rs.getObject("id_cliente") != null ? rs.getInt("id_cliente") : null);
+        v.setIdEmpleado(rs.getInt("id_empleado"));
+        v.setIdComprobante(rs.getObject("id_comprobante") != null ? rs.getInt("id_comprobante") : null);
+        v.setIdProducto(rs.getObject("id_producto") != null ? rs.getInt("id_producto") : null);   // ← NUEVO
+        v.setNombreProducto(rs.getString("nombre_producto"));                                       // ← NUEVO
+        Timestamp ts = rs.getTimestamp("fecha");
+        if (ts != null) v.setFecha(ts.toLocalDateTime());
+        v.setSubtotal(rs.getBigDecimal("subtotal"));
+        v.setDescuento(rs.getBigDecimal("descuento"));
+        v.setItbis(rs.getBigDecimal("itbis"));
+        v.setTotal(rs.getBigDecimal("total"));
+        v.setEstado(rs.getString("estado"));
+        return v;
     }
 
     @FXML
-    private void eliminarVenta(ActionEvent event) {
+    private void buscarVenta() {
+        String filtro = txtBuscar.getText().trim();
+        if (filtro.isEmpty()) { cargarVentas(); return; }
+
+        listaVentas.clear();
+        String sql = "SELECT v.*, p.nombre AS nombre_producto " +
+                "FROM tbl_VENTA v " +
+                "LEFT JOIN tbl_PRODUCTO p ON v.id_producto = p.id_producto " +
+                "WHERE CAST(v.id_venta AS CHAR) LIKE ? " +
+                "   OR CAST(v.id_cliente AS CHAR) LIKE ? " +
+                "   OR p.nombre LIKE ? " +
+                "   OR v.estado LIKE ? " +
+                "ORDER BY v.id_venta DESC";
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            String like = "%" + filtro + "%";
+            ps.setString(1, like); ps.setString(2, like);
+            ps.setString(3, like); ps.setString(4, like);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) listaVentas.add(mapear(rs));
+            if (listaVentas.isEmpty())
+                mostrarAlerta("Sin resultados",
+                        "No se encontraron ventas para: " + filtro, Alert.AlertType.INFORMATION);
+        } catch (SQLException e) {
+            mostrarAlerta("Error", "Error en búsqueda: " + e.getMessage(), Alert.AlertType.ERROR);
+        }
+    }
+
+    @FXML
+    private void mostrarTodos() {
+        txtBuscar.clear();
+        cargarVentas();
+    }
+
+    // ── CRUD ─────────────────────────────────────────────────────
+
+    @FXML
+    private void guardarVenta() {
+        if (!validarCampos()) return;
+
+        // ← SQL incluye id_producto
+        String sql = "INSERT INTO tbl_VENTA " +
+                "(id_cliente, id_empleado, id_comprobante, id_producto, " +
+                " fecha, subtotal, descuento, itbis, total, estado) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            setearParametros(ps);
+            ps.executeUpdate();
+            mostrarAlerta("Éxito", "Venta registrada correctamente.", Alert.AlertType.INFORMATION);
+            limpiarCampos();
+            cargarVentas();
+        } catch (SQLException e) {
+            mostrarAlerta("Error", "Error al guardar: " + e.getMessage(), Alert.AlertType.ERROR);
+        }
+    }
+
+    @FXML
+    private void editarVenta() {
         if (idVentaSeleccionada == 0) {
-            mostrarError("Seleccione una venta de la tabla");
+            mostrarAlerta("Advertencia", "Seleccione una venta de la tabla para editar.",
+                    Alert.AlertType.WARNING);
+            return;
+        }
+        if (!validarCampos()) return;
+
+        Alert conf = new Alert(Alert.AlertType.CONFIRMATION);
+        conf.setTitle("Confirmar edición");
+        conf.setHeaderText(null);
+        conf.setContentText("¿Desea guardar los cambios en esta venta?");
+        if (conf.showAndWait().get() != ButtonType.OK) return;
+
+        // ← SQL incluye id_producto
+        String sql = "UPDATE tbl_VENTA " +
+                "SET id_cliente=?, id_empleado=?, id_comprobante=?, id_producto=?, " +
+                "    fecha=?, subtotal=?, descuento=?, itbis=?, total=?, estado=? " +
+                "WHERE id_venta=?";
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            setearParametros(ps);
+            ps.setInt(11, idVentaSeleccionada);
+            ps.executeUpdate();
+            mostrarAlerta("Éxito", "Venta actualizada correctamente.", Alert.AlertType.INFORMATION);
+            limpiarCampos();
+            cargarVentas();
+        } catch (SQLException e) {
+            mostrarAlerta("Error", "Error al actualizar: " + e.getMessage(), Alert.AlertType.ERROR);
+        }
+    }
+
+    @FXML
+    private void eliminarVenta() {
+        if (idVentaSeleccionada == 0) {
+            mostrarAlerta("Advertencia", "Seleccione una venta de la tabla para eliminar.",
+                    Alert.AlertType.WARNING);
             return;
         }
 
         Alert conf = new Alert(Alert.AlertType.CONFIRMATION);
         conf.setTitle("Confirmar eliminación");
-        conf.setHeaderText("¿Está seguro?");
-        conf.setContentText("Esta acción no se puede deshacer.");
-        Optional<ButtonType> result = conf.showAndWait();
+        conf.setHeaderText(null);
+        conf.setContentText("¿Está seguro que desea eliminar esta venta?\nEsta acción no se puede deshacer.");
+        if (conf.showAndWait().get() != ButtonType.OK) return;
 
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            try (PreparedStatement ps = conexion.prepareStatement(
-                    "DELETE FROM tbl_VENTA WHERE id_venta = ?")) {
-                ps.setInt(1, idVentaSeleccionada);
-                ps.executeUpdate();
-
-                mostrarExito("Venta eliminada correctamente");
-                limpiarCampos();
-                cargarTabla();
-
-            } catch (SQLException e) {
-                mostrarError("Error al eliminar: " + e.getMessage());
-                e.printStackTrace();
-            }
+        try (PreparedStatement ps = conexion.prepareStatement(
+                "DELETE FROM tbl_VENTA WHERE id_venta=?")) {
+            ps.setInt(1, idVentaSeleccionada);
+            ps.executeUpdate();
+            mostrarAlerta("Éxito", "Venta eliminada correctamente.", Alert.AlertType.INFORMATION);
+            limpiarCampos();
+            cargarVentas();
+        } catch (SQLException e) {
+            mostrarAlerta("Error", "No se puede eliminar: la venta tiene registros asociados.",
+                    Alert.AlertType.ERROR);
         }
     }
 
-    @FXML
-    private void limpiarCampos(ActionEvent event) {
-        limpiarCampos();
+    // ── Utilidades ────────────────────────────────────────────────
+
+    /**
+     * Setea los 10 parámetros compartidos entre INSERT y UPDATE.
+     * Orden: id_cliente, id_empleado, id_comprobante, id_producto,
+     *        fecha, subtotal, descuento, itbis, total, estado
+     */
+    private void setearParametros(PreparedStatement ps) throws SQLException {
+        // 1 id_cliente
+        if (cmbCliente.getValue() != null)
+            ps.setInt(1, Integer.parseInt(cmbCliente.getValue().split(" - ")[0]));
+        else
+            ps.setNull(1, Types.INTEGER);
+
+        // 2 id_empleado
+        ps.setInt(2, Integer.parseInt(cmbEmpleado.getValue().split(" - ")[0]));
+
+        // 3 id_comprobante
+        String compVal = cmbComprobante.getValue();
+        if (compVal != null && !compVal.equals("NINGUNO"))
+            ps.setInt(3, Integer.parseInt(compVal.split(" - ")[0]));
+        else
+            ps.setNull(3, Types.INTEGER);
+
+        // 4 id_producto  ← NUEVO
+        String prodVal = cmbProducto.getValue();
+        if (prodVal != null && !prodVal.equals("NINGUNO"))
+            ps.setInt(4, Integer.parseInt(prodVal.split(" - ")[0]));
+        else
+            ps.setNull(4, Types.INTEGER);
+
+        // 5 fecha
+        ps.setTimestamp(5, Timestamp.valueOf(
+                LocalDateTime.of(dateFecha.getValue(), LocalTime.now())));
+
+        // 6 subtotal
+        ps.setBigDecimal(6, new BigDecimal(txtSubtotal.getText().trim()));
+
+        // 7 descuento
+        String desc = txtDescuento.getText().trim();
+        ps.setBigDecimal(7, desc.isEmpty() ? BigDecimal.ZERO : new BigDecimal(desc));
+
+        // 8 itbis
+        String itbis = txtItbis.getText().trim();
+        ps.setBigDecimal(8, itbis.isEmpty() ? BigDecimal.ZERO : new BigDecimal(itbis));
+
+        // 9 total
+        ps.setBigDecimal(9, new BigDecimal(txtTotal.getText().trim()));
+
+        // 10 estado
+        ps.setString(10, cmbEstado.getValue());
     }
 
+    @FXML
     private void limpiarCampos() {
+        idVentaSeleccionada = 0;
         cmbCliente.setValue(null);
         cmbEmpleado.setValue(null);
         cmbComprobante.setValue("NINGUNO");
+        cmbProducto.setValue("NINGUNO");   // ← NUEVO
+        cmbEstado.setValue("PENDIENTE");
         dateFecha.setValue(LocalDate.now());
         txtSubtotal.clear();
         txtDescuento.clear();
         txtItbis.clear();
         txtTotal.clear();
-        cmbEstado.setValue(null);
-        idVentaSeleccionada = 0;
+        txtBuscar.clear();
         tblVentas.getSelectionModel().clearSelection();
     }
 
-    @FXML
-    private void buscarVenta(ActionEvent event) {
-        String busqueda = txtBuscar.getText().trim().toLowerCase();
-        if (busqueda.isEmpty()) {
-            cargarTabla();
-            return;
-        }
-
-        ObservableList<Venta> filtrados = FXCollections.observableArrayList();
-        for (Venta v : listaVentas) {
-            if (String.valueOf(v.getIdVenta()).contains(busqueda) ||
-                    (v.getIdCliente() != null && String.valueOf(v.getIdCliente()).contains(busqueda)) ||
-                    String.valueOf(v.getIdEmpleado()).contains(busqueda)) {
-                filtrados.add(v);
-            }
-        }
-        tblVentas.setItems(filtrados);
-    }
-
-    @FXML
-    private void mostrarTodos(ActionEvent event) {
-        cargarTabla();
-        txtBuscar.clear();
-    }
-
-    private boolean validar() {
-        if (cmbCliente.getValue() == null) {
-            mostrarError("Seleccione un cliente.");
-            cmbCliente.requestFocus();
-            return false;
-        }
+    private boolean validarCampos() {
         if (cmbEmpleado.getValue() == null) {
-            mostrarError("Seleccione un empleado.");
-            cmbEmpleado.requestFocus();
+            mostrarAlerta("Validación", "Seleccione el empleado.", Alert.AlertType.WARNING);
             return false;
         }
         if (dateFecha.getValue() == null) {
-            mostrarError("Seleccione una fecha.");
-            dateFecha.requestFocus();
+            mostrarAlerta("Validación", "Seleccione la fecha.", Alert.AlertType.WARNING);
             return false;
         }
-        if (!esDecimalNoNegativo(txtSubtotal.getText())) {
-            mostrarError("Subtotal debe ser un número decimal ≥ 0.");
-            txtSubtotal.requestFocus();
-            return false;
-        }
-        if (!esDecimalNoNegativo(txtDescuento.getText())) {
-            mostrarError("Descuento debe ser un número decimal ≥ 0.");
-            txtDescuento.requestFocus();
-            return false;
-        }
-        if (!esDecimalNoNegativo(txtItbis.getText())) {
-            mostrarError("ITBIS debe ser un número decimal ≥ 0.");
-            txtItbis.requestFocus();
-            return false;
+        if (!esDecimalPositivo(txtSubtotal.getText())) {
+            mostrarAlerta("Validación", "Ingrese un subtotal válido (mayor a 0).", Alert.AlertType.WARNING);
+            txtSubtotal.requestFocus(); return false;
         }
         if (!esDecimalNoNegativo(txtTotal.getText())) {
-            mostrarError("Total debe ser un número decimal ≥ 0.");
-            txtTotal.requestFocus();
-            return false;
+            mostrarAlerta("Validación", "Ingrese un total válido.", Alert.AlertType.WARNING);
+            txtTotal.requestFocus(); return false;
         }
         if (cmbEstado.getValue() == null) {
-            mostrarError("Seleccione un estado.");
-            cmbEstado.requestFocus();
+            mostrarAlerta("Validación", "Seleccione el estado.", Alert.AlertType.WARNING);
             return false;
         }
         return true;
     }
 
-    private boolean esDecimalNoNegativo(String texto) {
-        try {
-            return new BigDecimal(texto.trim()).compareTo(BigDecimal.ZERO) >= 0;
-        } catch (NumberFormatException e) {
-            return false;
-        }
+    private boolean esDecimalPositivo(String txt) {
+        if (txt == null || txt.trim().isEmpty()) return false;
+        try { return new BigDecimal(txt.trim()).compareTo(BigDecimal.ZERO) > 0; }
+        catch (NumberFormatException e) { return false; }
     }
 
-    private void mostrarError(String mensaje) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText(null);
-        alert.setContentText(mensaje);
-        alert.showAndWait();
+    private boolean esDecimalNoNegativo(String txt) {
+        if (txt == null || txt.trim().isEmpty()) return false;
+        try { return new BigDecimal(txt.trim()).compareTo(BigDecimal.ZERO) >= 0; }
+        catch (NumberFormatException e) { return false; }
     }
 
-    private void mostrarExito(String mensaje) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Éxito");
-        alert.setHeaderText(null);
-        alert.setContentText(mensaje);
-        alert.showAndWait();
+    private void mostrarAlerta(String titulo, String mensaje, Alert.AlertType tipo) {
+        Alert a = new Alert(tipo);
+        a.setTitle(titulo);
+        a.setHeaderText(null);
+        a.setContentText(mensaje);
+        a.showAndWait();
     }
-
-    public void editarVenta(ActionEvent actionEvent) {
-        if (!validar()) return;
-
-        Integer idCliente = obtenerIdFromCombo(cmbCliente.getValue());
-        Integer idEmpleado = obtenerIdFromCombo(cmbEmpleado.getValue());
-        Integer idComprobante = obtenerIdFromCombo(cmbComprobante.getValue());
-
-        String sql = "UPDATE tbl_VENTA SET " +
-                "id_cliente = ?, id_empleado = ?, id_comprobante = ?, fecha = ?, " +
-                "subtotal = ?, descuento = ?, itbis = ?, total = ?, estado = ? " +
-                "WHERE id_venta = ?";
-
-        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
-            if (idCliente != null) ps.setInt(1, idCliente);
-            else ps.setNull(1, Types.INTEGER);
-
-            ps.setInt(2, idEmpleado);
-
-            if (idComprobante != null) ps.setInt(3, idComprobante);
-            else ps.setNull(3, Types.INTEGER);
-
-            ps.setTimestamp(4, Timestamp.valueOf(LocalDateTime.of(dateFecha.getValue(), LocalTime.now())));
-            ps.setBigDecimal(5, new BigDecimal(txtSubtotal.getText().trim()));
-            ps.setBigDecimal(6, new BigDecimal(txtDescuento.getText().trim()));
-            ps.setBigDecimal(7, new BigDecimal(txtItbis.getText().trim()));
-            ps.setBigDecimal(8, new BigDecimal(txtTotal.getText().trim()));
-            ps.setString(9, cmbEstado.getValue());
-            ps.setInt(10, idVentaSeleccionada);
-
-            int filas = ps.executeUpdate();
-
-            if (filas > 0) {
-                mostrarExito("Venta actualizada correctamente.");
-                limpiarCampos();
-                cargarTabla();
-            } else {
-                mostrarError("No se encontró la venta con ID: " + idVentaSeleccionada);
-            }
-
-        } catch (SQLException e) {
-            mostrarError("Error al actualizar:\n" + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
 }

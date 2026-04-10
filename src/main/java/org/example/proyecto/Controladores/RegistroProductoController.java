@@ -6,6 +6,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.util.StringConverter;
 import org.example.proyecto.Conexion.ConexionBD;
 import org.example.proyecto.Modelos.CategoriaProducto;
 import org.example.proyecto.Modelos.Producto;
@@ -38,8 +39,8 @@ public class RegistroProductoController implements Initializable {
     @FXML private TableColumn<Producto, Boolean>   colRequiereReceta, colAplicaItbis, colEstado;
 
     // ── Estado interno ───────────────────────────────────────
-    private final ObservableList<Producto>  listaProductos   = FXCollections.observableArrayList();
-    private final ObservableList<Proveedor> listaProveedores = FXCollections.observableArrayList();
+    private final ObservableList<Producto>          listaProductos   = FXCollections.observableArrayList();
+    private final ObservableList<Proveedor>         listaProveedores = FXCollections.observableArrayList();
     private final ObservableList<CategoriaProducto> listaCategorias  = FXCollections.observableArrayList();
     private Connection conexion;
     private int idProductoSeleccionado = 0;
@@ -55,6 +56,7 @@ public class RegistroProductoController implements Initializable {
         configurarTabla();
         cargarCategorias();
         cargarProveedores();
+        configurarConverters();
         cargarProductos();
         configurarSeleccionTabla();
     }
@@ -67,6 +69,26 @@ public class RegistroProductoController implements Initializable {
         spnStockMinimo.setValueFactory(
                 new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 100000, 0));
         spnStockMinimo.setEditable(true);
+    }
+
+    private void configurarConverters() {
+        cbProveedor.setConverter(new StringConverter<Proveedor>() {
+            @Override
+            public String toString(Proveedor p) {
+                return p == null ? "" : p.getRazonSocial();
+            }
+            @Override
+            public Proveedor fromString(String s) { return null; }
+        });
+
+        cbCategoria.setConverter(new StringConverter<CategoriaProducto>() {
+            @Override
+            public String toString(CategoriaProducto c) {
+                return c == null ? "" : c.getNombre();
+            }
+            @Override
+            public CategoriaProducto fromString(String s) { return null; }
+        });
     }
 
     private void configurarTabla() {
@@ -82,6 +104,8 @@ public class RegistroProductoController implements Initializable {
         colRequiereReceta.setCellValueFactory(new PropertyValueFactory<>("requiereReceta"));
         colAplicaItbis.setCellValueFactory(new PropertyValueFactory<>("aplicaItbis"));
         colEstado.setCellValueFactory(new PropertyValueFactory<>("estado"));
+
+        tblProductos.setItems(listaProductos);
     }
 
     private void configurarSeleccionTabla() {
@@ -94,7 +118,7 @@ public class RegistroProductoController implements Initializable {
     private void cargarDatosEnFormulario(Producto p) {
         idProductoSeleccionado = p.getIdProducto();
         txtNombre.setText(p.getNombre());
-        txtCodigoBarra.setText(p.getCodigoBarra());
+        txtCodigoBarra.setText(p.getCodigoBarra() != null ? p.getCodigoBarra() : "");
         txtDescripcion.setText(p.getDescripcion() != null ? p.getDescripcion() : "");
         txtPrecioCosto.setText(String.valueOf(p.getPrecioCosto()));
         txtPrecioVenta.setText(String.valueOf(p.getPrecioVenta()));
@@ -105,13 +129,13 @@ public class RegistroProductoController implements Initializable {
         chkRequiereReceta.setSelected(p.isRequiereReceta());
         chkEstado.setSelected(p.isEstado());
 
-        // Seleccionar categoría en el ComboBox
+        // Seleccionar categoría
         listaCategorias.stream()
                 .filter(c -> c.getIdCategoria() == p.getIdCategoria())
                 .findFirst()
                 .ifPresent(cbCategoria::setValue);
 
-        // Seleccionar proveedor en el ComboBox (puede ser null)
+        // Seleccionar proveedor (puede ser null)
         if (p.getIdProveedor() != null) {
             listaProveedores.stream()
                     .filter(prov -> prov.getIdProveedor() == p.getIdProveedor())
@@ -143,14 +167,12 @@ public class RegistroProductoController implements Initializable {
 
         } catch (SQLException e) {
             mostrarAlerta("Error", "Error al cargar categorías: " + e.getMessage(), Alert.AlertType.ERROR);
-            e.printStackTrace();
         }
     }
 
     private void cargarProveedores() {
         listaProveedores.clear();
-        String sql = "SELECT id_proveedor, razon_social, rnc, telefono " +
-                "FROM tbl_PROVEEDOR WHERE estado_temp = 1 ORDER BY razon_social";
+        String sql = "SELECT id_proveedor, razon_social FROM tbl_PROVEEDOR WHERE estado_temp = 'Activo' ORDER BY razon_social";
 
         try (Statement stmt = conexion.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -159,15 +181,12 @@ public class RegistroProductoController implements Initializable {
                 Proveedor p = new Proveedor();
                 p.setIdProveedor(rs.getInt("id_proveedor"));
                 p.setRazonSocial(rs.getString("razon_social"));
-                p.setRnc(rs.getString("rnc"));
-                p.setTelefono(rs.getString("telefono"));
                 listaProveedores.add(p);
             }
             cbProveedor.setItems(listaProveedores);
 
         } catch (SQLException e) {
             mostrarAlerta("Error", "Error al cargar proveedores: " + e.getMessage(), Alert.AlertType.ERROR);
-            e.printStackTrace();
         }
     }
 
@@ -184,8 +203,8 @@ public class RegistroProductoController implements Initializable {
                 "       cat.nombre AS nombre_categoria, " +
                 "       prov.razon_social AS nombre_proveedor " +
                 "FROM tbl_PRODUCTO p " +
-                "LEFT JOIN tbl_CATEGORIA_PRODUCTO cat  ON p.id_categoria = cat.id_categoria " +
-                "LEFT JOIN tbl_PROVEEDOR  prov ON p.id_proveedor = prov.id_proveedor " +
+                "LEFT JOIN tbl_CATEGORIA_PRODUCTO cat ON p.id_categoria = cat.id_categoria " +
+                "LEFT JOIN tbl_PROVEEDOR prov ON p.id_proveedor = prov.id_proveedor " +
                 "ORDER BY p.id_producto DESC";
 
         try (Statement stmt = conexion.createStatement();
@@ -198,11 +217,9 @@ public class RegistroProductoController implements Initializable {
 
         } catch (SQLException e) {
             mostrarAlerta("Error", "Error al cargar productos: " + e.getMessage(), Alert.AlertType.ERROR);
-            e.printStackTrace();
         }
     }
 
-    /** Mapea un ResultSet a un objeto Producto (reutilizable en búsqueda). */
     private Producto mapearProducto(ResultSet rs) throws SQLException {
         Producto p = new Producto();
         p.setIdProducto(rs.getInt("id_producto"));
@@ -247,8 +264,8 @@ public class RegistroProductoController implements Initializable {
                 "       cat.nombre AS nombre_categoria, " +
                 "       prov.razon_social AS nombre_proveedor " +
                 "FROM tbl_PRODUCTO p " +
-                "LEFT JOIN tbl_CATEGORIA_PRODUCTO cat  ON p.id_categoria = cat.id_categoria " +
-                "LEFT JOIN tbl_PROVEEDOR  prov ON p.id_proveedor = prov.id_proveedor " +
+                "LEFT JOIN tbl_CATEGORIA_PRODUCTO cat ON p.id_categoria = cat.id_categoria " +
+                "LEFT JOIN tbl_PROVEEDOR prov ON p.id_proveedor = prov.id_proveedor " +
                 "WHERE p.nombre LIKE ? OR p.codigo_barra LIKE ? " +
                 "ORDER BY p.id_producto DESC";
 
@@ -259,15 +276,13 @@ public class RegistroProductoController implements Initializable {
 
             ResultSet rs = ps.executeQuery();
             while (rs.next()) listaProductos.add(mapearProducto(rs));
-
             tblProductos.setItems(listaProductos);
 
             if (listaProductos.isEmpty())
-                mostrarAlerta("Información", "No se encontraron resultados", Alert.AlertType.INFORMATION);
+                mostrarAlerta("Información", "No se encontraron resultados para: " + filtro, Alert.AlertType.INFORMATION);
 
         } catch (SQLException e) {
             mostrarAlerta("Error", "Error en la búsqueda: " + e.getMessage(), Alert.AlertType.ERROR);
-            e.printStackTrace();
         }
     }
 
@@ -298,7 +313,7 @@ public class RegistroProductoController implements Initializable {
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement ps = conexion.prepareStatement(sql)) {
-            setearParametros(ps, false);
+            setearParametros(ps);
             ps.executeUpdate();
             mostrarAlerta("Éxito", "Producto registrado correctamente", Alert.AlertType.INFORMATION);
             limpiarCampos();
@@ -306,20 +321,20 @@ public class RegistroProductoController implements Initializable {
 
         } catch (SQLException e) {
             mostrarAlerta("Error", "Error al guardar: " + e.getMessage(), Alert.AlertType.ERROR);
-            e.printStackTrace();
         }
     }
 
     @FXML
     private void editarProducto() {
         if (idProductoSeleccionado == 0) {
-            mostrarAlerta("Advertencia", "Seleccione un producto de la tabla", Alert.AlertType.WARNING);
+            mostrarAlerta("Advertencia", "Seleccione un producto de la tabla para editar", Alert.AlertType.WARNING);
             return;
         }
         if (!validarCampos()) return;
 
         Alert conf = new Alert(Alert.AlertType.CONFIRMATION);
         conf.setTitle("Confirmar edición");
+        conf.setHeaderText(null);
         conf.setContentText("¿Desea guardar los cambios en este producto?");
         Optional<ButtonType> r = conf.showAndWait();
         if (r.isEmpty() || r.get() != ButtonType.OK) return;
@@ -331,7 +346,7 @@ public class RegistroProductoController implements Initializable {
                 "WHERE id_producto=?";
 
         try (PreparedStatement ps = conexion.prepareStatement(sql)) {
-            setearParametros(ps, true);
+            setearParametros(ps);
             ps.setInt(14, idProductoSeleccionado);
             ps.executeUpdate();
             mostrarAlerta("Éxito", "Producto actualizado correctamente", Alert.AlertType.INFORMATION);
@@ -340,20 +355,20 @@ public class RegistroProductoController implements Initializable {
 
         } catch (SQLException e) {
             mostrarAlerta("Error", "Error al actualizar: " + e.getMessage(), Alert.AlertType.ERROR);
-            e.printStackTrace();
         }
     }
 
     @FXML
     private void eliminarProducto() {
         if (idProductoSeleccionado == 0) {
-            mostrarAlerta("Advertencia", "Seleccione un producto de la tabla", Alert.AlertType.WARNING);
+            mostrarAlerta("Advertencia", "Seleccione un producto de la tabla para eliminar", Alert.AlertType.WARNING);
             return;
         }
 
         Alert conf = new Alert(Alert.AlertType.CONFIRMATION);
         conf.setTitle("Confirmar eliminación");
-        conf.setContentText("¿Está seguro que desea eliminar este producto? Esta acción no se puede deshacer.");
+        conf.setHeaderText(null);
+        conf.setContentText("¿Está seguro que desea eliminar este producto?\nEsta acción no se puede deshacer.");
         Optional<ButtonType> r = conf.showAndWait();
         if (r.isEmpty() || r.get() != ButtonType.OK) return;
 
@@ -367,7 +382,6 @@ public class RegistroProductoController implements Initializable {
 
         } catch (SQLException e) {
             mostrarAlerta("Error", "No se puede eliminar: el producto tiene registros asociados", Alert.AlertType.ERROR);
-            e.printStackTrace();
         }
     }
 
@@ -375,18 +389,15 @@ public class RegistroProductoController implements Initializable {
     // UTILIDADES
     // ─────────────────────────────────────────────────────────
 
-    /**
-     * Setea los 13 parámetros compartidos entre INSERT y UPDATE.
-     * isUpdate=true añade el índice 14 (id_producto) desde el caller.
-     */
-    private void setearParametros(PreparedStatement ps, boolean isUpdate) throws SQLException {
+    private void setearParametros(PreparedStatement ps) throws SQLException {
         ps.setInt(1, cbCategoria.getValue().getIdCategoria());
 
         Proveedor prov = cbProveedor.getValue();
         if (prov != null) ps.setInt(2, prov.getIdProveedor());
         else              ps.setNull(2, Types.INTEGER);
 
-        ps.setString(3, txtCodigoBarra.getText().trim());
+        String codigo = txtCodigoBarra.getText().trim();
+        ps.setString(3, codigo.isEmpty() ? null : codigo);
         ps.setString(4, txtNombre.getText().trim());
 
         String desc = txtDescripcion.getText().trim();
@@ -452,6 +463,7 @@ public class RegistroProductoController implements Initializable {
             if (venta < costo) {
                 Alert conf = new Alert(Alert.AlertType.CONFIRMATION);
                 conf.setTitle("Precio menor al de costo");
+                conf.setHeaderText(null);
                 conf.setContentText("El precio de venta es menor al de costo. ¿Desea continuar de todas formas?");
                 Optional<ButtonType> r = conf.showAndWait();
                 return r.isPresent() && r.get() == ButtonType.OK;

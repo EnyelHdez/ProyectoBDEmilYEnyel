@@ -13,6 +13,11 @@ public class CategoriaProducto {
     public void setIdCategoria(int idCategoria) {
         this.idCategoria = idCategoria;
     }
+    // En la clase Proveedor.java
+    @Override
+    public String toString() {
+        return nombre; // o nombreComercial, según el campo que tengas
+    }
 
     public String getNombre() {
         return nombre;

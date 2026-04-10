@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.*?>
 
-<BorderPane prefHeight="700.0" prefWidth="1100.0" style="-fx-background-color: #EEF4FB;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.proyecto.Controladores.RegistroCompraController">
+<BorderPane prefHeight="700.0" prefWidth="1200.0" style="-fx-background-color: #EEF4FB;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.proyecto.Controladores.RegistroCompraController">
 
     <!-- SIDEBAR IZQUIERDO -->
     <left>
@@ -39,7 +39,8 @@
             </HBox>
 
             <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" VBox.vgrow="ALWAYS">
-                <VBox prefHeight="1300.0" prefWidth="1000.0" spacing="16" style="-fx-padding: 22 28 10 28;">
+                <VBox spacing="16" style="-fx-padding: 22 28 10 28;">
+
                     <!-- BLOQUE BÚSQUEDA -->
                     <VBox spacing="10" style="-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 18 20 18 20; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
                         <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1A6BAD;" text="🔍  Buscar Compras" />
@@ -50,21 +51,17 @@
                         </HBox>
                     </VBox>
 
-                    <!-- TABLA -->
+                    <!-- TABLA DE COMPRAS -->
                     <VBox style="-fx-background-color: white; -fx-background-radius: 14; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
                         <TableView fx:id="tblCompras" prefHeight="200" style="-fx-border-color: #D6E8F5; -fx-border-radius: 8; -fx-background-radius: 8;">
                             <columns>
                                 <TableColumn fx:id="colId" prefWidth="45" text="ID" />
-                                <TableColumn fx:id="colProveedor" prefWidth="100" text="ID Proveedor" />
-                                <TableColumn fx:id="colEmpleado" prefWidth="100" text="ID Empleado" />
-                                <TableColumn fx:id="colComprobante" prefWidth="100" text="ID Comprobante" />
+                                <TableColumn fx:id="colProveedor" prefWidth="150" text="Proveedor" />
                                 <TableColumn fx:id="colFecha" prefWidth="120" text="Fecha" />
-                                <TableColumn fx:id="colNroFactura" prefWidth="100" text="Nro. Factura" />
-                                <TableColumn fx:id="colSubtotal" prefWidth="90" text="Subtotal" />
-                                <TableColumn fx:id="colDescuento" prefWidth="90" text="Descuento" />
-                                <TableColumn fx:id="colItbis" prefWidth="80" text="ITBIS" />
-                                <TableColumn fx:id="colTotal" prefWidth="90" text="Total" />
+                                <TableColumn fx:id="colNroFactura" prefWidth="120" text="Nro. Factura" />
+                                <TableColumn fx:id="colTotal" prefWidth="100" text="Total" />
                                 <TableColumn fx:id="colEstado" prefWidth="80" text="Estado" />
+                                <TableColumn fx:id="colAcciones" prefWidth="80" text="Acciones" />
                             </columns>
                             <placeholder>
                                 <Label style="-fx-text-fill: #9BBDD6; -fx-font-size: 13px;" text="No hay compras registradas" />
@@ -83,17 +80,12 @@
 
                         <GridPane hgap="16" vgap="12">
                             <columnConstraints>
-                                <ColumnConstraints percentWidth="50" />
-                                <ColumnConstraints percentWidth="50" />
+                                <ColumnConstraints percentWidth="33" />
+                                <ColumnConstraints percentWidth="33" />
+                                <ColumnConstraints percentWidth="34" />
                             </columnConstraints>
-                            <rowConstraints>
-                                <RowConstraints prefHeight="56" />
-                                <RowConstraints prefHeight="56" />
-                                <RowConstraints prefHeight="56" />
-                                <RowConstraints prefHeight="56" />
-                            </rowConstraints>
 
-                            <!-- FILA 0: Proveedor | Empleado -->
+                            <!-- FILA 0: Proveedor | Empleado | Comprobante -->
                             <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="0">
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Proveedor *" />
                                 <ComboBox fx:id="cmbProveedor" prefHeight="34" promptText="Seleccione proveedor" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
@@ -102,62 +94,122 @@
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Empleado *" />
                                 <ComboBox fx:id="cmbEmpleado" prefHeight="34" promptText="Seleccione empleado" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
                             </VBox>
-
-                            <!-- FILA 1: Comprobante | Nro. Factura -->
-                            <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                            <VBox spacing="5" GridPane.columnIndex="2" GridPane.rowIndex="0">
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Comprobante" />
                                 <ComboBox fx:id="cmbComprobante" prefHeight="34" promptText="Seleccione comprobante" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                            </VBox>
+
+                            <!-- FILA 1: Fecha | Nro. Factura | Estado -->
+                            <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Fecha *" />
+                                <DatePicker fx:id="dateFecha" prefHeight="34" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
                             </VBox>
                             <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1">
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Número de factura" />
                                 <TextField fx:id="txtNroFacturaProv" promptText="Ej: FAC-00123" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-padding: 7 10;" />
                             </VBox>
-
-                            <!-- FILA 2: Fecha | Estado -->
-                            <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="2">
-                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Fecha *" />
-                                <DatePicker fx:id="dateFecha" prefHeight="34" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
-                            </VBox>
-                            <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                            <VBox spacing="5" GridPane.columnIndex="2" GridPane.rowIndex="1">
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Estado *" />
                                 <ComboBox fx:id="cmbEstado" prefHeight="34" promptText="Seleccione estado" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
                             </VBox>
-
-                            <!-- FILA 3: Subtotal | Descuento -->
-                            <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="3">
-                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Subtotal (RD$) *" />
-                                <TextField fx:id="txtSubtotal" promptText="0.00" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-padding: 7 10;" />
-                            </VBox>
-                            <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="3">
-                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Descuento (RD$)" />
-                                <TextField fx:id="txtDescuento" promptText="0.00" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-padding: 7 10;" />
-                            </VBox>
-                        </GridPane>
-
-                        <!-- ITBIS y Total -->
-                        <GridPane hgap="16" vgap="12">
-                            <columnConstraints>
-                                <ColumnConstraints percentWidth="50" />
-                                <ColumnConstraints percentWidth="50" />
-                            </columnConstraints>
-                            <VBox spacing="5" GridPane.columnIndex="0">
-                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="ITBIS (RD$)" />
-                                <TextField fx:id="txtItbis" promptText="0.00" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-padding: 7 10;" />
-                            </VBox>
-                            <VBox spacing="5" GridPane.columnIndex="1">
-                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Total (RD$)" />
-                                <TextField fx:id="txtTotal" prefHeight="40" promptText="0.00" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-padding: 7 10; -fx-text-fill: #1A6BAD;" />
-                            </VBox>
-                     <rowConstraints>
-                        <RowConstraints />
-                     </rowConstraints>
                         </GridPane>
 
                         <Separator />
 
-                        <!-- BOTONES ORIGINALES (mismos nombres de métodos) -->
+                        <!-- SECCIÓN DE PRODUCTOS -->
+                        <VBox spacing="10">
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <Label style="-fx-font-size: 14px;" text="🛒" />
+                                <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;" text="Productos de la Compra" />
+                            </HBox>
+
+                            <!-- Formulario para agregar producto -->
+                            <GridPane hgap="10" vgap="8">
+                                <columnConstraints>
+                                    <ColumnConstraints percentWidth="40" />
+                                    <ColumnConstraints percentWidth="15" />
+                                    <ColumnConstraints percentWidth="15" />
+                                    <ColumnConstraints percentWidth="15" />
+                                    <ColumnConstraints percentWidth="15" />
+                                </columnConstraints>
+
+                                <VBox GridPane.columnIndex="0">
+                                    <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Producto" />
+                                    <ComboBox fx:id="cmbProductoDetalle" prefHeight="34" promptText="Seleccione producto" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                                </VBox>
+                                <VBox GridPane.columnIndex="1">
+                                    <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Cantidad" />
+                                    <TextField fx:id="txtCantidad" promptText="1" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-padding: 7 10;" />
+                                </VBox>
+                                <VBox GridPane.columnIndex="2">
+                                    <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Precio Unit." />
+                                    <TextField fx:id="txtPrecioUnitario" promptText="0.00" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-padding: 7 10;" />
+                                </VBox>
+                                <VBox GridPane.columnIndex="3">
+                                    <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Descuento" />
+                                    <TextField fx:id="txtDescuentoProducto" promptText="0.00" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-padding: 7 10;" />
+                                </VBox>
+                                <VBox alignment="BOTTOM_CENTER" GridPane.columnIndex="4">
+                                    <Button onAction="#agregarProducto" prefHeight="34" style="-fx-background-color: #10B981; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;" text="➕ Agregar" />
+                                </VBox>
+                            </GridPane>
+
+                            <!-- Tabla de productos agregados -->
+                            <TableView fx:id="tblDetalleProductos" prefHeight="180" style="-fx-border-color: #D6E8F5; -fx-border-radius: 8; -fx-background-radius: 8;">
+                                <columns>
+                                    <TableColumn fx:id="colProdNombre" prefWidth="200" text="Producto" />
+                                    <TableColumn fx:id="colProdCantidad" prefWidth="80" text="Cantidad" />
+                                    <TableColumn fx:id="colProdPrecio" prefWidth="100" text="Precio Unit." />
+                                    <TableColumn fx:id="colProdDescuento" prefWidth="100" text="Descuento" />
+                                    <TableColumn fx:id="colProdSubtotal" prefWidth="120" text="Subtotal" />
+                                    <TableColumn fx:id="colProdAcciones" prefWidth="80" text="Acciones" />
+                                </columns>
+                                <placeholder>
+                                    <Label style="-fx-text-fill: #9BBDD6; -fx-font-size: 13px;" text="No hay productos agregados" />
+                                </placeholder>
+                            </TableView>
+
+                            <!-- Botón eliminar producto seleccionado -->
+                            <HBox alignment="CENTER_RIGHT">
+                                <Button onAction="#eliminarProductoSeleccionado" prefHeight="30" style="-fx-background-color: #EF4444; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand;" text="🗑️ Eliminar Seleccionado" />
+                            </HBox>
+                        </VBox>
+
+                        <Separator />
+
+                        <!-- Totales -->
+                        <GridPane hgap="16" vgap="12">
+                            <columnConstraints>
+                                <ColumnConstraints percentWidth="25" />
+                                <ColumnConstraints percentWidth="25" />
+                                <ColumnConstraints percentWidth="25" />
+                                <ColumnConstraints percentWidth="25" />
+                            </columnConstraints>
+
+                            <VBox spacing="5" GridPane.columnIndex="0">
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Subtotal (RD$)" />
+                                <TextField fx:id="txtSubtotal" editable="false" promptText="0.00" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-padding: 7 10; -fx-background-color: #F8FAFC;" />
+                            </VBox>
+                            <VBox spacing="5" GridPane.columnIndex="1">
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Descuento Total (RD$)" />
+                                <TextField fx:id="txtDescuento" editable="false" promptText="0.00" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-padding: 7 10; -fx-background-color: #F8FAFC;" />
+                            </VBox>
+                            <VBox spacing="5" GridPane.columnIndex="2">
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="ITBIS (18%)" />
+                                <TextField fx:id="txtItbis" editable="false" promptText="0.00" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-padding: 7 10; -fx-background-color: #F8FAFC;" />
+                            </VBox>
+                            <VBox spacing="5" GridPane.columnIndex="3">
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Total (RD$)" />
+                                <TextField fx:id="txtTotal" editable="false" prefHeight="40" promptText="0.00" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-padding: 7 10; -fx-text-fill: #1A6BAD; -fx-background-color: #F8FAFC;" />
+                            </VBox>
+                        </GridPane>
+
+                        <Separator />
+
+                        <!-- BOTONES -->
                         <HBox alignment="CENTER_LEFT" spacing="8">
                             <Button onAction="#guardarCompra" prefHeight="34" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-background-color: #1E90FF; -fx-text-fill: white; -fx-background-radius: 6; -fx-border-radius: 6; -fx-cursor: hand; -fx-padding: 0 20 0 20;" text="Guardar" />
+                            <Button onAction="#editarCompra" prefHeight="34" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-background-color: #F59E0B; -fx-text-fill: white; -fx-background-radius: 6; -fx-border-radius: 6; -fx-cursor: hand; -fx-padding: 0 20 0 20;" text="✏️ Editar" />
                             <Button onAction="#eliminarCompra" prefHeight="34" style="-fx-font-size: 13px; -fx-background-color: transparent; -fx-border-color: #f87171; -fx-text-fill: #dc2626; -fx-background-radius: 6; -fx-border-radius: 6; -fx-cursor: hand; -fx-padding: 0 20 0 20;" text="Eliminar" />
                             <Button onAction="#limpiarCampos" prefHeight="34" style="-fx-font-size: 13px; -fx-background-color: transparent; -fx-border-color: #d1d5db; -fx-text-fill: #6b7280; -fx-background-radius: 6; -fx-border-radius: 6; -fx-cursor: hand; -fx-padding: 0 20 0 20;" text="Limpiar" />
                         </HBox>

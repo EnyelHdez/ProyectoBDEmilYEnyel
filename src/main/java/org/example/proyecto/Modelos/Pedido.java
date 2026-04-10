@@ -30,6 +30,10 @@ public class Pedido {
         this.estado = estado;
     }
 
+    public Pedido() {
+
+    }
+
     public String getEstado() {
         return estado;
     }

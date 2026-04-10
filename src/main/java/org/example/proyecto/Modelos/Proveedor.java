@@ -56,4 +56,10 @@ public class Proveedor {
     public String getEstadoTexto() { return estado_temp; }
     public void setEstadoTexto(String estadoTexto) { this.estado_temp = estadoTexto; }
 
+    // En la clase Proveedor.java
+    @Override
+    public String toString() {
+        return razonSocial; // o nombreComercial, según el campo que tengas
+    }
+
 }

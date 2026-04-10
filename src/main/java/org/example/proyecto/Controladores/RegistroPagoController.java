@@ -45,6 +45,8 @@ public class RegistroPagoController implements Initializable {
     @FXML private Label  lblEstadoHint;
     @FXML private Button btnNuevo;
     @FXML private Button btnRegistrarPago;
+    @FXML private Button btnEditar;     // ← NUEVO
+    @FXML private Button btnEliminar;   // ← NUEVO
     @FXML private Button btnCancelar;
 
     // ── Estado interno ───────────────────────────────────────────────────
@@ -71,7 +73,6 @@ public class RegistroPagoController implements Initializable {
         colIdCuenta.setCellValueFactory(new PropertyValueFactory<>("idCuentaPago"));
         colReferencia.setCellValueFactory(new PropertyValueFactory<>("referencia"));
 
-        // Fecha formateada dd/MM/yyyy HH:mm
         colFecha.setCellValueFactory(new PropertyValueFactory<>("fecha"));
         colFecha.setCellFactory(col -> new TableCell<>() {
             @Override
@@ -81,7 +82,6 @@ public class RegistroPagoController implements Initializable {
             }
         });
 
-        // Monto con prefijo RD$
         colMonto.setCellValueFactory(new PropertyValueFactory<>("monto"));
         colMonto.setCellFactory(col -> new TableCell<>() {
             @Override
@@ -91,7 +91,6 @@ public class RegistroPagoController implements Initializable {
             }
         });
 
-        // Estado: true → Activo (verde), false → Inactivo (rojo)
         colEstado.setCellValueFactory(new PropertyValueFactory<>("estado"));
         colEstado.setCellFactory(col -> new TableCell<>() {
             @Override
@@ -137,7 +136,6 @@ public class RegistroPagoController implements Initializable {
         }
     }
 
-    // ── Mapeo ResultSet → Pago ───────────────────────────────────────────
     private Pago mapearPago(ResultSet rs) throws SQLException {
         int           id         = rs.getInt("id_pago");
         int           idCuenta   = rs.getInt("id_cuenta_pago");
@@ -152,7 +150,6 @@ public class RegistroPagoController implements Initializable {
         return new Pago(id, idCuenta, monto, fecha, referencia, estado);
     }
 
-    // ── Cargar fila seleccionada en el formulario ─────────────────────────
     private void cargarEnFormulario(Pago p) {
         idPagoSeleccionado = p.getIdPago();
         txtIdCuentaPago.setText(String.valueOf(p.getIdCuentaPago()));
@@ -180,7 +177,6 @@ public class RegistroPagoController implements Initializable {
         }
 
         listaPagos.clear();
-        // Busca por referencia o id_cuenta_pago (si el texto es numérico)
         String sql = "SELECT * FROM tbl_PAGO " +
                 "WHERE referencia LIKE ? OR CAST(id_cuenta_pago AS CHAR) LIKE ? " +
                 "ORDER BY id_pago DESC";
@@ -195,7 +191,7 @@ public class RegistroPagoController implements Initializable {
 
             if (listaPagos.isEmpty())
                 mostrarAlerta("Sin resultados",
-                        "No se encontraron pagos para: " + busqueda + "",
+                        "No se encontraron pagos para: " + busqueda,
                         Alert.AlertType.INFORMATION);
 
         } catch (SQLException e) {
@@ -229,6 +225,55 @@ public class RegistroPagoController implements Initializable {
         if (res.isPresent() && res.get() == ButtonType.OK) guardarPago();
     }
 
+    // ← NUEVO: editar el pago seleccionado
+    @FXML
+    private void editarPago() {
+        if (idPagoSeleccionado == 0) {
+            mostrarAlerta("Advertencia", "Seleccione un pago de la tabla para editar.",
+                    Alert.AlertType.WARNING);
+            return;
+        }
+        if (!validarCampos()) return;
+
+        Alert conf = new Alert(Alert.AlertType.CONFIRMATION);
+        conf.setTitle("Confirmar edición");
+        conf.setHeaderText("¿Desea guardar los cambios en el pago ID: " + idPagoSeleccionado + "?");
+        conf.setContentText("Monto: RD$ " + String.format("%.2f",
+                new BigDecimal(txtMonto.getText().trim())));
+        Optional<ButtonType> res = conf.showAndWait();
+        if (res.isPresent() && res.get() == ButtonType.OK) actualizarPago();
+    }
+
+    // ← NUEVO: eliminar el pago seleccionado
+    @FXML
+    private void eliminarPago() {
+        if (idPagoSeleccionado == 0) {
+            mostrarAlerta("Advertencia", "Seleccione un pago de la tabla para eliminar.",
+                    Alert.AlertType.WARNING);
+            return;
+        }
+
+        Alert conf = new Alert(Alert.AlertType.CONFIRMATION);
+        conf.setTitle("Confirmar eliminación");
+        conf.setHeaderText("¿Está seguro que desea eliminar el pago ID: " + idPagoSeleccionado + "?");
+        conf.setContentText("Esta acción no se puede deshacer.");
+        Optional<ButtonType> res = conf.showAndWait();
+        if (res.isPresent() && res.get() == ButtonType.OK) {
+            try (PreparedStatement ps = conexion.prepareStatement(
+                    "DELETE FROM tbl_PAGO WHERE id_pago = ?")) {
+                ps.setInt(1, idPagoSeleccionado);
+                if (ps.executeUpdate() > 0) {
+                    mostrarAlerta("✔ Éxito", "Pago eliminado correctamente.", Alert.AlertType.INFORMATION);
+                    limpiarCampos();
+                    cargarPagos();
+                }
+            } catch (SQLException e) {
+                mostrarAlerta("Error de BD", "No se pudo eliminar el pago:\n" + e.getMessage(),
+                        Alert.AlertType.ERROR);
+            }
+        }
+    }
+
     @FXML
     private void cancelar() {
         limpiarCampos();
@@ -244,7 +289,6 @@ public class RegistroPagoController implements Initializable {
         }
     }
 
-    /** Cambia el estilo del ToggleButton al hacer clic */
     @FXML
     private void toggleEstado() {
         actualizarToggleEstilo(tglEstado.isSelected());
@@ -258,9 +302,7 @@ public class RegistroPagoController implements Initializable {
                 "VALUES (?, ?, ?, ?, ?)";
 
         try (PreparedStatement ps = conexion.prepareStatement(sql)) {
-            // Combina fecha seleccionada + hora actual para el LocalDateTime
-            LocalDateTime fechaHora = LocalDateTime.of(
-                    dateFecha.getValue(), LocalTime.now());
+            LocalDateTime fechaHora = LocalDateTime.of(dateFecha.getValue(), LocalTime.now());
 
             ps.setInt(1, Integer.parseInt(txtIdCuentaPago.getText().trim()));
             ps.setBigDecimal(2, new BigDecimal(txtMonto.getText().trim()));
@@ -276,6 +318,36 @@ public class RegistroPagoController implements Initializable {
 
         } catch (SQLException e) {
             mostrarAlerta("Error de BD", "No se pudo registrar el pago:\n" + e.getMessage(),
+                    Alert.AlertType.ERROR);
+        } catch (NumberFormatException e) {
+            mostrarAlerta("Formato inválido", "Revise los campos numéricos.", Alert.AlertType.ERROR);
+        }
+    }
+
+    // ← NUEVO: ejecuta el UPDATE con los datos del formulario
+    private void actualizarPago() {
+        String sql = "UPDATE tbl_PAGO " +
+                "SET id_cuenta_pago = ?, monto = ?, fecha = ?, referencia = ?, estado = ? " +
+                "WHERE id_pago = ?";
+
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            LocalDateTime fechaHora = LocalDateTime.of(dateFecha.getValue(), LocalTime.now());
+
+            ps.setInt(1, Integer.parseInt(txtIdCuentaPago.getText().trim()));
+            ps.setBigDecimal(2, new BigDecimal(txtMonto.getText().trim()));
+            ps.setTimestamp(3, Timestamp.valueOf(fechaHora));
+            ps.setString(4, txtReferencia.getText().trim());
+            ps.setBoolean(5, tglEstado.isSelected());
+            ps.setInt(6, idPagoSeleccionado);
+
+            if (ps.executeUpdate() > 0) {
+                mostrarAlerta("✔ Éxito", "Pago actualizado correctamente.", Alert.AlertType.INFORMATION);
+                limpiarCampos();
+                cargarPagos();
+            }
+
+        } catch (SQLException e) {
+            mostrarAlerta("Error de BD", "No se pudo actualizar el pago:\n" + e.getMessage(),
                     Alert.AlertType.ERROR);
         } catch (NumberFormatException e) {
             mostrarAlerta("Formato inválido", "Revise los campos numéricos.", Alert.AlertType.ERROR);

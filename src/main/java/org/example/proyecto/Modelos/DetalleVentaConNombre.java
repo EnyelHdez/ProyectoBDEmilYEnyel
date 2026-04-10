@@ -1,23 +1,16 @@
 package org.example.proyecto.Modelos;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
-public class DetalleVenta {
+public class DetalleVentaConNombre {
     private int idDetVenta;
     private int idVenta;
     private int idProducto;
+    private String nombreProducto;
     private int cantidad;
     private BigDecimal precioUnitario;
-    private BigDecimal descuento;
-    private BigDecimal itbis;
     private BigDecimal subtotal;
     private String lote;
-    private LocalDate fechaVencimiento;
-
-    public DetalleVenta() {
-
-    }
 
     public int getIdDetVenta() {
         return idDetVenta;
@@ -43,6 +36,14 @@ public class DetalleVenta {
         this.idProducto = idProducto;
     }
 
+    public String getNombreProducto() {
+        return nombreProducto;
+    }
+
+    public void setNombreProducto(String nombreProducto) {
+        this.nombreProducto = nombreProducto;
+    }
+
     public int getCantidad() {
         return cantidad;
     }
@@ -57,22 +58,6 @@ public class DetalleVenta {
 
     public void setPrecioUnitario(BigDecimal precioUnitario) {
         this.precioUnitario = precioUnitario;
-    }
-
-    public BigDecimal getDescuento() {
-        return descuento;
-    }
-
-    public void setDescuento(BigDecimal descuento) {
-        this.descuento = descuento;
-    }
-
-    public BigDecimal getItbis() {
-        return itbis;
-    }
-
-    public void setItbis(BigDecimal itbis) {
-        this.itbis = itbis;
     }
 
     public BigDecimal getSubtotal() {
@@ -90,28 +75,4 @@ public class DetalleVenta {
     public void setLote(String lote) {
         this.lote = lote;
     }
-
-    public LocalDate getFechaVencimiento() {
-        return fechaVencimiento;
-    }
-
-    public void setFechaVencimiento(LocalDate fechaVencimiento) {
-        this.fechaVencimiento = fechaVencimiento;
-    }
-
-    public DetalleVenta(int idDetVenta, int idVenta, int idProducto, int cantidad, BigDecimal precioUnitario, BigDecimal descuento, BigDecimal itbis, BigDecimal subtotal, String lote, LocalDate fechaVencimiento) {
-        this.idDetVenta = idDetVenta;
-        this.idVenta = idVenta;
-        this.idProducto = idProducto;
-        this.cantidad = cantidad;
-        this.precioUnitario = precioUnitario;
-        this.descuento = descuento;
-        this.itbis = itbis;
-        this.subtotal = subtotal;
-        this.lote = lote;
-        this.fechaVencimiento = fechaVencimiento;
-    }
-
-
-
 }

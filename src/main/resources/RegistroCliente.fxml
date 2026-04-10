@@ -6,13 +6,13 @@
 
 <BorderPane prefHeight="700.0" prefWidth="1100.0" style="-fx-background-color: #EEF4FB;"
             xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.example.proyecto.Controladores.RegistroDevolucionController">
+            fx:controller="org.example.proyecto.Controladores.RegistroClienteController">
 
     <!-- SIDEBAR -->
     <left>
         <VBox minWidth="200.0" prefWidth="200.0" spacing="0" style="-fx-background-color: #1A6BAD;">
             <VBox alignment="CENTER" spacing="6" style="-fx-padding: 30 16 24 16;">
-                <Label style="-fx-font-size: 38px; -fx-text-fill: #A8D8F0;" text="🔄" />
+                <Label style="-fx-font-size: 38px; -fx-text-fill: #A8D8F0;" text="👥" />
                 <Label style="-fx-font-size: 13px; -fx-text-fill: #A8D8F0; -fx-font-weight: bold;" text="Farmacia" />
                 <Label style="-fx-font-size: 11px; -fx-text-fill: #7BBEDE;" text="Kenia Carmen" />
             </VBox>
@@ -22,12 +22,12 @@
                         style="-fx-background-color: #2A85CF; -fx-text-fill: white; -fx-font-weight: bold;
                                -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand;
                                -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;"
-                        text="🔄  Nueva Devolución" />
+                        text="🔄  Nuevo Cliente" />
                 <Button prefHeight="42" prefWidth="180"
                         style="-fx-background-color: transparent; -fx-text-fill: #A8D8F0; -fx-font-size: 13px;
                                -fx-background-radius: 10; -fx-cursor: hand;
                                -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;"
-                        text="📋  Lista de Devoluciones" />
+                        text="📋  Lista de Clientes" />
                 <Button prefHeight="42" prefWidth="180"
                         style="-fx-background-color: transparent; -fx-text-fill: #A8D8F0; -fx-font-size: 13px;
                                -fx-background-radius: 10; -fx-cursor: hand;
@@ -36,23 +36,21 @@
             </VBox>
             <Region VBox.vgrow="ALWAYS" />
             <Label style="-fx-text-fill: #3A7AAD; -fx-font-size: 10px; -fx-padding: 0 0 14 16;"
-                   text="v1.0  ·  Sistema de Devoluciones" />
+                   text="v1.0  ·  Sistema de Clientes" />
         </VBox>
     </left>
 
     <!-- CONTENIDO PRINCIPAL -->
     <center>
         <VBox spacing="0">
-
-            <!-- HEADER -->
             <HBox alignment="CENTER_LEFT" spacing="12"
                   style="-fx-background-color: white; -fx-padding: 16 28 16 28;
                          -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.08), 6, 0, 0, 2);">
                 <VBox spacing="2">
                     <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;"
-                           text="Gestión de Devoluciones" />
+                           text="Gestión de Clientes" />
                     <Label style="-fx-font-size: 11px; -fx-text-fill: #7FA8C9;"
-                           text="Farmacia Kenia Carmen  ·  Módulo de Devoluciones" />
+                           text="Farmacia Kenia Carmen  ·  Módulo de Clientes" />
                 </VBox>
                 <Region HBox.hgrow="ALWAYS" />
                 <Label style="-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #1A7A40;
@@ -71,13 +69,13 @@
                                  -fx-padding: 18 20 18 20;
                                  -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
                         <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1A6BAD;"
-                               text="🔍  Buscar Devoluciones" />
+                               text="🔍  Buscar Clientes" />
                         <HBox alignment="CENTER_LEFT" spacing="10">
                             <TextField fx:id="txtBuscar" prefHeight="36" prefWidth="500"
-                                       promptText="Buscar por producto, empleado, motivo, estado u observación..."
+                                       promptText="Buscar por cédula, nombres, apellidos, email o teléfono..."
                                        style="-fx-background-radius: 8; -fx-border-color: #BAD6EE;
                                               -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 4 10;" />
-                            <Button onAction="#buscarDevolucion" prefHeight="36" prefWidth="90"
+                            <Button onAction="#buscarCliente" prefHeight="36" prefWidth="90"
                                     style="-fx-background-color: #1A6BAD; -fx-text-fill: white;
                                            -fx-font-weight: bold; -fx-background-radius: 8;
                                            -fx-cursor: hand; -fx-font-size: 13px;"
@@ -94,23 +92,22 @@
                     <!-- TABLA HISTORIAL -->
                     <VBox style="-fx-background-color: white; -fx-background-radius: 14;
                                  -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
-                        <TableView fx:id="tblDevoluciones" prefHeight="200"
+                        <TableView fx:id="tblClientes" prefHeight="200"
                                    style="-fx-border-color: #D6E8F5; -fx-border-radius: 8; -fx-background-radius: 8;">
                             <columns>
-                                <TableColumn fx:id="colId"               prefWidth="45"  text="ID" />
-                                <TableColumn fx:id="colIdVenta"          prefWidth="60"  text="ID Venta" />
-                                <TableColumn fx:id="colProducto"         prefWidth="150" text="Producto" />
-                                <TableColumn fx:id="colEmpleado"         prefWidth="140" text="Empleado" />
-                                <TableColumn fx:id="colFecha"            prefWidth="110" text="Fecha" />
-                                <TableColumn fx:id="colMonto"            prefWidth="100" text="Monto (RD$)" />
-                                <TableColumn fx:id="colMontoNotaCredito" prefWidth="130" text="Nota Crédito (RD$)" />
-                                <TableColumn fx:id="colMotivo"           prefWidth="120" text="Motivo" />
-                                <TableColumn fx:id="colEstado"           prefWidth="90"  text="Estado" />
-                                <TableColumn fx:id="colObservacion"      prefWidth="180" text="Observación" />
+                                <TableColumn fx:id="colId" prefWidth="50" text="ID" />
+                                <TableColumn fx:id="colCedula" prefWidth="120" text="Cédula/RNC" />
+                                <TableColumn fx:id="colNombres" prefWidth="150" text="Nombres" />
+                                <TableColumn fx:id="colApellidos" prefWidth="150" text="Apellidos" />
+                                <TableColumn fx:id="colTelefono" prefWidth="100" text="Teléfono" />
+                                <TableColumn fx:id="colEmail" prefWidth="180" text="Email" />
+                                <TableColumn fx:id="colFechaRegistro" prefWidth="100" text="Fecha Registro" />
+                                <TableColumn fx:id="colPuntos" prefWidth="80" text="Puntos" />
+                                <TableColumn fx:id="colEstado" prefWidth="80" text="Estado" />
                             </columns>
                             <placeholder>
                                 <Label style="-fx-text-fill: #9BBDD6; -fx-font-size: 13px;"
-                                       text="No hay devoluciones registradas" />
+                                       text="No hay clientes registrados" />
                             </placeholder>
                         </TableView>
                     </VBox>
@@ -124,78 +121,95 @@
                         <HBox alignment="CENTER_LEFT" spacing="8">
                             <Label style="-fx-font-size: 15px;" text="📋" />
                             <Label style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;"
-                                   text="Información de la Devolución" />
+                                   text="Información del Cliente" />
                             <Rectangle fill="#D6E8F5" height="16" width="1" />
                             <Label style="-fx-font-size: 11px; -fx-text-fill: #9BBDD6;"
-                                   text="Seleccione una devolución de la tabla para editar o eliminar" />
+                                   text="Seleccione un cliente de la tabla para editar o eliminar" />
                         </HBox>
 
                         <GridPane hgap="16" vgap="12">
                             <columnConstraints>
-                                <ColumnConstraints percentWidth="50" />
-                                <ColumnConstraints percentWidth="50" />
+                                <ColumnConstraints percentWidth="33" />
+                                <ColumnConstraints percentWidth="33" />
+                                <ColumnConstraints percentWidth="34" />
                             </columnConstraints>
 
-                            <!-- Fila 0: Producto | Cliente -->
+                            <!-- Fila 0: Cédula | Nombres | Apellidos -->
                             <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="0">
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
-                                       text="💊  Producto involucrado *" />
-                                <ComboBox fx:id="cmbProducto" prefHeight="34" prefWidth="999"
-                                          promptText="Seleccionar producto..."
-                                          style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                                       text="📄  Cédula / RNC *" />
+                                <TextField fx:id="txtCedula" prefHeight="34"
+                                           promptText="Ingrese cédula o RNC..."
+                                           style="-fx-background-radius: 8; -fx-border-color: #BAD6EE;
+                                                  -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
                             </VBox>
                             <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
-                                       text="👤  Cliente *" />
-                                <ComboBox fx:id="cmbCliente" prefHeight="34" prefWidth="999"
-                                          promptText="Seleccionar cliente..."
-                                          style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                                       text="👤  Nombres *" />
+                                <TextField fx:id="txtNombres" prefHeight="34"
+                                           promptText="Ingrese nombres..."
+                                           style="-fx-background-radius: 8; -fx-border-color: #BAD6EE;
+                                                  -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                            </VBox>
+                            <VBox spacing="5" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
+                                       text="👤  Apellidos *" />
+                                <TextField fx:id="txtApellidos" prefHeight="34"
+                                           promptText="Ingrese apellidos..."
+                                           style="-fx-background-radius: 8; -fx-border-color: #BAD6EE;
+                                                  -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
                             </VBox>
 
-                            <!-- Fila 1: Empleado | Motivo -->
+                            <!-- Fila 1: Fecha Nacimiento | Sexo | Dirección -->
                             <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="1">
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
-                                       text="👔  Empleado que procesa *" />
-                                <ComboBox fx:id="cmbEmpleado" prefHeight="34" prefWidth="999"
-                                          promptText="Seleccionar empleado..."
-                                          style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                                       text="🎂  Fecha Nacimiento" />
+                                <DatePicker fx:id="dateFechaNacimiento" prefHeight="34" prefWidth="999"
+                                            promptText="Seleccionar fecha..."
+                                            style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
                             </VBox>
                             <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1">
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
-                                       text="❓  Motivo de devolución *" />
-                                <ComboBox fx:id="cmbMotivo" prefHeight="34" prefWidth="999"
-                                          promptText="Seleccionar motivo..."
+                                       text="⚥  Sexo" />
+                                <ComboBox fx:id="cmbSexo" prefHeight="34" prefWidth="999"
+                                          promptText="Seleccionar sexo..."
+                                          style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                            </VBox>
+                            <VBox spacing="5" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
+                                       text="🏠  Dirección" />
+                                <ComboBox fx:id="cmbDireccion" prefHeight="34" prefWidth="999"
+                                          promptText="Seleccionar dirección..."
                                           style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
                             </VBox>
 
-                            <!-- Fila 2: ID Venta (columna 0) | Nota crédito (columna 1) -->
+                            <!-- Fila 2: Teléfono | Email | Puntos Fidelidad -->
                             <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="2">
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
-                                       text="🏷️  ID Venta *" />
-                                <TextField fx:id="txtIdVenta"
-                                           promptText="Ingrese el ID de la venta asociada..."
+                                       text="📞  Teléfono *" />
+                                <TextField fx:id="txtTelefono" prefHeight="34"
+                                           promptText="Ingrese teléfono..."
                                            style="-fx-background-radius: 8; -fx-border-color: #BAD6EE;
                                                   -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
-                                <HBox spacing="8">
-                                    <Button onAction="#buscarVentaPorId"
-                                            style="-fx-background-color: #4A7FA5; -fx-text-fill: white;
-                                                   -fx-font-size: 11px; -fx-background-radius: 6; -fx-cursor: hand;
-                                                   -fx-padding: 4 12;"
-                                            text="🔍 Validar Venta" />
-                                    <Label fx:id="lblInfoVenta"
-                                           style="-fx-font-size: 11px; -fx-text-fill: #7FA8C9; -fx-padding: 5 0 0 0;"
-                                           text="Ingrese ID de venta y valide" />
-                                </HBox>
                             </VBox>
                             <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="2">
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
-                                       text="📄  Nota de crédito (opcional)" />
-                                <ComboBox fx:id="cmbNotaCredito" prefHeight="34" prefWidth="999"
-                                          promptText="Seleccionar nota de crédito..."
-                                          style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                                       text="📧  Email *" />
+                                <TextField fx:id="txtEmail" prefHeight="34"
+                                           promptText="Ingrese email..."
+                                           style="-fx-background-radius: 8; -fx-border-color: #BAD6EE;
+                                                  -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                            </VBox>
+                            <VBox spacing="5" GridPane.columnIndex="2" GridPane.rowIndex="2">
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
+                                       text="⭐  Puntos Fidelidad" />
+                                <TextField fx:id="txtPuntosFidelidad" prefHeight="34" text="0"
+                                           promptText="Puntos acumulados..."
+                                           style="-fx-background-radius: 8; -fx-border-color: #BAD6EE;
+                                                  -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
                             </VBox>
 
-                            <!-- Fila 3: Estado | Monto -->
+                            <!-- Fila 3: Estado | Fecha Registro -->
                             <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="3">
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
                                        text="📌  Estado *" />
@@ -205,33 +219,13 @@
                             </VBox>
                             <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="3">
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
-                                       text="💰  Monto a devolver (RD$)" />
-                                <TextField fx:id="txtMonto" promptText="0.00"
-                                           style="-fx-background-radius: 8; -fx-border-color: #BAD6EE;
-                                                  -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
-                            </VBox>
-
-                            <!-- Fila 4: Fecha -->
-                            <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="4">
-                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
-                                       text="📅  Fecha *" />
-                                <DatePicker fx:id="dateFecha" prefHeight="34" prefWidth="999"
+                                       text="📅  Fecha Registro" />
+                                <DatePicker fx:id="dateFechaRegistro" prefHeight="34" prefWidth="999"
+                                            promptText="Fecha de registro..."
                                             style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
-                            </VBox>
-
-                            <!-- Fila 5: Observación (ancho completo) -->
-                            <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="5"
-                                  GridPane.columnSpan="2">
-                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
-                                       text="📝  Observación" />
-                                <TextField fx:id="txtObservacion"
-                                           promptText="Detalle adicional de la devolución..."
-                                           style="-fx-background-radius: 8; -fx-border-color: #BAD6EE;
-                                                  -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
                             </VBox>
                         </GridPane>
                     </VBox>
-
                 </VBox>
             </ScrollPane>
 
@@ -246,23 +240,22 @@
                                -fx-font-size: 13px; -fx-border-color: #B0BEC5;
                                -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;"
                         text="🧹  Limpiar" />
-                <Button onAction="#eliminarDevolucion" prefHeight="40" prefWidth="130"
+                <Button onAction="#eliminarCliente" prefHeight="40" prefWidth="130"
                         style="-fx-background-color: white; -fx-text-fill: #E53935; -fx-font-weight: bold;
                                -fx-font-size: 13px; -fx-border-color: #EF5350;
                                -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;"
                         text="🗑  Eliminar" />
-                <Button onAction="#editarDevolucion" prefHeight="40" prefWidth="130"
+                <Button onAction="#editarCliente" prefHeight="40" prefWidth="130"
                         style="-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-weight: bold;
                                -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand;
                                -fx-effect: dropshadow(gaussian, rgba(46,125,50,0.35), 8, 0, 0, 3);"
                         text="✏  Editar" />
-                <Button onAction="#guardarDevolucion" prefHeight="40" prefWidth="180"
+                <Button onAction="#guardarCliente" prefHeight="40" prefWidth="180"
                         style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold;
                                -fx-font-size: 14px; -fx-background-radius: 10; -fx-cursor: hand;
                                -fx-effect: dropshadow(gaussian, rgba(26,107,173,0.35), 8, 0, 0, 3);"
-                        text="✔  Guardar Devolución" />
+                        text="✔  Guardar Cliente" />
             </HBox>
-
         </VBox>
     </center>
 </BorderPane>
