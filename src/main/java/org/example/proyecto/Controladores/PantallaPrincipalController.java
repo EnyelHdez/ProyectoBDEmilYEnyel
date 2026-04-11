@@ -1,15 +1,15 @@
 package org.example.proyecto.Controladores;
 
+import org.example.proyecto.Modelos.Usuarios.SesionUsuario;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
@@ -21,10 +21,13 @@ public class PantallaPrincipalController implements Initializable {
 
     @FXML private StackPane contenedorPrincipal;
     @FXML private Label lblTituloPantalla;
+    @FXML private Label lblUsuario;  // NUEVO: Para mostrar el usuario
+    @FXML private Label lblCargo;
+    @FXML private Label lblNombreUsuario;
     @FXML private Button btnClientes, btnVentas, btnProductos, btnCompras;
     @FXML private Button btnEmpleados, btnProveedores, btnPedidos, btnPagos;
     @FXML private Button btnEnvios, btnDevoluciones, btnReclamaciones, btnOrdenCompra;
-    @FXML private Button btnInicio;
+    @FXML private Button btnInicio, btnCerrarSesion; // NUEVO: Botón cerrar sesión
 
     private Map<Button, String[]> mapaPantallas = new HashMap<>();
     private Button botonActivo = null;
@@ -34,6 +37,57 @@ public class PantallaPrincipalController implements Initializable {
         configurarMapaPantallas();
         aplicarEstilosBotones();
         cargarPantallaBienvenida();
+        mostrarInformacionUsuario(); // NUEVO: Mostrar usuario logueado
+    }
+
+
+    private void mostrarInformacionUsuario() {
+        if (SesionUsuario.getInstancia().isSesionActiva()) {
+            String nombreUsuario = SesionUsuario.getInstancia().getNombreUsuario();
+            String cargo = SesionUsuario.getInstancia().getCargoUsuario();
+            String nombreCompleto = SesionUsuario.getInstancia().getUsuarioActual().getNombreCompleto();
+
+            if (lblUsuario != null) {
+                lblUsuario.setText("👤 " + nombreUsuario);
+            }
+            if (lblCargo != null) {
+                lblCargo.setText("📋 " + cargo);
+            }
+            if (lblNombreUsuario != null) {
+                lblNombreUsuario.setText(nombreCompleto);
+            }
+        } else {
+            // Si no hay sesión (por seguridad), cerrar la aplicación
+            cerrarSesion();
+        }
+    }
+
+    @FXML
+    private void cerrarSesion() {
+        // Cerrar sesión
+        SesionUsuario.getInstancia().cerrarSesion();
+
+        // Cerrar ventana actual
+        Stage stage = (Stage) btnInicio.getScene().getWindow();
+        stage.close();
+
+        // Abrir login
+        abrirLogin();
+    }
+
+    // NUEVO: Abrir ventana de login
+    private void abrirLogin() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/proyecto/login.fxml"));
+            Parent root = loader.load();
+            Stage stage = new Stage();
+            stage.setTitle("Login - Farmacia Kenia Carmen");
+            stage.setScene(new javafx.scene.Scene(root));
+            stage.setResizable(false);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void configurarMapaPantallas() {
@@ -89,15 +143,10 @@ public class PantallaPrincipalController implements Initializable {
     private void cargarPantalla(String titulo, String rutaFXML) {
         try {
             lblTituloPantalla.setText(titulo);
-
-            // Cargar el FXML
             FXMLLoader loader = new FXMLLoader(getClass().getResource(rutaFXML));
             Parent nuevaPantalla = loader.load();
-
             contenedorPrincipal.getChildren().clear();
             contenedorPrincipal.getChildren().add(nuevaPantalla);
-
-
         } catch (IOException e) {
             e.printStackTrace();
             mostrarPantallaError(titulo, rutaFXML, e.getMessage());
@@ -107,14 +156,19 @@ public class PantallaPrincipalController implements Initializable {
     private void cargarPantallaBienvenida() {
         lblTituloPantalla.setText("Panel Principal");
 
-        // Crear pantalla de bienvenida
+        // Obtener nombre del usuario para el mensaje de bienvenida
+        String nombreUsuario = "Usuario";
+        if (SesionUsuario.getInstancia().isSesionActiva()) {
+            nombreUsuario = SesionUsuario.getInstancia().getUsuarioActual().getNombreCompleto();
+        }
+
         VBox bienvenida = new VBox(20);
         bienvenida.setStyle("-fx-alignment: CENTER; -fx-background-color: #EEF4FB; -fx-padding: 50;");
 
         Label lblIcono = new Label("🏥");
         lblIcono.setStyle("-fx-font-size: 80px;");
 
-        Label lblTitulo = new Label("¡Bienvenido al Sistema!");
+        Label lblTitulo = new Label("¡Bienvenido, " + nombreUsuario + "!");
         lblTitulo.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;");
 
         Label lblSubtitulo = new Label("Seleccione una opción del menú lateral para comenzar");
@@ -159,7 +213,7 @@ public class PantallaPrincipalController implements Initializable {
         contenedorPrincipal.getChildren().add(errorBox);
     }
 
-    // Métodos de navegación
+    // Métodos de navegación existentes...
     @FXML private void abrirClientes() {
         String[] datos = mapaPantallas.get(btnClientes);
         marcarBotonActivo(btnClientes);
