@@ -108,14 +108,14 @@ public class OrdenCompraController implements Initializable {
 
     private void cargarProveedores() {
         ObservableList<String> proveedores = FXCollections.observableArrayList();
-        String sql = "SELECT id_proveedor, razon_social FROM tbl_PROVEEDOR WHERE estado_temp = 'Activo' ORDER BY razon_social";
+        String sql = "SELECT id_proveedor, razon_social FROM tbl_PROVEEDOR ";
         try (Statement stmt = conexion.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next())
                 proveedores.add(rs.getInt("id_proveedor") + " - " + rs.getString("razon_social"));
             cmbProveedor.setItems(proveedores);
         } catch (SQLException e) {
             try {
-                String sql2 = "SELECT id_proveedor, nombre_comercial FROM tbl_PROVEEDOR WHERE estado_temp = 'Activo' ORDER BY nombre_comercial";
+                String sql2 = "SELECT id_proveedor, nombre_comercial FROM tbl_PROVEEDOR";
                 try (Statement s2 = conexion.createStatement(); ResultSet rs2 = s2.executeQuery(sql2)) {
                     while (rs2.next())
                         proveedores.add(rs2.getInt("id_proveedor") + " - " + rs2.getString("nombre_comercial"));
@@ -165,12 +165,12 @@ public class OrdenCompraController implements Initializable {
     }
 
     private void cargarPrecioProducto(int idProducto) {
-        String sql = "SELECT precio_compra FROM tbl_PRODUCTO WHERE id_producto = ?";
+        String sql = "SELECT precio_costo FROM tbl_PRODUCTO WHERE id_producto = ?";
         try (PreparedStatement ps = conexion.prepareStatement(sql)) {
             ps.setInt(1, idProducto);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                BigDecimal precio = rs.getBigDecimal("precio_compra");
+                BigDecimal precio = rs.getBigDecimal("precio_costo");
                 if (precio != null) {
                     txtPrecioUnitario.setText(precio.toString());
                 }
@@ -385,7 +385,7 @@ public class OrdenCompraController implements Initializable {
     @FXML
     private void guardarOrden(ActionEvent event) {
         if (idOrdenSeleccionada == 0) NuevaOrden();
-        else actualizarOrden();
+        else editarOrden();
     }
 
     public void NuevaOrden() {
@@ -444,71 +444,7 @@ public class OrdenCompraController implements Initializable {
         }
     }
 
-    private void actualizarOrden() {
-        if (!validar()) return;
-        if (listaDetalle.isEmpty()) {
-            mostrarError("Debe agregar al menos un producto a la orden");
-            return;
-        }
 
-        String sqlOrden = "UPDATE tbl_ORDEN_COMPRA " +
-                "SET id_proveedor=?, id_empleado=?, fecha_orden=?, fecha_entrega=?, " +
-                "    condicion_pago=?, observaciones=?, subtotal=?, total=?, estado=? " +
-                "WHERE id_orden=?";
-
-        try {
-            conexion.setAutoCommit(false);
-
-            // Eliminar detalles antiguos
-            try (PreparedStatement psDelete = conexion.prepareStatement(
-                    "DELETE FROM tbl_DETALLE_ORDEN_COMPRA WHERE id_orden = ?")) {
-                psDelete.setInt(1, idOrdenSeleccionada);
-                psDelete.executeUpdate();
-            }
-
-            // Actualizar orden
-            try (PreparedStatement psOrden = conexion.prepareStatement(sqlOrden)) {
-                setearParametrosOrden(psOrden);
-                psOrden.setInt(10, idOrdenSeleccionada);
-                psOrden.executeUpdate();
-            }
-
-            // Insertar nuevos detalles
-            String sqlDetalle = "INSERT INTO tbl_DETALLE_ORDEN_COMPRA " +
-                    "(id_orden, id_producto, cantidad, precio_unitario, subtotal) " +
-                    "VALUES (?, ?, ?, ?, ?)";
-
-            try (PreparedStatement psDetalle = conexion.prepareStatement(sqlDetalle)) {
-                for (DetalleOrdenCompra d : listaDetalle) {
-                    psDetalle.setInt(1, idOrdenSeleccionada);
-                    psDetalle.setInt(2, d.getIdProducto());
-                    psDetalle.setInt(3, d.getCantidad());
-                    psDetalle.setBigDecimal(4, d.getPrecioUnitario());
-                    psDetalle.setBigDecimal(5, d.getSubtotal());
-                    psDetalle.executeUpdate();
-                }
-            }
-
-            conexion.commit();
-            mostrarExito("Orden actualizada correctamente.");
-            limpiarTodo();
-            cargarTablaOrdenes();
-
-        } catch (SQLException e) {
-            try {
-                conexion.rollback();
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-            mostrarError("Error al actualizar:\n" + e.getMessage());
-        } finally {
-            try {
-                conexion.setAutoCommit(true);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 
     private void setearParametrosOrden(PreparedStatement ps) throws SQLException {
         ps.setInt(1, obtenerIdFromCombo(cmbProveedor.getValue()));
@@ -611,34 +547,6 @@ public class OrdenCompraController implements Initializable {
         }
     }
 
-    @FXML
-    private void cancelarOrden(ActionEvent event) {
-        if (idOrdenSeleccionada == 0) {
-            mostrarError("Seleccione una orden de la tabla");
-            return;
-        }
-
-        Alert conf = new Alert(Alert.AlertType.CONFIRMATION);
-        conf.setTitle("Confirmar cancelación");
-        conf.setHeaderText("¿Está seguro de cancelar esta orden?");
-        conf.setContentText("Esta acción no se puede deshacer.");
-        Optional<ButtonType> result = conf.showAndWait();
-
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            try (PreparedStatement ps = conexion.prepareStatement(
-                    "UPDATE tbl_ORDEN_COMPRA SET estado = 'CANCELADA' WHERE id_orden = ?")) {
-                ps.setInt(1, idOrdenSeleccionada);
-                ps.executeUpdate();
-
-                mostrarExito("Orden cancelada correctamente.");
-                cargarTablaOrdenes();
-
-            } catch (SQLException e) {
-                mostrarError("Error al cancelar orden: " + e.getMessage());
-            }
-        }
-    }
-
     private void rellenarFormulario(OrdenCompra o) {
         cmbProveedor.getItems().stream()
                 .filter(s -> s.startsWith(o.getIdProveedor() + " - "))
@@ -738,5 +646,98 @@ public class OrdenCompraController implements Initializable {
         a.setHeaderText(null);
         a.setContentText(mensaje);
         a.showAndWait();
+    }
+
+    public void eliminarOrden(ActionEvent actionEvent) {
+            if (idOrdenSeleccionada == 0) {
+                mostrarError("Seleccione una orden de la tabla");
+                return;
+            }
+
+            Alert conf = new Alert(Alert.AlertType.CONFIRMATION);
+            conf.setTitle("Confirmar cancelación");
+            conf.setHeaderText("¿Está seguro de cancelar esta orden?");
+            conf.setContentText("Esta acción no se puede deshacer.");
+            Optional<ButtonType> result = conf.showAndWait();
+
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                try (PreparedStatement ps = conexion.prepareStatement(
+                        "Delete from tbl_ORDEN_COMPRA WHERE id_orden = ?")) {
+                    ps.setInt(1, idOrdenSeleccionada);
+                    ps.executeUpdate();
+
+                    mostrarExito("Orden eliminada correctamente.");
+                    cargarTablaOrdenes();
+
+                } catch (SQLException e) {
+                    mostrarError("Error al eliminar orden: " + e.getMessage());
+                }
+            }
+    }
+
+    public void editarOrden() {
+        if (!validar()) return;
+        if (listaDetalle.isEmpty()) {
+            mostrarError("Debe agregar al menos un producto a la orden");
+            return;
+        }
+
+        String sqlOrden = "UPDATE tbl_ORDEN_COMPRA " +
+                "SET id_proveedor=?, id_empleado=?, fecha_orden=?, fecha_entrega=?, " +
+                "    condicion_pago=?, observaciones=?, subtotal=?, total=?, estado=? " +
+                "WHERE id_orden=?";
+
+        try {
+            conexion.setAutoCommit(false);
+
+            // Eliminar detalles antiguos
+            try (PreparedStatement psDelete = conexion.prepareStatement(
+                    "DELETE FROM tbl_DETALLE_ORDEN_COMPRA WHERE id_orden = ?")) {
+                psDelete.setInt(1, idOrdenSeleccionada);
+                psDelete.executeUpdate();
+            }
+
+            // Actualizar orden
+            try (PreparedStatement psOrden = conexion.prepareStatement(sqlOrden)) {
+                setearParametrosOrden(psOrden);
+                psOrden.setInt(10, idOrdenSeleccionada);
+                psOrden.executeUpdate();
+            }
+
+            // Insertar nuevos detalles
+            String sqlDetalle = "INSERT INTO tbl_DETALLE_ORDEN_COMPRA " +
+                    "(id_orden, id_producto, cantidad, precio_unitario, subtotal) " +
+                    "VALUES (?, ?, ?, ?, ?)";
+
+            try (PreparedStatement psDetalle = conexion.prepareStatement(sqlDetalle)) {
+                for (DetalleOrdenCompra d : listaDetalle) {
+                    psDetalle.setInt(1, idOrdenSeleccionada);
+                    psDetalle.setInt(2, d.getIdProducto());
+                    psDetalle.setInt(3, d.getCantidad());
+                    psDetalle.setBigDecimal(4, d.getPrecioUnitario());
+                    psDetalle.setBigDecimal(5, d.getSubtotal());
+                    psDetalle.executeUpdate();
+                }
+            }
+
+            conexion.commit();
+            mostrarExito("Orden actualizada correctamente.");
+            limpiarTodo();
+            cargarTablaOrdenes();
+
+        } catch (SQLException e) {
+            try {
+                conexion.rollback();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+            mostrarError("Error al actualizar:\n" + e.getMessage());
+        } finally {
+            try {
+                conexion.setAutoCommit(true);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

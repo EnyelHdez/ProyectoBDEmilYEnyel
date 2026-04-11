@@ -15,6 +15,34 @@ public class Devolucion {
     private BigDecimal montoDevuelto;
     private String observacion;
     private String estado;
+    private int idCliente;
+
+    public Devolucion(int idDevolucion, int idProducto, int idVenta, int idEmpleado, int idMotivo, Integer idNotaCredito, LocalDateTime fecha, BigDecimal montoDevuelto, String observacion, String estado, int idCliente, String motivoNombre, String fechaTexto, String nombreEmpleado, String nombreProducto, BigDecimal montoNotaCredito) {
+        this.idDevolucion = idDevolucion;
+        this.idProducto = idProducto;
+        this.idVenta = idVenta;
+        this.idEmpleado = idEmpleado;
+        this.idMotivo = idMotivo;
+        this.idNotaCredito = idNotaCredito;
+        this.fecha = fecha;
+        this.montoDevuelto = montoDevuelto;
+        this.observacion = observacion;
+        this.estado = estado;
+        this.idCliente = idCliente;
+        this.motivoNombre = motivoNombre;
+        this.fechaTexto = fechaTexto;
+        this.nombreEmpleado = nombreEmpleado;
+        this.nombreProducto = nombreProducto;
+        this.montoNotaCredito = montoNotaCredito;
+    }
+
+    public int getIdCliente() {
+        return idCliente;
+    }
+
+    public void setIdCliente(int idCliente) {
+        this.idCliente = idCliente;
+    }
 
     // Campos auxiliares para mostrar en tablas (no están en la BD)
     private String motivoNombre;
@@ -25,26 +53,6 @@ public class Devolucion {
 
     // Constructor vacío
     public Devolucion() {}
-
-    // Constructor completo
-    public Devolucion(int idDevolucion, int idProducto, int idVenta, int idEmpleado,
-                      int idMotivo, Integer idNotaCredito, LocalDateTime fecha,
-                      BigDecimal montoDevuelto, String observacion, String estado,
-                      String motivoNombre, String fechaTexto, String nombreEmpleado) {
-        this.idDevolucion   = idDevolucion;
-        this.idProducto     = idProducto;
-        this.idVenta        = idVenta;
-        this.idEmpleado     = idEmpleado;
-        this.idMotivo       = idMotivo;
-        this.idNotaCredito  = idNotaCredito;
-        this.fecha          = fecha;
-        this.montoDevuelto  = montoDevuelto;
-        this.observacion    = observacion;
-        this.estado         = estado;
-        this.motivoNombre   = motivoNombre;
-        this.fechaTexto     = fechaTexto;
-        this.nombreEmpleado = nombreEmpleado;
-    }
 
     // ── Getters y Setters ────────────────────────────────────────────────
 

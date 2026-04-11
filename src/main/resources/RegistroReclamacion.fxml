@@ -4,92 +4,25 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.*?>
 
-<BorderPane prefHeight="700.0" prefWidth="1100.0" style="-fx-background-color: #EEF4FB;"
-            xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.example.proyecto.Controladores.RegistroaReclamacionController">
-
-    <left>
-        <VBox minWidth="200.0" prefWidth="200.0" spacing="0" style="-fx-background-color: #1A6BAD;">
-            <VBox alignment="CENTER" spacing="6" style="-fx-padding: 30 16 24 16;">
-                <Label style="-fx-font-size: 38px; -fx-text-fill: #A8D8F0;" text="⚠️" />
-                <Label style="-fx-font-size: 13px; -fx-text-fill: #A8D8F0; -fx-font-weight: bold;" text="Farmacia" />
-                <Label style="-fx-font-size: 11px; -fx-text-fill: #7BBEDE;" text="Kenia Carmen" />
-            </VBox>
-            <Rectangle fill="#2A85CF" height="1" />
-            <VBox spacing="4" style="-fx-padding: 16 10 16 10;">
-                <Button onAction="#limpiarCampos" prefHeight="42" prefWidth="180"
-                        style="-fx-background-color: #2A85CF; -fx-text-fill: white; -fx-font-weight: bold;
-                               -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand;
-                               -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;"
-                        text="🔄  Nueva Reclamación" />
-                <Button prefHeight="42" prefWidth="180"
-                        style="-fx-background-color: transparent; -fx-text-fill: #A8D8F0; -fx-font-size: 13px;
-                               -fx-background-radius: 10; -fx-cursor: hand;
-                               -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;"
-                        text="📋  Lista de Reclamaciones" />
-                <Button prefHeight="42" prefWidth="180"
-                        style="-fx-background-color: transparent; -fx-text-fill: #A8D8F0; -fx-font-size: 13px;
-                               -fx-background-radius: 10; -fx-cursor: hand;
-                               -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;"
-                        text="📊  Reportes" />
-            </VBox>
-            <Region VBox.vgrow="ALWAYS" />
-            <Label style="-fx-text-fill: #3A7AAD; -fx-font-size: 10px; -fx-padding: 0 0 14 16;"
-                   text="v1.0  ·  Sistema de Reclamaciones" />
-        </VBox>
-    </left>
+<BorderPane prefHeight="700.0" prefWidth="1100.0" style="-fx-background-color: #EEF4FB;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.proyecto.Controladores.RegistroaReclamacionController">
 
     <center>
         <VBox spacing="0">
-            <HBox alignment="CENTER_LEFT" spacing="12"
-                  style="-fx-background-color: white; -fx-padding: 16 28 16 28;
-                         -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.08), 6, 0, 0, 2);">
-                <VBox spacing="2">
-                    <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;"
-                           text="Gestión de Reclamaciones" />
-                    <Label style="-fx-font-size: 11px; -fx-text-fill: #7FA8C9;"
-                           text="Farmacia Kenia Carmen  ·  Módulo de Reclamaciones" />
-                </VBox>
-                <Region HBox.hgrow="ALWAYS" />
-                <Label style="-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #1A7A40;
-                              -fx-background-color: #DFF5E8; -fx-padding: 6 14; -fx-background-radius: 20;"
-                       text="● Activo" />
-            </HBox>
 
-            <ScrollPane fitToWidth="true"
-                        style="-fx-background-color: transparent; -fx-background: transparent;"
-                        VBox.vgrow="ALWAYS">
+            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" VBox.vgrow="ALWAYS">
                 <VBox spacing="16" style="-fx-padding: 22 28 10 28;">
 
-                    <VBox spacing="10"
-                          style="-fx-background-color: white; -fx-background-radius: 14;
-                                 -fx-padding: 18 20 18 20;
-                                 -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
-                        <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1A6BAD;"
-                               text="🔍  Buscar Reclamaciones" />
+                    <VBox spacing="10" style="-fx-background-color: white; -fx-background-radius: 14;                                  -fx-padding: 18 20 18 20;                                  -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
+                        <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1A6BAD;" text="🔍  Buscar Reclamaciones" />
                         <HBox alignment="CENTER_LEFT" spacing="10">
-                            <TextField fx:id="txtBuscar" prefHeight="36" prefWidth="500"
-                                       promptText="Buscar por cliente, empleado, motivo, estado o descripción..."
-                                       style="-fx-background-radius: 8; -fx-border-color: #BAD6EE;
-                                              -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 4 10;" />
-                            <Button onAction="#buscarReclamacion" prefHeight="36" prefWidth="90"
-                                    style="-fx-background-color: #1A6BAD; -fx-text-fill: white;
-                                           -fx-font-weight: bold; -fx-background-radius: 8;
-                                           -fx-cursor: hand; -fx-font-size: 13px;"
-                                    text="Buscar" />
-                            <Button onAction="#mostrarTodos" prefHeight="36" prefWidth="95"
-                                    style="-fx-background-color: #EEF4FB; -fx-text-fill: #1A6BAD;
-                                           -fx-font-weight: bold; -fx-background-radius: 8;
-                                           -fx-border-color: #BAD6EE; -fx-border-radius: 8;
-                                           -fx-cursor: hand; -fx-font-size: 13px;"
-                                    text="Ver todos" />
+                            <TextField fx:id="txtBuscar" prefHeight="36" prefWidth="500" promptText="Buscar por cliente, empleado, motivo, estado o descripción..." style="-fx-background-radius: 8; -fx-border-color: #BAD6EE;                                               -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 4 10;" />
+                            <Button onAction="#buscarReclamacion" prefHeight="36" prefWidth="90" style="-fx-background-color: #1A6BAD; -fx-text-fill: white;                                            -fx-font-weight: bold; -fx-background-radius: 8;                                            -fx-cursor: hand; -fx-font-size: 13px;" text="Buscar" />
+                            <Button onAction="#mostrarTodos" prefHeight="36" prefWidth="95" style="-fx-background-color: #EEF4FB; -fx-text-fill: #1A6BAD;                                            -fx-font-weight: bold; -fx-background-radius: 8;                                            -fx-border-color: #BAD6EE; -fx-border-radius: 8;                                            -fx-cursor: hand; -fx-font-size: 13px;" text="Ver todos" />
                         </HBox>
                     </VBox>
 
-                    <VBox style="-fx-background-color: white; -fx-background-radius: 14;
-                                 -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
-                        <TableView fx:id="tblReclamaciones" prefHeight="200"
-                                   style="-fx-border-color: #D6E8F5; -fx-border-radius: 8; -fx-background-radius: 8;">
+                    <VBox style="-fx-background-color: white; -fx-background-radius: 14;                                  -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
+                        <TableView fx:id="tblReclamaciones" prefHeight="200" style="-fx-border-color: #D6E8F5; -fx-border-radius: 8; -fx-background-radius: 8;">
                             <columns>
                                 <TableColumn fx:id="colId" prefWidth="50" text="ID" />
                                 <TableColumn fx:id="colCliente" prefWidth="150" text="Cliente" />
@@ -100,24 +33,18 @@
                                 <TableColumn fx:id="colEstado" prefWidth="100" text="Estado" />
                             </columns>
                             <placeholder>
-                                <Label style="-fx-text-fill: #9BBDD6; -fx-font-size: 13px;"
-                                       text="No hay reclamaciones registradas" />
+                                <Label style="-fx-text-fill: #9BBDD6; -fx-font-size: 13px;" text="No hay reclamaciones registradas" />
                             </placeholder>
                         </TableView>
                     </VBox>
 
-                    <VBox spacing="14"
-                          style="-fx-background-color: white; -fx-background-radius: 14;
-                                 -fx-padding: 20 20 20 20;
-                                 -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
+                    <VBox spacing="14" style="-fx-background-color: white; -fx-background-radius: 14;                                  -fx-padding: 20 20 20 20;                                  -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
 
                         <HBox alignment="CENTER_LEFT" spacing="8">
                             <Label style="-fx-font-size: 15px;" text="📋" />
-                            <Label style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;"
-                                   text="Información de la Reclamación" />
+                            <Label style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;" text="Información de la Reclamación" />
                             <Rectangle fill="#D6E8F5" height="16" width="1" />
-                            <Label style="-fx-font-size: 11px; -fx-text-fill: #9BBDD6;"
-                                   text="Seleccione una reclamación de la tabla para editar o eliminar" />
+                            <Label style="-fx-font-size: 11px; -fx-text-fill: #9BBDD6;" text="Seleccione una reclamación de la tabla para editar o eliminar" />
                         </HBox>
 
                         <GridPane hgap="16" vgap="12">
@@ -128,80 +55,48 @@
                             </columnConstraints>
 
                             <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="0">
-                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
-                                       text="👤  Cliente *" />
-                                <ComboBox fx:id="cmbCliente" prefHeight="34" prefWidth="999"
-                                          promptText="Seleccionar cliente..."
-                                          style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="👤  Cliente *" />
+                                <ComboBox fx:id="cmbCliente" prefHeight="34" prefWidth="999" promptText="Seleccionar cliente..." style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
                             </VBox>
                             <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
-                                       text="👔  Empleado *" />
-                                <ComboBox fx:id="cmbEmpleado" prefHeight="34" prefWidth="999"
-                                          promptText="Seleccionar empleado..."
-                                          style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="👔  Empleado *" />
+                                <ComboBox fx:id="cmbEmpleado" prefHeight="34" prefWidth="999" promptText="Seleccionar empleado..." style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
                             </VBox>
                             <VBox spacing="5" GridPane.columnIndex="2" GridPane.rowIndex="0">
-                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
-                                       text="⚠️  Motivo *" />
-                                <ComboBox fx:id="cmbMotivo" prefHeight="34" prefWidth="999"
-                                          promptText="Seleccionar motivo..."
-                                          style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="⚠️  Motivo *" />
+                                <ComboBox fx:id="cmbMotivo" prefHeight="34" prefWidth="999" promptText="Seleccionar motivo..." style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
                             </VBox>
 
                             <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="1">
-                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
-                                       text="📅  Fecha *" />
-                                <DatePicker fx:id="dateFecha" prefHeight="34" prefWidth="999"
-                                            promptText="Seleccionar fecha..."
-                                            style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="📅  Fecha *" />
+                                <DatePicker fx:id="dateFecha" prefHeight="34" prefWidth="999" promptText="Seleccionar fecha..." style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
                             </VBox>
                             <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
-                                       text="📌  Estado *" />
-                                <ComboBox fx:id="cmbEstado" prefHeight="34" prefWidth="999"
-                                          promptText="Seleccionar estado..."
-                                          style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="📌  Estado *" />
+                                <ComboBox fx:id="cmbEstado" prefHeight="34" prefWidth="999" promptText="Seleccionar estado..." style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
                             </VBox>
 
-                            <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="3">
-                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
-                                       text="📝  Descripción *" />
-                                <TextArea fx:id="txtDescripcion" prefHeight="100" prefWidth="999"
-                                          promptText="Describa detalladamente la reclamación..."
-                                          style="-fx-background-radius: 8; -fx-border-color: #BAD6EE;
-                                                 -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                            <VBox spacing="5" GridPane.columnIndex="0" GridPane.columnSpan="3" GridPane.rowIndex="2">
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="📝  Descripción *" />
+                                <TextArea fx:id="txtDescripcion" prefHeight="100" prefWidth="999" promptText="Describa detalladamente la reclamación..." style="-fx-background-radius: 8; -fx-border-color: #BAD6EE;                                                  -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
                             </VBox>
+                     <rowConstraints>
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                     </rowConstraints>
                         </GridPane>
                     </VBox>
                 </VBox>
             </ScrollPane>
 
-            <HBox alignment="CENTER_RIGHT" spacing="12"
-                  style="-fx-background-color: white; -fx-padding: 14 28 14 28;
-                         -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.08), 6, 0, -2, 0);">
+            <HBox alignment="CENTER_RIGHT" spacing="12" style="-fx-background-color: white; -fx-padding: 14 28 14 28;                          -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.08), 6, 0, -2, 0);">
                 <Label style="-fx-font-size: 11px; -fx-text-fill: #9BBDD6;" text="* Campos obligatorios" />
                 <Region HBox.hgrow="ALWAYS" />
-                <Button onAction="#limpiarCampos" prefHeight="40" prefWidth="120"
-                        style="-fx-background-color: white; -fx-text-fill: #546E7A; -fx-font-weight: bold;
-                               -fx-font-size: 13px; -fx-border-color: #B0BEC5;
-                               -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;"
-                        text="🧹  Limpiar" />
-                <Button onAction="#eliminarReclamacion" prefHeight="40" prefWidth="130"
-                        style="-fx-background-color: white; -fx-text-fill: #E53935; -fx-font-weight: bold;
-                               -fx-font-size: 13px; -fx-border-color: #EF5350;
-                               -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;"
-                        text="🗑  Eliminar" />
-                <Button onAction="#editarReclamacion" prefHeight="40" prefWidth="130"
-                        style="-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-weight: bold;
-                               -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand;
-                               -fx-effect: dropshadow(gaussian, rgba(46,125,50,0.35), 8, 0, 0, 3);"
-                        text="✏  Editar" />
-                <Button onAction="#guardarReclamacion" prefHeight="40" prefWidth="180"
-                        style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold;
-                               -fx-font-size: 14px; -fx-background-radius: 10; -fx-cursor: hand;
-                               -fx-effect: dropshadow(gaussian, rgba(26,107,173,0.35), 8, 0, 0, 3);"
-                        text="✔  Guardar Reclamación" />
+                <Button onAction="#limpiarCampos" prefHeight="40" prefWidth="120" style="-fx-background-color: white; -fx-text-fill: #546E7A; -fx-font-weight: bold;                                -fx-font-size: 13px; -fx-border-color: #B0BEC5;                                -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="🧹  Limpiar" />
+                <Button onAction="#eliminarReclamacion" prefHeight="40" prefWidth="130" style="-fx-background-color: white; -fx-text-fill: #E53935; -fx-font-weight: bold;                                -fx-font-size: 13px; -fx-border-color: #EF5350;                                -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="🗑  Eliminar" />
+                <Button onAction="#editarReclamacion" prefHeight="40" prefWidth="130" style="-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-weight: bold;                                -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand;                                -fx-effect: dropshadow(gaussian, rgba(46,125,50,0.35), 8, 0, 0, 3);" text="✏  Editar" />
+                <Button onAction="#guardarReclamacion" prefHeight="40" prefWidth="180" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold;                                -fx-font-size: 14px; -fx-background-radius: 10; -fx-cursor: hand;                                -fx-effect: dropshadow(gaussian, rgba(26,107,173,0.35), 8, 0, 0, 3);" text="✔  Guardar Reclamación" />
             </HBox>
         </VBox>
     </center>

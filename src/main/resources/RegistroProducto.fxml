@@ -6,35 +6,8 @@
 
 <BorderPane prefHeight="700.0" prefWidth="1100.0" style="-fx-background-color: #EEF4FB;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.proyecto.Controladores.RegistroProductoController">
 
-    <left>
-        <VBox minWidth="200.0" prefWidth="200.0" spacing="0" style="-fx-background-color: #1A6BAD;">
-            <VBox alignment="CENTER" spacing="6" style="-fx-padding: 30 16 24 16;">
-                <Label style="-fx-font-size: 38px; -fx-text-fill: #A8D8F0;" text="💊" />
-                <Label style="-fx-font-size: 13px; -fx-text-fill: #A8D8F0; -fx-font-weight: bold;" text="Farmacia" />
-                <Label style="-fx-font-size: 11px; -fx-text-fill: #7BBEDE;" text="Kenia Carmen" />
-            </VBox>
-            <Rectangle fill="#2A85CF" height="1" />
-            <VBox spacing="4" style="-fx-padding: 16 10 16 10;">
-                <Button fx:id="btnNuevo" onAction="#nuevoProducto" prefHeight="42" prefWidth="180" style="-fx-background-color: #2A85CF; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;" text="➕  Nuevo Producto" />
-                <Button prefHeight="42" prefWidth="180" style="-fx-background-color: transparent; -fx-text-fill: #A8D8F0; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;" text="📋  Inventario" />
-                <Button prefHeight="42" prefWidth="180" style="-fx-background-color: transparent; -fx-text-fill: #A8D8F0; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;" text="🏷️  Categorías" />
-            </VBox>
-            <Region VBox.vgrow="ALWAYS" />
-            <Label style="-fx-text-fill: #3A7AAD; -fx-font-size: 10px; -fx-padding: 0 0 14 16;" text="v1.0  ·  Sistema de Productos" />
-        </VBox>
-    </left>
-
     <center>
         <VBox spacing="0">
-
-            <HBox alignment="CENTER_LEFT" spacing="12" style="-fx-background-color: white; -fx-padding: 16 28 16 28; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.08), 6, 0, 0, 2);">
-                <VBox spacing="2">
-                    <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;" text="Gestión de Productos" />
-                    <Label style="-fx-font-size: 11px; -fx-text-fill: #7FA8C9;" text="Farmacia Kenia Carmen  ·  Módulo de Productos" />
-                </VBox>
-                <Region HBox.hgrow="ALWAYS" />
-                <Label fx:id="lblBadgeEstado" style="-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #1A7A40; -fx-background-color: #DFF5E8; -fx-padding: 6 14; -fx-background-radius: 20;" text="● Activo" />
-            </HBox>
 
             <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" VBox.vgrow="ALWAYS">
                 <VBox spacing="16" style="-fx-padding: 22 28 10 28;">

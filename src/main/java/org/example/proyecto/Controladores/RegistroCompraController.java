@@ -233,7 +233,8 @@ public class RegistroCompraController implements Initializable {
 
     private void cargarDetalleCompra(int idCompra) {
         listaDetalle.clear();
-        // SQL para cargar los productos relacionados a la compra
+        tblDetalleProductos.setItems(null); // Forzar refresh de la tabla
+
         String sql = "SELECT d.id_det_compra, d.id_compra, d.id_producto, d.cantidad, " +
                 "d.precio_costo, d.descuento, d.subtotal, p.nombre as nombre_producto " +
                 "FROM tbl_DETALLE_COMPRA d " +
@@ -254,7 +255,15 @@ public class RegistroCompraController implements Initializable {
                 d.setSubtotal(rs.getBigDecimal("subtotal"));
                 listaDetalle.add(d);
             }
+
+            // Reasignar explícitamente la lista a la tabla
+            tblDetalleProductos.setItems(listaDetalle);
+            tblDetalleProductos.refresh(); // ✅ Fuerza el repintado visual
+
             actualizarTotales();
+
+            System.out.println("✅ Productos cargados: " + listaDetalle.size()); // Para debug en consola
+
         } catch (SQLException e) {
             mostrarError("Error al cargar detalle: " + e.getMessage());
         }
@@ -377,39 +386,31 @@ public class RegistroCompraController implements Initializable {
 
     @FXML
     private void guardarCompra(ActionEvent event) {
-        if (idCompraSeleccionada == 0) {
-            // NUEVA COMPRA
-            if (!validar()) return;
-            if (listaDetalle.isEmpty()) {
-                mostrarError("Debe agregar al menos un producto");
-                return;
-            }
-            insertarNuevaCompra();
-        } else {
-            // ACTUALIZAR COMPRA EXISTENTE
-            if (!validar()) return;
-            if (listaDetalle.isEmpty()) {
-                mostrarError("Debe agregar al menos un producto");
-                return;
-            }
-            actualizarCompraExistente();
-        }
-    }
-
-    @FXML
-    private void editarCompra(ActionEvent event) {
-        if (idCompraSeleccionada == 0) {
-            mostrarError("Seleccione una compra de la tabla para editar");
-            return;
-        }
-
         if (!validar()) return;
         if (listaDetalle.isEmpty()) {
             mostrarError("Debe agregar al menos un producto");
             return;
         }
 
-        // ACTUALIZAR LA COMPRA DIRECTAMENTE
+        if (idCompraSeleccionada == 0) {
+            insertarNuevaCompra();
+        } else {
+            actualizarCompraExistente();
+        }
+    }
+
+    // Corregir el editar — ya tiene los productos cargados, no necesita validar lista vacía como bloqueo
+    @FXML
+    private void editarCompra(ActionEvent event) {
+        if (idCompraSeleccionada == 0) {
+            mostrarError("Seleccione una compra de la tabla para editar");
+            return;
+        }
+        if (!validar()) return;
+        if (listaDetalle.isEmpty()) {
+            mostrarError("La compra no tiene productos. Agregue al menos uno.");
+            return;
+        }
         actualizarCompraExistente();
     }
 

@@ -4,46 +4,10 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.*?>
 
-<BorderPane prefHeight="700.0" prefWidth="1100.0" style="-fx-background-color: #EEF4FB;"
-            xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.example.proyecto.Controladores.RegistroProveedorController">
-
-    <left>
-        <VBox minWidth="200.0" prefWidth="200.0" spacing="0" style="-fx-background-color: #1A6BAD;">
-            <VBox alignment="CENTER" spacing="6" style="-fx-padding: 30 16 24 16;">
-                <Label style="-fx-font-size: 38px; -fx-text-fill: #A8D8F0;" text="🏢" />
-                <Label style="-fx-font-size: 13px; -fx-text-fill: #A8D8F0; -fx-font-weight: bold;" text="Farmacia" />
-                <Label style="-fx-font-size: 11px; -fx-text-fill: #7BBEDE;" text="Kenia Carmen" />
-            </VBox>
-            <Rectangle fill="#2A85CF" height="1" />
-            <VBox spacing="4" style="-fx-padding: 16 10 16 10;">
-                <Button onAction="#limpiarCampos" prefHeight="42" prefWidth="180"
-                        style="-fx-background-color: #2A85CF; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;"
-                        text="🏢  Nuevo Proveedor" />
-                <Button prefHeight="42" prefWidth="180"
-                        style="-fx-background-color: transparent; -fx-text-fill: #A8D8F0; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;"
-                        text="📋  Lista de Proveedores" />
-                <Button prefHeight="42" prefWidth="180"
-                        style="-fx-background-color: transparent; -fx-text-fill: #A8D8F0; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;"
-                        text="📊  Reportes" />
-            </VBox>
-            <Region VBox.vgrow="ALWAYS" />
-            <Label style="-fx-text-fill: #3A7AAD; -fx-font-size: 10px; -fx-padding: 0 0 14 16;" text="v1.0  ·  Sistema de Proveedores" />
-        </VBox>
-    </left>
+<BorderPane prefHeight="700.0" prefWidth="1100.0" style="-fx-background-color: #EEF4FB;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.proyecto.Controladores.RegistroProveedorController">
 
     <center>
         <VBox spacing="0">
-
-            <HBox alignment="CENTER_LEFT" spacing="12"
-                  style="-fx-background-color: white; -fx-padding: 16 28 16 28; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.08), 6, 0, 0, 2);">
-                <VBox spacing="2">
-                    <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;" text="Gestión de Proveedores" />
-                    <Label style="-fx-font-size: 11px; -fx-text-fill: #7FA8C9;" text="Farmacia Kenia Carmen  ·  Módulo de Proveedores" />
-                </VBox>
-                <Region HBox.hgrow="ALWAYS" />
-                <Label style="-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #1A7A40; -fx-background-color: #DFF5E8; -fx-padding: 6 14; -fx-background-radius: 20;" text="● Activo" />
-            </HBox>
 
             <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" VBox.vgrow="ALWAYS">
                 <VBox spacing="16" style="-fx-padding: 22 28 10 28;">
@@ -52,32 +16,25 @@
                     <VBox spacing="10" style="-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 18 20 18 20; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
                         <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1A6BAD;" text="🔍  Buscar Proveedores" />
                         <HBox alignment="CENTER_LEFT" spacing="10">
-                            <TextField fx:id="txtBuscar" prefHeight="36" prefWidth="500"
-                                       promptText="Buscar por nombre, RNC, teléfono o dirección..."
-                                       style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 4 10;" />
-                            <Button onAction="#buscarProveedor" prefHeight="36" prefWidth="90"
-                                    style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-font-size: 13px;"
-                                    text="Buscar" />
-                            <Button onAction="#mostrarTodos" prefHeight="36" prefWidth="95"
-                                    style="-fx-background-color: #EEF4FB; -fx-text-fill: #1A6BAD; -fx-font-weight: bold; -fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-cursor: hand; -fx-font-size: 13px;"
-                                    text="Ver todos" />
+                            <TextField fx:id="txtBuscar" prefHeight="36" prefWidth="500" promptText="Buscar por nombre, RNC, teléfono o dirección..." style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 4 10;" />
+                            <Button onAction="#buscarProveedor" prefHeight="36" prefWidth="90" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-font-size: 13px;" text="Buscar" />
+                            <Button onAction="#mostrarTodos" prefHeight="36" prefWidth="95" style="-fx-background-color: #EEF4FB; -fx-text-fill: #1A6BAD; -fx-font-weight: bold; -fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-cursor: hand; -fx-font-size: 13px;" text="Ver todos" />
                         </HBox>
                     </VBox>
 
                     <!-- TABLA -->
                     <VBox style="-fx-background-color: white; -fx-background-radius: 14; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
-                        <TableView fx:id="tblProveedores" prefHeight="190"
-                                   style="-fx-border-color: #D6E8F5; -fx-border-radius: 8; -fx-background-radius: 8;">
+                        <TableView fx:id="tblProveedores" prefHeight="190" style="-fx-border-color: #D6E8F5; -fx-border-radius: 8; -fx-background-radius: 8;">
                             <columns>
-                                <TableColumn fx:id="colId"             prefWidth="45"  text="ID" />
-                                <TableColumn fx:id="colRazonSocial"    prefWidth="150" text="Razón Social" />
+                                <TableColumn fx:id="colId" prefWidth="45" text="ID" />
+                                <TableColumn fx:id="colRazonSocial" prefWidth="150" text="Razón Social" />
                                 <TableColumn fx:id="colNombreComercial" prefWidth="130" text="Nombre Comercial" />
-                                <TableColumn fx:id="colRnc"            prefWidth="100" text="RNC" />
-                                <TableColumn fx:id="colTelefono"       prefWidth="95"  text="Teléfono" />
-                                <TableColumn fx:id="colEmail"          prefWidth="150" text="Email" />
-                                <TableColumn fx:id="colContacto"       prefWidth="100" text="Contacto" />
-                                <TableColumn fx:id="colDireccion"      prefWidth="180" text="Dirección" />
-                                <TableColumn fx:id="colEstado"         prefWidth="70"  text="Estado" />
+                                <TableColumn fx:id="colRnc" prefWidth="100" text="RNC" />
+                                <TableColumn fx:id="colTelefono" prefWidth="95" text="Teléfono" />
+                                <TableColumn fx:id="colEmail" prefWidth="150" text="Email" />
+                                <TableColumn fx:id="colContacto" prefWidth="100" text="Contacto" />
+                                <TableColumn fx:id="colDireccion" prefWidth="180" text="Dirección" />
+                                <TableColumn fx:id="colEstado" prefWidth="70" text="Estado" />
                             </columns>
                             <placeholder>
                                 <Label style="-fx-text-fill: #9BBDD6; -fx-font-size: 13px;" text="No hay proveedores registrados" />
@@ -110,50 +67,43 @@
                             <!-- Fila 0: Razón Social | Nombre Comercial -->
                             <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="0">
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Razón Social *" />
-                                <TextField fx:id="txtNombre" promptText="Ej: Laboratorios XYZ, S.A."
-                                           style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                                <TextField fx:id="txtNombre" promptText="Ej: Laboratorios XYZ, S.A." style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
                             </VBox>
                             <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Nombre Comercial" />
-                                <TextField fx:id="txtNombreComercial" promptText="Nombre comercial del proveedor"
-                                           style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                                <TextField fx:id="txtNombreComercial" promptText="Nombre comercial del proveedor" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
                             </VBox>
 
                             <!-- Fila 1: RNC | Teléfono -->
                             <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="1">
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="RNC *" />
-                                <TextField fx:id="txtRNC" promptText="Ej: 123456789"
-                                           style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                                <TextField fx:id="txtRNC" promptText="Ej: 123456789" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
                             </VBox>
                             <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1">
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Teléfono *" />
-                                <TextField fx:id="txtTelefono" promptText="Ej: 809-555-1234"
-                                           style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                                <TextField fx:id="txtTelefono" promptText="Ej: 809-555-1234" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
                             </VBox>
 
                             <!-- Fila 2: Email | Contacto -->
                             <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="2">
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Email" />
-                                <TextField fx:id="txtEmail" promptText="proveedor@empresa.com"
-                                           style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                                <TextField fx:id="txtEmail" promptText="proveedor@empresa.com" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
                             </VBox>
                             <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="2">
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Persona de Contacto" />
-                                <TextField fx:id="txtContacto" promptText="Nombre del contacto"
-                                           style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                                <TextField fx:id="txtContacto" promptText="Nombre del contacto" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
                             </VBox>
 
                             <!-- Fila 3: Dirección (ancho completo) -->
-                            <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="3" GridPane.columnSpan="2">
+                            <VBox spacing="5" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="3">
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Dirección" />
-                                <TextField fx:id="txtDireccion" promptText="Calle Principal #123, Santiago, República Dominicana"
-                                           style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                                <TextField fx:id="txtDireccion" promptText="Calle Principal #123, Santiago, República Dominicana" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
                             </VBox>
 
                             <!-- Fila 4: Estado -->
-                            <VBox spacing="5" alignment="CENTER_LEFT" GridPane.columnIndex="0" GridPane.rowIndex="4">
+                            <VBox alignment="CENTER_LEFT" spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="4">
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Estado" />
-                                <CheckBox fx:id="chkEstado" selected="true" text="Proveedor activo" style="-fx-font-size: 13px;" />
+                                <CheckBox fx:id="chkEstado" selected="true" style="-fx-font-size: 13px;" text="Proveedor activo" />
                             </VBox>
                         </GridPane>
                     </VBox>
@@ -162,22 +112,13 @@
             </ScrollPane>
 
             <!-- BARRA DE ACCIONES -->
-            <HBox alignment="CENTER_RIGHT" spacing="12"
-                  style="-fx-background-color: white; -fx-padding: 14 28 14 28; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.08), 6, 0, -2, 0);">
+            <HBox alignment="CENTER_RIGHT" spacing="12" style="-fx-background-color: white; -fx-padding: 14 28 14 28; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.08), 6, 0, -2, 0);">
                 <Label style="-fx-font-size: 11px; -fx-text-fill: #9BBDD6;" text="* Campos obligatorios" />
                 <Region HBox.hgrow="ALWAYS" />
-                <Button onAction="#limpiarCampos" prefHeight="40" prefWidth="120"
-                        style="-fx-background-color: white; -fx-text-fill: #546E7A; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #B0BEC5; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;"
-                        text="🧹  Limpiar" />
-                <Button onAction="#eliminarProveedor" prefHeight="40" prefWidth="130"
-                        style="-fx-background-color: white; -fx-text-fill: #E53935; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #EF5350; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;"
-                        text="🗑  Eliminar" />
-                <Button onAction="#editarProveedor" prefHeight="40" prefWidth="130"
-                        style="-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(46,125,50,0.35), 8, 0, 0, 3);"
-                        text="✏  Editar" />
-                <Button onAction="#guardarProveedor" prefHeight="40" prefWidth="170"
-                        style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(26,107,173,0.35), 8, 0, 0, 3);"
-                        text="✔  Guardar Proveedor" />
+                <Button onAction="#limpiarCampos" prefHeight="40" prefWidth="120" style="-fx-background-color: white; -fx-text-fill: #546E7A; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #B0BEC5; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="🧹  Limpiar" />
+                <Button onAction="#eliminarProveedor" prefHeight="40" prefWidth="130" style="-fx-background-color: white; -fx-text-fill: #E53935; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #EF5350; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="🗑  Eliminar" />
+                <Button onAction="#editarProveedor" prefHeight="40" prefWidth="130" style="-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(46,125,50,0.35), 8, 0, 0, 3);" text="✏  Editar" />
+                <Button onAction="#guardarProveedor" prefHeight="40" prefWidth="170" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(26,107,173,0.35), 8, 0, 0, 3);" text="✔  Guardar Proveedor" />
             </HBox>
 
         </VBox>

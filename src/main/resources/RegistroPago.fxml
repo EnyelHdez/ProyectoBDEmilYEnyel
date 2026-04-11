@@ -7,101 +7,34 @@
 <BorderPane prefHeight="700.0" prefWidth="880.0" style="-fx-background-color: #EEF4FB;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.proyecto.Controladores.RegistroPagoController">
 
     <!-- ══════════════════════════════════════════════
-         SIDEBAR IZQUIERDO
-    ══════════════════════════════════════════════ -->
-    <left>
-        <VBox minWidth="200.0" prefWidth="200.0" spacing="0" style="-fx-background-color: #1A6BAD;">
-
-            <VBox alignment="CENTER" spacing="6" style="-fx-padding: 30 16 24 16;">
-                <Label style="-fx-font-size: 38px; -fx-text-fill: #A8D8F0;" text="✚" />
-                <Label style="-fx-font-size: 13px; -fx-text-fill: #A8D8F0; -fx-font-weight: bold;" text="Farmacia" />
-                <Label style="-fx-font-size: 11px; -fx-text-fill: #7BBEDE;" text="Kenia Carmen" />
-            </VBox>
-
-            <Rectangle fill="#2A85CF" height="1" />
-
-            <VBox spacing="4" style="-fx-padding: 16 10 16 10;">
-                <Button fx:id="btnNuevo" onAction="#nuevoPago" prefHeight="42" prefWidth="180"
-                        style="-fx-background-color: #2A85CF; -fx-text-fill: white;
-                               -fx-font-weight: bold; -fx-font-size: 13px;
-                               -fx-background-radius: 10; -fx-cursor: hand;
-                               -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;" text="＋  Nuevo Pago" />
-                <Button prefHeight="42" prefWidth="180"
-                        style="-fx-background-color: transparent; -fx-text-fill: #A8D8F0;
-                               -fx-font-size: 13px; -fx-background-radius: 10;
-                               -fx-cursor: hand; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;" text="📋  Historial" />
-                <Button prefHeight="42" prefWidth="180"
-                        style="-fx-background-color: transparent; -fx-text-fill: #A8D8F0;
-                               -fx-font-size: 13px; -fx-background-radius: 10;
-                               -fx-cursor: hand; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;" text="🏦  Cuentas" />
-            </VBox>
-
-            <Region VBox.vgrow="ALWAYS" />
-            <Label style="-fx-text-fill: #3A7AAD; -fx-font-size: 10px; -fx-padding: 0 0 14 16;" text="v1.0  ·  Sistema de Pagos" />
-        </VBox>
-    </left>
-
-    <!-- ══════════════════════════════════════════════
          CONTENIDO PRINCIPAL
     ══════════════════════════════════════════════ -->
     <center>
         <VBox spacing="0">
 
-            <!-- ── HEADER ── -->
-            <HBox alignment="CENTER_LEFT" spacing="12"
-                  style="-fx-background-color: white; -fx-padding: 16 28 16 28;
-                         -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.08), 6, 0, 0, 2);">
-                <VBox spacing="2">
-                    <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;" text="Registro de Pago" />
-                    <Label style="-fx-font-size: 11px; -fx-text-fill: #7FA8C9;" text="Farmacia Kenia Carmen  ·  Módulo de Pagos" />
-                </VBox>
-                <Region HBox.hgrow="ALWAYS" />
-                <Label fx:id="lblBadgeEstado"
-                       style="-fx-font-weight: bold; -fx-font-size: 12px;
-                              -fx-text-fill: #1A7A40; -fx-background-color: #DFF5E8;
-                              -fx-padding: 6 14; -fx-background-radius: 20;" text="● Activo" />
-            </HBox>
-
             <!-- ── CUERPO ── -->
-            <ScrollPane fitToWidth="true"
-                        style="-fx-background-color: transparent; -fx-background: transparent;"
-                        VBox.vgrow="ALWAYS">
+            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" VBox.vgrow="ALWAYS">
                 <VBox spacing="16" style="-fx-padding: 22 28 10 28;">
 
                     <!-- ─ BLOQUE BÚSQUEDA ─ -->
-                    <VBox spacing="10"
-                          style="-fx-background-color: white; -fx-background-radius: 14;
-                                 -fx-padding: 18 20 18 20;
-                                 -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
+                    <VBox spacing="10" style="-fx-background-color: white; -fx-background-radius: 14;                                  -fx-padding: 18 20 18 20;                                  -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
 
-                        <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1A6BAD;"
-                               text="🔍  Buscar Pagos Registrados" />
+                        <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1A6BAD;" text="🔍  Buscar Pagos Registrados" />
 
                         <HBox alignment="CENTER_LEFT" spacing="10">
-                            <TextField fx:id="txtBuscar" prefHeight="36" prefWidth="340"
-                                       promptText="Buscar por referencia o ID de cuenta…"
-                                       style="-fx-background-radius: 8; -fx-border-color: #BAD6EE;
-                                              -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 4 10;" />
-                            <Button onAction="#buscarPago" prefHeight="36" prefWidth="90"
-                                    style="-fx-background-color: #1A6BAD; -fx-text-fill: white;
-                                           -fx-font-weight: bold; -fx-background-radius: 8;
-                                           -fx-cursor: hand; -fx-font-size: 13px;" text="Buscar" />
-                            <Button onAction="#mostrarTodos" prefHeight="36" prefWidth="95"
-                                    style="-fx-background-color: #EEF4FB; -fx-text-fill: #1A6BAD;
-                                           -fx-font-weight: bold; -fx-background-radius: 8;
-                                           -fx-border-color: #BAD6EE; -fx-border-radius: 8;
-                                           -fx-cursor: hand; -fx-font-size: 13px;" text="Ver todos" />
+                            <TextField fx:id="txtBuscar" prefHeight="36" prefWidth="340" promptText="Buscar por referencia o ID de cuenta…" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE;                                               -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 4 10;" />
+                            <Button onAction="#buscarPago" prefHeight="36" prefWidth="90" style="-fx-background-color: #1A6BAD; -fx-text-fill: white;                                            -fx-font-weight: bold; -fx-background-radius: 8;                                            -fx-cursor: hand; -fx-font-size: 13px;" text="Buscar" />
+                            <Button onAction="#mostrarTodos" prefHeight="36" prefWidth="95" style="-fx-background-color: #EEF4FB; -fx-text-fill: #1A6BAD;                                            -fx-font-weight: bold; -fx-background-radius: 8;                                            -fx-border-color: #BAD6EE; -fx-border-radius: 8;                                            -fx-cursor: hand; -fx-font-size: 13px;" text="Ver todos" />
                         </HBox>
 
-                        <TableView fx:id="tblPagos" prefHeight="155"
-                                   style="-fx-border-color: #D6E8F5; -fx-border-radius: 8; -fx-background-radius: 8;">
+                        <TableView fx:id="tblPagos" prefHeight="155" style="-fx-border-color: #D6E8F5; -fx-border-radius: 8; -fx-background-radius: 8;">
                             <columns>
-                                <TableColumn fx:id="colId"        prefWidth="55"  style="-fx-alignment: CENTER;"       text="ID" />
-                                <TableColumn fx:id="colIdCuenta"  prefWidth="90"  style="-fx-alignment: CENTER;"       text="ID Cuenta" />
-                                <TableColumn fx:id="colReferencia" prefWidth="190"                                     text="Referencia" />
-                                <TableColumn fx:id="colFecha"     prefWidth="150"                                      text="Fecha y Hora" />
-                                <TableColumn fx:id="colMonto"     prefWidth="115" style="-fx-alignment: CENTER_RIGHT;" text="Monto RD$" />
-                                <TableColumn fx:id="colEstado"    prefWidth="85"  style="-fx-alignment: CENTER;"       text="Estado" />
+                                <TableColumn fx:id="colId" prefWidth="55" style="-fx-alignment: CENTER;" text="ID" />
+                                <TableColumn fx:id="colIdCuenta" prefWidth="90" style="-fx-alignment: CENTER;" text="ID Cuenta" />
+                                <TableColumn fx:id="colReferencia" prefWidth="190" text="Referencia" />
+                                <TableColumn fx:id="colFecha" prefWidth="150" text="Fecha y Hora" />
+                                <TableColumn fx:id="colMonto" prefWidth="115" style="-fx-alignment: CENTER_RIGHT;" text="Monto RD$" />
+                                <TableColumn fx:id="colEstado" prefWidth="85" style="-fx-alignment: CENTER;" text="Estado" />
                             </columns>
                             <placeholder>
                                 <Label style="-fx-text-fill: #9BBDD6; -fx-font-size: 13px;" text="No hay pagos registrados" />
@@ -110,17 +43,13 @@
                     </VBox>
 
                     <!-- ─ BLOQUE FORMULARIO ─ -->
-                    <VBox spacing="14"
-                          style="-fx-background-color: white; -fx-background-radius: 14;
-                                 -fx-padding: 20 20 20 20;
-                                 -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
+                    <VBox spacing="14" style="-fx-background-color: white; -fx-background-radius: 14;                                  -fx-padding: 20 20 20 20;                                  -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
 
                         <HBox alignment="CENTER_LEFT" spacing="8">
                             <Label style="-fx-font-size: 15px;" text="📝" />
                             <Label style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;" text="Datos del Pago" />
                             <Rectangle fill="#D6E8F5" height="16" width="1" />
-                            <Label style="-fx-font-size: 11px; -fx-text-fill: #9BBDD6;"
-                                   text="Los campos marcados con * son obligatorios" />
+                            <Label style="-fx-font-size: 11px; -fx-text-fill: #9BBDD6;" text="Los campos marcados con * son obligatorios" />
                         </HBox>
 
                         <!-- Fila 1: ID Cuenta + Referencia -->
@@ -133,16 +62,12 @@
 
                             <VBox spacing="5" GridPane.columnIndex="0">
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="ID Cuenta de Pago *" />
-                                <TextField fx:id="txtIdCuentaPago" promptText="Ej: 1001"
-                                           style="-fx-background-radius: 8; -fx-border-color: #BAD6EE;
-                                                  -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                                <TextField fx:id="txtIdCuentaPago" promptText="Ej: 1001" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE;                                                   -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
                             </VBox>
 
                             <VBox spacing="5" GridPane.columnIndex="1">
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Referencia" />
-                                <TextField fx:id="txtReferencia" promptText="Ej: PAG-2025-001 / Descripción del pago"
-                                           style="-fx-background-radius: 8; -fx-border-color: #BAD6EE;
-                                                  -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                                <TextField fx:id="txtReferencia" promptText="Ej: PAG-2025-001 / Descripción del pago" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE;                                                   -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
                             </VBox>
                         </GridPane>
 
@@ -156,54 +81,33 @@
 
                             <VBox spacing="5" GridPane.columnIndex="0">
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Fecha del Pago *" />
-                                <DatePicker fx:id="dateFecha" maxWidth="Infinity" promptText="Seleccione fecha"
-                                            style="-fx-background-radius: 8; -fx-border-color: #BAD6EE;
-                                                   -fx-border-radius: 8; -fx-font-size: 13px;" />
-                                <Label style="-fx-font-size: 10px; -fx-text-fill: #9BBDD6;"
-                                       text="La hora se registra automáticamente al guardar" />
+                                <DatePicker fx:id="dateFecha" maxWidth="Infinity" promptText="Seleccione fecha" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE;                                                    -fx-border-radius: 8; -fx-font-size: 13px;" />
+                                <Label style="-fx-font-size: 10px; -fx-text-fill: #9BBDD6;" text="La hora se registra automáticamente al guardar" />
                             </VBox>
 
                             <VBox spacing="5" GridPane.columnIndex="1">
                                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Monto (RD$) *" />
-                                <TextField fx:id="txtMonto" onKeyReleased="#calcularTotal" promptText="0.00"
-                                           style="-fx-background-radius: 8; -fx-border-color: #BAD6EE;
-                                                  -fx-border-radius: 8; -fx-font-size: 15px;
-                                                  -fx-font-weight: bold; -fx-padding: 7 10;
-                                                  -fx-text-fill: #1A6BAD;" />
+                                <TextField fx:id="txtMonto" onKeyReleased="#calcularTotal" promptText="0.00" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE;                                                   -fx-border-radius: 8; -fx-font-size: 15px;                                                   -fx-font-weight: bold; -fx-padding: 7 10;                                                   -fx-text-fill: #1A6BAD;" />
                             </VBox>
                         </GridPane>
 
                         <!-- Fila 3: Estado -->
-                        <HBox alignment="CENTER_LEFT" spacing="16"
-                              style="-fx-background-color: #F5F9FD; -fx-background-radius: 10;
-                                     -fx-padding: 12 16; -fx-border-color: #D6E8F5; -fx-border-radius: 10;">
+                        <HBox alignment="CENTER_LEFT" spacing="16" style="-fx-background-color: #F5F9FD; -fx-background-radius: 10;                                      -fx-padding: 12 16; -fx-border-color: #D6E8F5; -fx-border-radius: 10;">
                             <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Estado del Pago *" />
-                            <ToggleButton fx:id="tglEstado" onAction="#toggleEstado" selected="true"
-                                          style="-fx-background-color: #DFF5E8; -fx-text-fill: #1A7A40;
-                                                 -fx-font-weight: bold; -fx-font-size: 13px;
-                                                 -fx-background-radius: 20; -fx-cursor: hand; -fx-padding: 6 18;"
-                                          text="✔  Activo (true)" />
-                            <Label fx:id="lblEstadoHint"
-                                   style="-fx-font-size: 11px; -fx-text-fill: #5DA87A;"
-                                   text="El pago se registrará como  Activo" />
+                            <ToggleButton fx:id="tglEstado" onAction="#toggleEstado" selected="true" style="-fx-background-color: #DFF5E8; -fx-text-fill: #1A7A40;                                                  -fx-font-weight: bold; -fx-font-size: 13px;                                                  -fx-background-radius: 20; -fx-cursor: hand; -fx-padding: 6 18;" text="✔  Activo (true)" />
+                            <Label fx:id="lblEstadoHint" style="-fx-font-size: 11px; -fx-text-fill: #5DA87A;" text="El pago se registrará como  Activo" />
                         </HBox>
 
                         <!-- ─ BANNER TOTAL ─ -->
-                        <HBox alignment="CENTER_LEFT" spacing="24"
-                              style="-fx-background-color: #EEF4FB; -fx-background-radius: 12;
-                                     -fx-padding: 16 22; -fx-border-color: #BAD6EE; -fx-border-radius: 12;">
+                        <HBox alignment="CENTER_LEFT" spacing="24" style="-fx-background-color: #EEF4FB; -fx-background-radius: 12;                                      -fx-padding: 16 22; -fx-border-color: #BAD6EE; -fx-border-radius: 12;">
                             <VBox spacing="3">
                                 <Label style="-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #7FA8C9;" text="TOTAL A PAGAR" />
-                                <Label fx:id="lblTotalPagar"
-                                       style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1A6BAD;"
-                                       text="RD$ 0.00" />
+                                <Label fx:id="lblTotalPagar" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1A6BAD;" text="RD$ 0.00" />
                             </VBox>
                             <Region HBox.hgrow="ALWAYS" />
                             <VBox alignment="CENTER_RIGHT" spacing="3">
                                 <Label style="-fx-font-size: 10px; -fx-text-fill: #9BBDD6;" text="Registro en edición" />
-                                <Label fx:id="lblIdPagoActual"
-                                       style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
-                                       text="— Nuevo —" />
+                                <Label fx:id="lblIdPagoActual" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="— Nuevo —" />
                             </VBox>
                         </HBox>
 
@@ -212,40 +116,21 @@
             </ScrollPane>
 
             <!-- ── BARRA DE ACCIONES ── -->
-            <HBox alignment="CENTER_RIGHT" spacing="10"
-                  style="-fx-background-color: white; -fx-padding: 14 28 14 28;
-                         -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.08), 6, 0, -2, 0);">
+            <HBox alignment="CENTER_RIGHT" spacing="10" style="-fx-background-color: white; -fx-padding: 14 28 14 28;                          -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.08), 6, 0, -2, 0);">
                 <Label style="-fx-font-size: 11px; -fx-text-fill: #9BBDD6;" text="* Campos obligatorios" />
                 <Region HBox.hgrow="ALWAYS" />
 
                 <!-- Cancelar -->
-                <Button fx:id="btnCancelar" onAction="#cancelar" prefHeight="40" prefWidth="110"
-                        style="-fx-background-color: white; -fx-text-fill: #888;
-                               -fx-font-weight: bold; -fx-font-size: 13px;
-                               -fx-border-color: #D0D0D0; -fx-border-radius: 10;
-                               -fx-background-radius: 10; -fx-cursor: hand;" text="✕  Cancelar" />
+                <Button fx:id="btnCancelar" onAction="#cancelar" prefHeight="40" prefWidth="110" style="-fx-background-color: white; -fx-text-fill: #888;                                -fx-font-weight: bold; -fx-font-size: 13px;                                -fx-border-color: #D0D0D0; -fx-border-radius: 10;                                -fx-background-radius: 10; -fx-cursor: hand;" text="✕  Cancelar" />
 
                 <!-- ← NUEVO: Eliminar -->
-                <Button fx:id="btnEliminar" onAction="#eliminarPago" prefHeight="40" prefWidth="120"
-                        style="-fx-background-color: white; -fx-text-fill: #C0392B;
-                               -fx-font-weight: bold; -fx-font-size: 13px;
-                               -fx-border-color: #F0A8A8; -fx-border-radius: 10;
-                               -fx-background-radius: 10; -fx-cursor: hand;" text="🗑  Eliminar" />
+                <Button fx:id="btnEliminar" onAction="#eliminarPago" prefHeight="40" prefWidth="120" style="-fx-background-color: white; -fx-text-fill: #C0392B;                                -fx-font-weight: bold; -fx-font-size: 13px;                                -fx-border-color: #F0A8A8; -fx-border-radius: 10;                                -fx-background-radius: 10; -fx-cursor: hand;" text="🗑  Eliminar" />
 
                 <!-- ← NUEVO: Editar -->
-                <Button fx:id="btnEditar" onAction="#editarPago" prefHeight="40" prefWidth="120"
-                        style="-fx-background-color: #F0F7FF; -fx-text-fill: #1A6BAD;
-                               -fx-font-weight: bold; -fx-font-size: 13px;
-                               -fx-border-color: #BAD6EE; -fx-border-radius: 10;
-                               -fx-background-radius: 10; -fx-cursor: hand;" text="✏  Editar" />
+                <Button fx:id="btnEditar" onAction="#editarPago" prefHeight="40" prefWidth="120" style="-fx-background-color: #F0F7FF; -fx-text-fill: #1A6BAD;                                -fx-font-weight: bold; -fx-font-size: 13px;                                -fx-border-color: #BAD6EE; -fx-border-radius: 10;                                -fx-background-radius: 10; -fx-cursor: hand;" text="✏  Editar" />
 
                 <!-- Registrar -->
-                <Button fx:id="btnRegistrarPago" onAction="#registrarPago" prefHeight="40" prefWidth="170"
-                        style="-fx-background-color: #1A6BAD; -fx-text-fill: white;
-                               -fx-font-weight: bold; -fx-font-size: 14px;
-                               -fx-background-radius: 10; -fx-cursor: hand;
-                               -fx-effect: dropshadow(gaussian, rgba(26,107,173,0.35), 8, 0, 0, 3);"
-                        text="✔  Registrar Pago" />
+                <Button fx:id="btnRegistrarPago" onAction="#registrarPago" prefHeight="40" prefWidth="170" style="-fx-background-color: #1A6BAD; -fx-text-fill: white;                                -fx-font-weight: bold; -fx-font-size: 14px;                                -fx-background-radius: 10; -fx-cursor: hand;                                -fx-effect: dropshadow(gaussian, rgba(26,107,173,0.35), 8, 0, 0, 3);" text="✔  Registrar Pago" />
             </HBox>
 
         </VBox>

@@ -1,0 +1,155 @@
+ /* Estilos para el Dashboard Principal - Farmacia Kenia Carmen */
+
+ /* Estilo base para botones del menú */
+ .menu-button {
+     -fx-background-color: transparent;
+     -fx-text-fill: #A8D8F0;
+     -fx-font-size: 13px;
+     -fx-font-weight: normal;
+     -fx-background-radius: 10;
+     -fx-cursor: hand;
+     -fx-alignment: CENTER_LEFT;
+     -fx-padding: 0 0 0 16;
+ }
+
+ .menu-button:hover {
+     -fx-background-color: #2A85CF;
+     -fx-text-fill: white;
+     -fx-font-weight: bold;
+ }
+
+ .menu-button:pressed {
+     -fx-background-color: #1A6BAD;
+ }
+
+ /* Estilo para botón activo */
+ .menu-button-active {
+     -fx-background-color: #2A85CF;
+     -fx-text-fill: white;
+     -fx-font-weight: bold;
+ }
+
+ /* Estilos para ScrollBar */
+ .scroll-bar:vertical {
+     -fx-background-color: transparent;
+     -fx-pref-width: 8;
+ }
+
+ .scroll-bar:vertical .track {
+     -fx-background-color: #1A6BAD;
+     -fx-border-color: transparent;
+     -fx-background-radius: 4;
+ }
+
+ .scroll-bar:vertical .thumb {
+     -fx-background-color: #2A85CF;
+     -fx-background-radius: 4;
+     -fx-pref-width: 8;
+ }
+
+ .scroll-bar:vertical .thumb:hover {
+     -fx-background-color: #3A95DF;
+ }
+
+ .scroll-bar:vertical .increment-button,
+ .scroll-bar:vertical .decrement-button {
+     -fx-background-color: transparent;
+     -fx-padding: 0;
+ }
+
+ .scroll-bar:horizontal {
+     -fx-background-color: transparent;
+     -fx-pref-height: 8;
+ }
+
+ .scroll-bar:horizontal .track {
+     -fx-background-color: #1A6BAD;
+     -fx-border-color: transparent;
+     -fx-background-radius: 4;
+ }
+
+ .scroll-bar:horizontal .thumb {
+     -fx-background-color: #2A85CF;
+     -fx-background-radius: 4;
+ }
+
+ .scroll-bar:horizontal .thumb:hover {
+     -fx-background-color: #3A95DF;
+ }
+
+ /* Estilo para el área de contenido */
+ .contenedor-pantalla {
+     -fx-background-color: #EEF4FB;
+ }
+
+ /* Estilo para tooltips */
+ .tooltip {
+     -fx-background-color: #1A6BAD;
+     -fx-text-fill: white;
+     -fx-font-size: 11px;
+     -fx-background-radius: 6;
+     -fx-padding: 5 10 5 10;
+ }
+
+ /* Efecto de sombra para tarjetas */
+ .card-shadow {
+     -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.08), 8, 0, 0, 2);
+ }
+
+ /* Estilo para separadores */
+ .separator-line {
+     -fx-background-color: #2A85CF;
+     -fx-pref-height: 1;
+ }
+
+ /* Estilo para labels de título */
+ .title-label {
+     -fx-font-size: 18px;
+     -fx-font-weight: bold;
+     -fx-text-fill: #1A4F7A;
+ }
+
+ /* Estilo para subtítulos */
+ .subtitle-label {
+     -fx-font-size: 11px;
+     -fx-text-fill: #7FA8C9;
+ }
+
+ /* Estilo para badges */
+ .badge-success {
+     -fx-font-weight: bold;
+     -fx-font-size: 12px;
+     -fx-text-fill: #1A7A40;
+     -fx-background-color: #DFF5E8;
+     -fx-padding: 6 14;
+     -fx-background-radius: 20;
+ }
+
+ /* Estilo para botón de inicio */
+ .btn-inicio {
+     -fx-background-color: #1A6BAD;
+     -fx-text-fill: white;
+     -fx-font-weight: bold;
+     -fx-background-radius: 8;
+     -fx-cursor: hand;
+     -fx-font-size: 12px;
+ }
+
+ .btn-inicio:hover {
+     -fx-background-color: #2A85CF;
+ }
+
+ .btn-inicio:pressed {
+     -fx-background-color: #0E5A96;
+ }
+
+ /* Animación de fade para transiciones */
+ @keyframes fadeIn {
+     from { opacity: 0; }
+     to { opacity: 1; }
+ }
+
+ .fade-in {
+     -fx-opacity: 0;
+     -fx-animation: fadeIn 0.3s ease-in forwards;
+ }
