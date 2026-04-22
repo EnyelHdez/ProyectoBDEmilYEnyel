@@ -13,78 +13,56 @@ public class Convenio {
     private LocalDate fechaFin;
     private boolean estado;
 
-    public int getIdConvenio() {
-        return idConvenio;
-    }
+    // Campos auxiliares para mostrar en tabla
+    private String nombreArs;
 
-    public void setIdConvenio(int idConvenio) {
+    public Convenio() {}
+
+    public Convenio(int idConvenio, int idArs, String nombre, String descripcion,
+                    BigDecimal porcentajeCob, LocalDate fechaInicio, LocalDate fechaFin,
+                    boolean estado) {
         this.idConvenio = idConvenio;
-    }
-
-    public int getIdArs() {
-        return idArs;
-    }
-
-    public void setIdArs(int idArs) {
         this.idArs = idArs;
+        this.nombre = nombre;
+        this.descripcion = descripcion;
+        this.porcentajeCob = porcentajeCob;
+        this.fechaInicio = fechaInicio;
+        this.fechaFin = fechaFin;
+        this.estado = estado;
     }
 
-    public String getNombre() {
+    // Getters y Setters
+    public int getIdConvenio() { return idConvenio; }
+    public void setIdConvenio(int idConvenio) { this.idConvenio = idConvenio; }
+
+    public int getIdArs() { return idArs; }
+    public void setIdArs(int idArs) { this.idArs = idArs; }
+
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
+
+    public String getDescripcion() { return descripcion; }
+    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
+
+    public BigDecimal getPorcentajeCob() { return porcentajeCob; }
+    public void setPorcentajeCob(BigDecimal porcentajeCob) { this.porcentajeCob = porcentajeCob; }
+
+    public LocalDate getFechaInicio() { return fechaInicio; }
+    public void setFechaInicio(LocalDate fechaInicio) { this.fechaInicio = fechaInicio; }
+
+    public LocalDate getFechaFin() { return fechaFin; }
+    public void setFechaFin(LocalDate fechaFin) { this.fechaFin = fechaFin; }
+
+    public boolean isEstado() { return estado; }
+    public void setEstado(boolean estado) { this.estado = estado; }
+
+    public String getEstadoTexto() { return estado ? "Activo" : "Inactivo"; }
+
+    public String getNombreArs() { return nombreArs; }
+    public void setNombreArs(String nombreArs) { this.nombreArs = nombreArs; }
+
+    @Override
+    public String toString() {
         return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getDescripcion() {
-        return descripcion;
-    }
-
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
-
-    public BigDecimal getPorcentajeCob() {
-        return porcentajeCob;
-    }
-
-    public void setPorcentajeCob(BigDecimal porcentajeCob) {
-        this.porcentajeCob = porcentajeCob;
-    }
-
-    public LocalDate getFechaInicio() {
-        return fechaInicio;
-    }
-
-    public void setFechaInicio(LocalDate fechaInicio) {
-        this.fechaInicio = fechaInicio;
-    }
-
-    public LocalDate getFechaFin() {
-        return fechaFin;
-    }
-
-    public void setFechaFin(LocalDate fechaFin) {
-        this.fechaFin = fechaFin;
-    }
-
-    public boolean isEstado() {
-        return estado;
-    }
-
-    public void setEstado(boolean estado) {
-        this.estado = estado;
-    }
-
-    public Convenio(int idConvenio, int idArs, String nombre, String descripcion, BigDecimal porcentajeCob, LocalDate fechaInicio, LocalDate fechaFin, boolean estado) {
-        this.idConvenio = idConvenio;
-        this.idArs = idArs;
-        this.nombre = nombre;
-        this.descripcion = descripcion;
-        this.porcentajeCob = porcentajeCob;
-        this.fechaInicio = fechaInicio;
-        this.fechaFin = fechaFin;
-        this.estado = estado;
     }
 }

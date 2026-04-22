@@ -5,10 +5,10 @@ import java.sql.*;
 
 public class ConexionBD {
     Connection connection = null;
-    String usuario = "EmilPrueba";
+    String usuario = "enyelHe";
     String contrasena = "123456";
     String db = "FarmaciaCarmen2";
-    String server = "localhost";
+    String server = "26.39.109.57";
     String puerto = "1433";
 
     String cadena = "jdbc:sqlserver://" + server + "." + puerto + "/" + db;
