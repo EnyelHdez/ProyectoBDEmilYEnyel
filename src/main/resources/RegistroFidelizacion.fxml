@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+
+<BorderPane prefHeight="700.0" prefWidth="1100.0" style="-fx-background-color: #EEF4FB;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.proyecto.Controladores.RegistroFidelizacionController">
+
+    <center>
+        <VBox spacing="0">
+
+            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" VBox.vgrow="ALWAYS">
+                <VBox spacing="16" style="-fx-padding: 22 28 10 28;">
+
+                    <!-- BÚSQUEDA Y FILTROS -->
+                    <VBox spacing="10" style="-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 18 20 18 20; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
+                        <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1A6BAD;" text="🔍 Buscar Programas de Fidelización" />
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <TextField fx:id="txtBusqueda" prefHeight="36" prefWidth="350" promptText="Buscar por ID o nombre del programa..." style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 4 10;" />
+                            <ComboBox fx:id="cmbFiltroEstado" prefHeight="36" prefWidth="150" promptText="Todos los estados" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px;" />
+                            <Button onAction="#buscarFidelizacion" prefHeight="36" prefWidth="90" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-font-size: 13px;" text="Buscar" />
+                            <Button onAction="#mostrarTodos" prefHeight="36" prefWidth="95" style="-fx-background-color: #EEF4FB; -fx-text-fill: #1A6BAD; -fx-font-weight: bold; -fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-cursor: hand; -fx-font-size: 13px;" text="Ver todos" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Label fx:id="lblContActivo" style="-fx-background-color: #E8F5E9; -fx-text-fill: #2E7D32; -fx-background-radius: 20; -fx-padding: 6 12 6 12; -fx-font-size: 11px; -fx-font-weight: bold;" text="✔ 0 Activos" />
+                            <Label fx:id="lblContVencido" style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828; -fx-background-radius: 20; -fx-padding: 6 12 6 12; -fx-font-size: 11px; -fx-font-weight: bold;" text="✖ 0 Inactivos" />
+                            <Label fx:id="lblTotalPuntos" style="-fx-background-color: #FFF8E1; -fx-text-fill: #F57F17; -fx-background-radius: 20; -fx-padding: 6 12 6 12; -fx-font-size: 11px; -fx-font-weight: bold;" text="⭐ 0 Puntos" />
+                        </HBox>
+                    </VBox>
+
+                    <!-- TABLA DE PROGRAMAS -->
+                    <VBox style="-fx-background-color: white; -fx-background-radius: 14; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
+                        <TableView fx:id="tablaFidelizacion" prefHeight="250" style="-fx-border-color: #D6E8F5; -fx-border-radius: 8; -fx-background-radius: 8;">
+                            <columns>
+                                <TableColumn fx:id="colId" prefWidth="50" text="ID" />
+                                <TableColumn fx:id="colNombre" prefWidth="180" text="Nombre del Programa" />
+                                <TableColumn fx:id="colPuntosPorPeso" prefWidth="110" text="Puntos x Q.1" />
+                                <TableColumn fx:id="colValorPunto" prefWidth="100" text="Valor Punto" />
+                                <TableColumn fx:id="colMinimoCanje" prefWidth="110" text="Mínimo Canje" />
+                                <TableColumn fx:id="colDescripcion" prefWidth="280" text="Descripción" />
+                                <TableColumn fx:id="colEstado" prefWidth="90" text="Estado" />
+                            </columns>
+                            <placeholder>
+                                <Label style="-fx-text-fill: #9BBDD6; -fx-font-size: 13px;" text="No hay programas de fidelización registrados" />
+                            </placeholder>
+                        </TableView>
+                    </VBox>
+
+                    <!-- FORMULARIO DE PROGRAMA -->
+                    <VBox spacing="14" style="-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 20 20 20 20; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label style="-fx-font-size: 15px;" text="⭐" />
+                            <Label style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;" text="Configuración del Programa de Fidelización" />
+                            <Rectangle fill="#D6E8F5" height="16" width="1" />
+                            <Label style="-fx-font-size: 11px; -fx-text-fill: #9BBDD6;" text="Seleccione un programa de la tabla para editar o eliminar" />
+                        </HBox>
+
+                        <GridPane hgap="16" vgap="12">
+                            <columnConstraints>
+                                <ColumnConstraints percentWidth="33.33" />
+                                <ColumnConstraints percentWidth="33.33" />
+                                <ColumnConstraints percentWidth="33.33" />
+                            </columnConstraints>
+                            <rowConstraints>
+                                <RowConstraints prefHeight="56" />
+                                <RowConstraints prefHeight="56" />
+                                <RowConstraints prefHeight="56" />
+                                <RowConstraints prefHeight="56" />
+                            </rowConstraints>
+
+                            <!-- Fila 0 -->
+                            <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="ID Fidelización" />
+                                <TextField fx:id="txtIdFidelizacion" editable="false" style="-fx-background-color: #F5F5F5; -fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                            </VBox>
+                            <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0" GridPane.columnSpan="2">
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Nombre del programa *" />
+                                <TextField fx:id="txtNombre" promptText="Ej: Programa Estándar" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                            </VBox>
+
+                            <!-- Fila 1 -->
+                            <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Puntos por Q.1 *" />
+                                <TextField fx:id="txtPuntosPorPeso" promptText="Ej: 1.00" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                            </VBox>
+                            <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Valor del punto (RD$) *" />
+                                <TextField fx:id="txtValorPunto" promptText="Ej: 0.10" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                            </VBox>
+                            <VBox spacing="5" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Mínimo para canje *" />
+                                <TextField fx:id="txtMinimoCanje" promptText="Ej: 100" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                            </VBox>
+
+                            <!-- Fila 2 -->
+                            <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="3">
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Descripción" />
+                                <TextArea fx:id="txtDescripcion" prefHeight="60" promptText="Descripción del programa de fidelización..." style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                            </VBox>
+
+                            <!-- Fila 3 -->
+                            <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="3">
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Estado" />
+                                <CheckBox fx:id="chkEstado" selected="true" style="-fx-font-size: 13px;" text="Programa activo" />
+                            </VBox>
+                        </GridPane>
+                    </VBox>
+
+                    <!-- PANEL DE GESTIÓN DE CLIENTES -->
+                    <VBox spacing="14" style="-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 20 20 20 20; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label style="-fx-font-size: 15px;" text="👥" />
+                            <Label style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;" text="Gestión de Puntos por Cliente" />
+                            <Rectangle fill="#D6E8F5" height="16" width="1" />
+                            <Label style="-fx-font-size: 11px; -fx-text-fill: #9BBDD6;" text="Administre los puntos acumulados de cada cliente" />
+                        </HBox>
+
+                        <GridPane hgap="16" vgap="12">
+                            <columnConstraints>
+                                <ColumnConstraints percentWidth="33.33" />
+                                <ColumnConstraints percentWidth="33.33" />
+                                <ColumnConstraints percentWidth="33.33" />
+                            </columnConstraints>
+
+                            <!-- Fila 0 - Búsqueda de cliente -->
+                            <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="ID Cliente" />
+                                <HBox spacing="8">
+                                    <TextField fx:id="txtIdCliente" prefHeight="36" promptText="Ej: 101" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" HBox.hgrow="ALWAYS" />
+                                    <Button onAction="#onBuscarCliente" prefHeight="36" prefWidth="70" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-font-size: 12px;" text="Buscar" />
+                                </HBox>
+                            </VBox>
+                            <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0" GridPane.columnSpan="2">
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Nombre del Cliente" />
+                                <TextField fx:id="txtNombreCliente" editable="false" style="-fx-background-color: #F5F5F5; -fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                            </VBox>
+
+                            <!-- Fila 1 - Puntos -->
+                            <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Puntos a Agregar" />
+                                <TextField fx:id="txtPuntosAcumulados" promptText="Ej: 150" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                            </VBox>
+                            <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Fecha de Caducidad" />
+                                <DatePicker fx:id="dpFechaCaducidad" prefHeight="36" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px;" />
+                            </VBox>
+                            <VBox spacing="5" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Puntos Disponibles" />
+                                <Label fx:id="lblPuntosDisponibles" style="-fx-background-color: #E8F5E9; -fx-background-radius: 8; -fx-padding: 8 12; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2E7D32;" text="— pts" />
+                            </VBox>
+
+                            <!-- Fila 2 - Botones -->
+                            <HBox spacing="10" GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="3">
+                                <Button onAction="#onRegistrarPuntos" prefHeight="38" style="-fx-background-color: #10B981; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-font-size: 13px; -fx-padding: 0 20;" text="📋 Registrar Puntos" />
+                                <Button onAction="#onRenovarCaducidad" prefHeight="38" style="-fx-background-color: #F59E0B; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-font-size: 13px; -fx-padding: 0 20;" text="📅 Renovar Caducidad" />
+                            </HBox>
+                        </GridPane>
+                    </VBox>
+
+                    <!-- PANEL DE CANJE Y DETALLE -->
+                    <HBox spacing="16" style="-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 20 20 20 20; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
+                        <!-- Canje de puntos -->
+                        <VBox spacing="10" HBox.hgrow="ALWAYS">
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <Label style="-fx-font-size: 15px;" text="🔄" />
+                                <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;" text="Canjear Puntos" />
+                            </HBox>
+                            <Label fx:id="lblPuntosRestantes" style="-fx-font-size: 11px; -fx-text-fill: #BF360C; -fx-font-weight: bold;" text="Restantes: —" />
+                            <HBox spacing="10">
+                                <TextField fx:id="txtPuntosACanjear" promptText="Puntos a canjear" prefHeight="36" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" HBox.hgrow="ALWAYS" />
+                                <Button onAction="#onCanjearPuntos" prefHeight="36" prefWidth="100" style="-fx-background-color: #E65100; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-font-size: 13px;" text="Canjear ✔" />
+                            </HBox>
+                        </VBox>
+
+                        <!-- Separador -->
+                        <Rectangle fill="#D6E8F5" width="1" />
+
+                        <!-- Detalle del cliente -->
+                        <VBox spacing="10" HBox.hgrow="ALWAYS">
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <Label style="-fx-font-size: 15px;" text="📊" />
+                                <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;" text="Detalle del Cliente" />
+                            </HBox>
+                            <ListView fx:id="listHistorial" prefHeight="100" style="-fx-background-color: #F9FAFB; -fx-border-color: #D6E8F5; -fx-border-radius: 8; -fx-background-radius: 8;" />
+                        </VBox>
+                    </HBox>
+
+                </VBox>
+            </ScrollPane>
+
+            <!-- BARRA DE ACCIONES -->
+            <HBox alignment="CENTER_RIGHT" spacing="12" style="-fx-background-color: white; -fx-padding: 14 28 14 28; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.08), 6, 0, -2, 0);">
+                <Label style="-fx-font-size: 11px; -fx-text-fill: #9BBDD6;" text="* Campos obligatorios" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Button onAction="#nuevoPrograma" prefHeight="40" prefWidth="120" style="-fx-background-color: white; -fx-text-fill: #546E7A; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #B0BEC5; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="📋 Nuevo Programa" />
+                <Button onAction="#limpiarCampos" prefHeight="40" prefWidth="100" style="-fx-background-color: white; -fx-text-fill: #546E7A; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #B0BEC5; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="🧹 Limpiar" />
+                <Button onAction="#eliminarPrograma" prefHeight="40" prefWidth="110" style="-fx-background-color: white; -fx-text-fill: #E53935; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #EF5350; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="🗑 Eliminar" />
+                <Button onAction="#editarPrograma" prefHeight="40" prefWidth="100" style="-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(46,125,50,0.35), 8, 0, 0, 3);" text="✏ Editar" />
+                <Button onAction="#guardarPrograma" prefHeight="40" prefWidth="160" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(26,107,173,0.35), 8, 0, 0, 3);" text="✔ Guardar Programa" />
+            </HBox>
+
+        </VBox>
+    </center>
+</BorderPane>

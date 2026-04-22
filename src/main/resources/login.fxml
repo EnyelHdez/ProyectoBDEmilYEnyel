@@ -3,59 +3,79 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.text.Font?>
 
-<VBox alignment="CENTER" spacing="20" style="-fx-background-color: linear-gradient(to bottom, #EEF4FB, #D6E8F5);" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.proyecto.Controladores.LoginController">
+<HBox alignment="CENTER" spacing="0" style="-fx-background-color: linear-gradient(to bottom right, #f0f4f8, #d9e2ec, #bcccd9);" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.proyecto.Controladores.LoginController">
 
     <padding>
-        <Insets bottom="40" left="40" right="40" top="40" />
+        <Insets bottom="50" left="50" right="50" top="50" />
     </padding>
 
-    <!-- Logo y título -->
-    <VBox alignment="CENTER" spacing="10">
-        <Label style="-fx-font-size: 48px;" text="💊" />
-        <Label style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;" text="Farmacia Kenia Carmen" />
-        <Label style="-fx-font-size: 14px; -fx-text-fill: #4A7FA5;" text="Sistema de Gestión" />
-    </VBox>
+    <!-- Tarjeta Principal - Efecto Vidrio -->
+    <HBox alignment="CENTER" maxWidth="900" minWidth="850" style="-fx-background-color: rgba(255,255,255,0.7); -fx-background-radius: 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 30, 0, 0, 15);">
 
-    <!-- Formulario de login -->
-    <VBox spacing="15" style="-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 30; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 5);" maxWidth="400">
+        <!-- LADO IZQUIERDO: MARCA -->
+        <VBox alignment="CENTER" spacing="20" style="-fx-background-color: transparent; -fx-padding: 50 40 50 40;" minWidth="350" prefWidth="380">
 
-        <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;" text="Iniciar Sesión" />
+            <!-- Círculo decorativo con ícono -->
+            <StackPane style="-fx-background-color: #ffffff; -fx-background-radius: 100; -fx-padding: 25; -fx-effect: dropshadow(gaussian, rgba(44,90,122,0.15), 15, 0, 0, 6);">
+                <Label style="-fx-font-size: 60px;" text="💊" />
+            </StackPane>
 
-        <TextField fx:id="txtUsuario" promptText="Nombre de usuario" prefHeight="40">
-            <style>
-                -fx-background-radius: 8;
-                -fx-border-color: #BAD6EE;
-                -fx-border-radius: 8;
-                -fx-font-size: 14px;
-                -fx-padding: 0 10;
-            </style>
-        </TextField>
+            <!-- Nombre de la farmacia -->
+            <VBox spacing="6" alignment="CENTER">
+                <Label style="-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #2c4e6e;" text="Kenia Carmen" />
+                <Label style="-fx-font-size: 14px; -fx-font-weight: normal; -fx-text-fill: #6b8da8;" text="FARMACIA PROFESIONAL" />
+                <Rectangle fill="#a3b8cc" height="1" width="50" />
+                <Label style="-fx-font-size: 12px; -fx-text-fill: #8aa9c2; -fx-font-style: italic;" text="“Cuidando de ti y los tuyos”" />
+            </VBox>
 
-        <PasswordField fx:id="txtContrasena" promptText="Contraseña" prefHeight="40">
-            <style>
-                -fx-background-radius: 8;
-                -fx-border-color: #BAD6EE;
-                -fx-border-radius: 8;
-                -fx-font-size: 14px;
-                -fx-padding: 0 10;
-            </style>
-        </PasswordField>
+            <!-- Detalle decorativo inferior -->
+            <Label style="-fx-font-size: 10px; -fx-text-fill: #a0bbcf;" text="SISTEMA DE GESTIÓN INTEGRAL" />
 
-        <Label fx:id="lblError" style="-fx-text-fill: #dc2626; -fx-font-size: 12px;" visible="false" />
+        </VBox>
 
-        <Button fx:id="btnLogin" onAction="#login" prefHeight="40" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 8; -fx-cursor: hand;" text="Ingresar" />
+        <!-- SEPARADOR VERTICAL ELEGANTE -->
+        <Rectangle fill="#d0dfec" width="1" height="250" />
 
-        <HBox alignment="CENTER" spacing="10">
-            <Separator prefWidth="100" />
-            <Label style="-fx-text-fill: #9BBDD6;" text="o" />
-            <Separator prefWidth="100" />
-        </HBox>
+        <!-- LADO DERECHO: ACCESO -->
+        <VBox alignment="CENTER" spacing="30" style="-fx-background-color: transparent; -fx-padding: 50 45 50 45;" minWidth="400" prefWidth="430">
 
-        <Button fx:id="btnRegistrarse" onAction="#abrirRegistro" prefHeight="40" style="-fx-background-color: transparent; -fx-text-fill: #4A7FA5; -fx-font-size: 13px; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-cursor: hand;" text="📝  Registrarse" />
+            <VBox spacing="8" alignment="CENTER">
+                <Label style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2c4e6e;" text="Inicio de Sesión" />
+                <Label style="-fx-font-size: 12px; -fx-text-fill: #7a9bb3;" text="Ingrese sus credenciales para continuar" />
+            </VBox>
 
-    </VBox>
+            <!-- Formulario -->
+            <VBox spacing="20" maxWidth="320">
 
-    <Label style="-fx-font-size: 11px; -fx-text-fill: #7FA8C9;" text="© 2024 Farmacia Kenia Carmen - Todos los derechos reservados" />
+                <!-- Campo Usuario -->
+                <VBox spacing="6">
+                    <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #5a7e99;" text="👤  USUARIO" />
+                    <TextField fx:id="txtUsuario" promptText="ej. farmaceutico" prefHeight="44" style="-fx-background-radius: 30; -fx-border-color: #c5d5e3; -fx-border-radius: 30; -fx-font-size: 13px; -fx-padding: 0 20; -fx-background-color: rgba(255,255,255,0.9);" />
+                </VBox>
 
-</VBox>
+                <!-- Campo Contraseña -->
+                <VBox spacing="6">
+                    <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #5a7e99;" text="🔒  CONTRASEÑA" />
+                    <PasswordField fx:id="txtContrasena" promptText="••••••••" prefHeight="44" style="-fx-background-radius: 30; -fx-border-color: #c5d5e3; -fx-border-radius: 30; -fx-font-size: 14px; -fx-padding: 0 20; -fx-background-color: rgba(255,255,255,0.9);" />
+                </VBox>
+
+                <!-- Mensaje de error -->
+                <Label fx:id="lblError" style="-fx-text-fill: #d95c5c; -fx-font-size: 11px; -fx-font-weight: bold;" visible="false" text="⚠ Usuario o contraseña incorrectos" />
+
+                <!-- Botón Ingresar -->
+                <Button fx:id="btnLogin" onAction="#login" prefHeight="46" prefWidth="320" style="-fx-background-color: #3b6e9e; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 30; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(59,110,158,0.3), 10, 0, 0, 4);" text="INICIAR SESIÓN" />
+
+            </VBox>
+
+            <!-- Pie de página derecho -->
+            <Label style="-fx-font-size: 10px; -fx-text-fill: #95aec5;" text="© 2024 Farmacia Kenia Carmen" />
+
+        </VBox>
+
+    </HBox>
+
+</HBox>
