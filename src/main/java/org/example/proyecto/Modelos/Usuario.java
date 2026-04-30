@@ -1,9 +1,11 @@
 package org.example.proyecto.Modelos;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Usuario {
-    private int idUsuario;
+    private int idUsuario;  // Cambiado de id a idUsuario
     private String nombreUsuario;
     private String contrasena;
     private String nombreCompleto;
@@ -11,21 +13,26 @@ public class Usuario {
     private String cargo;
     private String telefono;
     private boolean estado;
-    private LocalDateTime fechaRegistro;
-    private LocalDateTime ultimoAcceso;
+    private LocalDateTime fechaRegistro;  // Cambiado a LocalDateTime
+    private LocalDateTime ultimoAcceso;   // Nuevo campo
 
-    // Constructores
+    // Constructor vacío
     public Usuario() {}
 
-    public Usuario(String nombreUsuario, String contrasena, String nombreCompleto,
-                   String email, String cargo, String telefono) {
+    // Constructor con parámetros
+    public Usuario(int idUsuario, String nombreUsuario, String contrasena, String nombreCompleto,
+                   String email, String cargo, String telefono, boolean estado,
+                   LocalDateTime fechaRegistro, LocalDateTime ultimoAcceso) {
+        this.idUsuario = idUsuario;
         this.nombreUsuario = nombreUsuario;
         this.contrasena = contrasena;
         this.nombreCompleto = nombreCompleto;
         this.email = email;
         this.cargo = cargo;
         this.telefono = telefono;
-        this.estado = true;
+        this.estado = estado;
+        this.fechaRegistro = fechaRegistro;
+        this.ultimoAcceso = ultimoAcceso;
     }
 
     // Getters y Setters
@@ -58,4 +65,22 @@ public class Usuario {
 
     public LocalDateTime getUltimoAcceso() { return ultimoAcceso; }
     public void setUltimoAcceso(LocalDateTime ultimoAcceso) { this.ultimoAcceso = ultimoAcceso; }
+
+    // Método para mostrar fecha registro como String
+    public String getFechaRegistroStr() {
+        if (fechaRegistro != null) {
+            return fechaRegistro.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        }
+        return "";
+    }
+
+    // Método para mostrar estado como String
+    public String getEstadoStr() {
+        return estado ? "Activo" : "Inactivo";
+    }
+
+    @Override
+    public String toString() {
+        return nombreUsuario + " - " + nombreCompleto;
+    }
 }

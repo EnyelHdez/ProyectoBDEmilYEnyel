@@ -6,9 +6,11 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
 import org.example.proyecto.Conexion.ConexionBD;
 import org.example.proyecto.Modelos.Devolucion;
 import org.example.proyecto.Modelos.Motivo;
+import org.example.proyecto.Modelos.Usuarios.SesionUsuario;
 
 import java.math.BigDecimal;
 import java.net.URL;
@@ -20,39 +22,51 @@ import java.util.ResourceBundle;
 
 public class RegistroDevolucionController implements Initializable {
 
-    // ── Búsqueda ──────────────────────────────────────────────────
+    // Panel de consulta
+    @FXML private VBox consultaPanel;
     @FXML private TextField txtBuscar;
+    @FXML private Button btnBuscar;
+    @FXML private Button btnVerTodos;
+    @FXML private Button btnCerrarConsulta;
 
-    // ── Tabla historial ───────────────────────────────────────────
-    @FXML private TableView<Devolucion>               tblDevoluciones;
-    @FXML private TableColumn<Devolucion, Integer>    colId;
-    @FXML private TableColumn<Devolucion, Integer>    colIdVenta;
-    @FXML private TableColumn<Devolucion, String>     colProducto;
-    @FXML private TableColumn<Devolucion, String>     colEmpleado;
-    @FXML private TableColumn<Devolucion, String>     colFecha;
+    // Botones de acción
+    @FXML private Button btnConsultar;
+    @FXML private Button btnLimpiar;
+    @FXML private Button btnEliminar;
+    @FXML private Button btnEditar;
+    @FXML private Button btnGuardar;
+
+    // Tabla historial
+    @FXML private TableView<Devolucion> tblDevoluciones;
+    @FXML private TableColumn<Devolucion, Integer> colId;
+    @FXML private TableColumn<Devolucion, Integer> colIdVenta;
+    @FXML private TableColumn<Devolucion, String> colProducto;
+    @FXML private TableColumn<Devolucion, String> colEmpleado;
+    @FXML private TableColumn<Devolucion, String> colFecha;
     @FXML private TableColumn<Devolucion, BigDecimal> colMonto;
-    @FXML private TableColumn<Devolucion, String>     colMotivo;
-    @FXML private TableColumn<Devolucion, String>     colEstado;
-    @FXML private TableColumn<Devolucion, String>     colObservacion;
+    @FXML private TableColumn<Devolucion, String> colMotivo;
+    @FXML private TableColumn<Devolucion, String> colEstado;
+    @FXML private TableColumn<Devolucion, String> colObservacion;
     @FXML private TableColumn<Devolucion, BigDecimal> colMontoNotaCredito;
 
-    // ── Formulario ────────────────────────────────────────────────
-    @FXML private ComboBox<String>  cmbVenta;        // ← NUEVO: ComboBox para ventas
-    @FXML private ComboBox<String>  cmbCliente;
-    @FXML private ComboBox<String>  cmbEmpleado;
-    @FXML private ComboBox<String>  cmbEstado;
-    @FXML private ComboBox<Motivo>  cmbMotivo;
-    @FXML private ComboBox<String>  cmbNotaCredito;
-    @FXML private ComboBox<String>  cmbProducto;
-    @FXML private DatePicker        dateFecha;
-    @FXML private TextField         txtMonto;
-    @FXML private TextField         txtObservacion;
+    // Formulario
+    @FXML private ComboBox<String> cmbVenta;
+    @FXML private ComboBox<String> cmbCliente;
+    @FXML private ComboBox<String> cmbEmpleado;
+    @FXML private ComboBox<String> cmbEstado;
+    @FXML private ComboBox<Motivo> cmbMotivo;
+    @FXML private ComboBox<String> cmbNotaCredito;
+    @FXML private ComboBox<String> cmbProducto;
+    @FXML private DatePicker dateFecha;
+    @FXML private TextField txtMonto;
+    @FXML private TextField txtObservacion;
 
-    // ── Estado interno ────────────────────────────────────────────
+    // Estado interno
     private Connection conexion;
     private int idDevolucionSeleccionada = 0;
     private final ObservableList<Devolucion> listaDevoluciones = FXCollections.observableArrayList();
-    private final ObservableList<Motivo>     listaMotivos      = FXCollections.observableArrayList();
+    private final ObservableList<Motivo> listaMotivos = FXCollections.observableArrayList();
+    private boolean modoEdicion = false;
 
     // Clase interna para almacenar información de venta
     private static class VentaInfo {
@@ -76,28 +90,34 @@ public class RegistroDevolucionController implements Initializable {
 
     private final ObservableList<VentaInfo> listaVentas = FXCollections.observableArrayList();
 
-    // ─────────────────────────────────────────────────────────────
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         try {
             conexion = new ConexionBD().EstablecerConexion();
 
-            cargarVentas();        // ← NUEVO: cargar ventas primero
+            cargarVentas();
             cargarClientes();
             cargarEmpleados();
             cargarMotivos();
             cargarNotasCredito();
             cargarProductos();
 
-            cmbEstado.setItems(FXCollections.observableArrayList(
-                     "PENDIENTE", "ANULADA", "PROCESADA"));
+            cmbEstado.setItems(FXCollections.observableArrayList("PENDIENTE", "PROCESADA", "ANULADA"));
             cmbEstado.setValue("PENDIENTE");
 
             dateFecha.setValue(LocalDate.now());
 
             configurarTabla();
-            cargarDevoluciones();
             configurarSeleccionTabla();
+            configurarBotonesPorRol();
+
+            // Inicialmente el panel de consulta está oculto
+            consultaPanel.setVisible(false);
+            consultaPanel.setManaged(false);
+
+            // Botones de edición deshabilitados al inicio
+            habilitarBotonesEdicion(false);
+            btnGuardar.setDisable(false);
 
             // Listener para cuando seleccionan una venta, auto-completar cliente
             cmbVenta.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
@@ -112,9 +132,56 @@ public class RegistroDevolucionController implements Initializable {
         }
     }
 
-    // ── Carga de combos ──────────────────────────────────────────
+    private void configurarBotonesPorRol() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
 
-    // ← NUEVO: cargar ventas activas
+        boolean puedeEditar = false;
+        boolean puedeEliminar = false;
+
+        switch (rol) {
+            case "Administrador":
+                puedeEditar = true;
+                puedeEliminar = true;
+                break;
+            default:
+                puedeEditar = false;
+                puedeEliminar = false;
+                break;
+        }
+
+        btnEditar.setVisible(puedeEditar);
+        btnEditar.setManaged(puedeEditar);
+        btnEliminar.setVisible(puedeEliminar);
+        btnEliminar.setManaged(puedeEliminar);
+    }
+
+    private void habilitarBotonesEdicion(boolean habilitar) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+
+        if (!"Administrador".equals(rol)) {
+            btnEditar.setDisable(true);
+            btnEliminar.setDisable(true);
+            return;
+        }
+
+        btnEditar.setDisable(!habilitar);
+        btnEliminar.setDisable(!habilitar);
+    }
+
+    @FXML
+    private void abrirConsulta() {
+        consultaPanel.setVisible(true);
+        consultaPanel.setManaged(true);
+        cargarDevoluciones();
+    }
+
+    @FXML
+    private void cerrarConsulta() {
+        consultaPanel.setVisible(false);
+        consultaPanel.setManaged(false);
+    }
+
+    // Carga de combos
     private void cargarVentas() {
         listaVentas.clear();
         String sql = "SELECT v.id_venta, v.id_cliente, c.nombres as cliente_nombre, v.total " +
@@ -177,13 +244,15 @@ public class RegistroDevolucionController implements Initializable {
             }
             cmbMotivo.setItems(listaMotivos);
             cmbMotivo.setCellFactory(lv -> new ListCell<>() {
-                @Override protected void updateItem(Motivo item, boolean empty) {
+                @Override
+                protected void updateItem(Motivo item, boolean empty) {
                     super.updateItem(item, empty);
                     setText(empty || item == null ? null : item.getNombre());
                 }
             });
             cmbMotivo.setButtonCell(new ListCell<>() {
-                @Override protected void updateItem(Motivo item, boolean empty) {
+                @Override
+                protected void updateItem(Motivo item, boolean empty) {
                     super.updateItem(item, empty);
                     setText(empty || item == null ? null : item.getNombre());
                 }
@@ -224,21 +293,18 @@ public class RegistroDevolucionController implements Initializable {
         cmbProducto.setValue("NINGUNO");
     }
 
-    // Auto-completar cliente y otros datos basados en la venta seleccionada
     private void autoCompletarPorVenta() {
         String ventaSeleccionada = cmbVenta.getValue();
         if (ventaSeleccionada == null) return;
 
         int idVenta = Integer.parseInt(ventaSeleccionada.split(" - ")[0]);
 
-        // Buscar la venta en la lista
         VentaInfo ventaEncontrada = listaVentas.stream()
                 .filter(v -> v.idVenta == idVenta)
                 .findFirst()
                 .orElse(null);
 
         if (ventaEncontrada != null) {
-            // Auto-completar cliente
             String clienteBuscado = cmbCliente.getItems().stream()
                     .filter(item -> item.startsWith(ventaEncontrada.idCliente + " - "))
                     .findFirst()
@@ -246,16 +312,10 @@ public class RegistroDevolucionController implements Initializable {
             if (clienteBuscado != null) {
                 cmbCliente.setValue(clienteBuscado);
             }
-
-            // Mostrar información adicional si quieres
-            System.out.println("Venta seleccionada: ID=" + ventaEncontrada.idVenta +
-                    ", Cliente=" + ventaEncontrada.clienteNombre +
-                    ", Total=" + ventaEncontrada.total);
         }
     }
 
-    // ── Tabla ────────────────────────────────────────────────────
-
+    // Tabla
     private void configurarTabla() {
         colId.setCellValueFactory(new PropertyValueFactory<>("idDevolucion"));
         colIdVenta.setCellValueFactory(new PropertyValueFactory<>("idVenta"));
@@ -283,14 +343,18 @@ public class RegistroDevolucionController implements Initializable {
     private void configurarSeleccionTabla() {
         tblDevoluciones.getSelectionModel().selectedItemProperty()
                 .addListener((obs, oldVal, newVal) -> {
-                    if (newVal != null) cargarDatosEnFormulario(newVal);
+                    if (newVal != null) {
+                        cargarDatosEnFormulario(newVal);
+                        habilitarBotonesEdicion(true);
+                        modoEdicion = true;
+                        btnGuardar.setDisable(true);
+                    }
                 });
     }
 
     private void cargarDatosEnFormulario(Devolucion d) {
         idDevolucionSeleccionada = d.getIdDevolucion();
 
-        // Cargar venta
         if (d.getIdVenta() > 0) {
             String ventaBuscada = cmbVenta.getItems().stream()
                     .filter(item -> item.startsWith(d.getIdVenta() + " - "))
@@ -299,7 +363,6 @@ public class RegistroDevolucionController implements Initializable {
             cmbVenta.setValue(ventaBuscada);
         }
 
-        // Cargar cliente
         if (d.getIdCliente() > 0) {
             String clienteBuscado = cmbCliente.getItems().stream()
                     .filter(item -> item.startsWith(d.getIdCliente() + " - "))
@@ -308,7 +371,6 @@ public class RegistroDevolucionController implements Initializable {
             cmbCliente.setValue(clienteBuscado);
         }
 
-        // Cargar empleado
         if (d.getIdEmpleado() > 0) {
             String empleadoBuscado = cmbEmpleado.getItems().stream()
                     .filter(item -> item.startsWith(d.getIdEmpleado() + " - "))
@@ -317,7 +379,6 @@ public class RegistroDevolucionController implements Initializable {
             cmbEmpleado.setValue(empleadoBuscado);
         }
 
-        // Cargar motivo
         if (d.getIdMotivo() > 0) {
             Motivo motivoBuscado = listaMotivos.stream()
                     .filter(m -> m.getIdMotivo() == d.getIdMotivo())
@@ -326,7 +387,6 @@ public class RegistroDevolucionController implements Initializable {
             cmbMotivo.setValue(motivoBuscado);
         }
 
-        // Cargar producto
         if (d.getIdProducto() > 0 && d.getNombreProducto() != null) {
             String productoBuscado = d.getIdProducto() + " - " + d.getNombreProducto();
             cmbProducto.setValue(productoBuscado);
@@ -334,7 +394,6 @@ public class RegistroDevolucionController implements Initializable {
             cmbProducto.setValue("NINGUNO");
         }
 
-        // Cargar nota de crédito
         if (d.getIdNotaCredito() != null && d.getIdNotaCredito() > 0) {
             String notaBuscada = cmbNotaCredito.getItems().stream()
                     .filter(item -> item.startsWith(d.getIdNotaCredito() + " - "))
@@ -345,27 +404,21 @@ public class RegistroDevolucionController implements Initializable {
             cmbNotaCredito.setValue("NINGUNA");
         }
 
-        // Cargar fecha
         if (d.getFecha() != null) {
             dateFecha.setValue(d.getFecha().toLocalDate());
         }
 
-        // Cargar monto
         if (d.getMontoDevuelto() != null) {
             txtMonto.setText(String.format("%.2f", d.getMontoDevuelto()));
         } else {
             txtMonto.clear();
         }
 
-        // Cargar observación
         txtObservacion.setText(d.getObservacion() != null ? d.getObservacion() : "");
-
-        // Cargar estado
         cmbEstado.setValue(d.getEstado() != null ? d.getEstado() : "PENDIENTE");
     }
 
-    // ── Carga / búsqueda ─────────────────────────────────────────
-
+    // Carga / búsqueda
     @FXML
     private void cargarDevoluciones() {
         listaDevoluciones.clear();
@@ -394,8 +447,7 @@ public class RegistroDevolucionController implements Initializable {
         d.setIdMotivo(rs.getInt("id_motivo"));
         d.setIdProducto(rs.getInt("id_producto"));
         d.setNombreProducto(rs.getString("nombre_producto"));
-        d.setIdNotaCredito(rs.getObject("id_nota_credito") != null
-                ? rs.getInt("id_nota_credito") : null);
+        d.setIdNotaCredito(rs.getObject("id_nota_credito") != null ? rs.getInt("id_nota_credito") : null);
         d.setMontoNotaCredito(rs.getBigDecimal("monto_nota_credito"));
         Timestamp ts = rs.getTimestamp("fecha");
         if (ts != null) d.setFecha(ts.toLocalDateTime());
@@ -432,8 +484,7 @@ public class RegistroDevolucionController implements Initializable {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) listaDevoluciones.add(mapear(rs));
             if (listaDevoluciones.isEmpty())
-                mostrarAlerta("Información", "No se encontraron resultados para: " + filtro,
-                        Alert.AlertType.INFORMATION);
+                mostrarAlerta("Información", "No se encontraron resultados para: " + filtro, Alert.AlertType.INFORMATION);
         } catch (SQLException e) {
             mostrarAlerta("Error", "Error en búsqueda: " + e.getMessage(), Alert.AlertType.ERROR);
         }
@@ -445,10 +496,15 @@ public class RegistroDevolucionController implements Initializable {
         cargarDevoluciones();
     }
 
-    // ── CRUD ─────────────────────────────────────────────────────
-
+    // CRUD
     @FXML
     private void guardarDevolucion() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador")) {
+            mostrarAlerta("Permiso denegado", "No tiene permisos para guardar devoluciones", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (!validarCampos()) return;
 
         String sql = "INSERT INTO tbl_DEVOLUCION " +
@@ -459,9 +515,11 @@ public class RegistroDevolucionController implements Initializable {
             setearParametros(ps);
             ps.executeUpdate();
             mostrarAlerta("Éxito", "Devolución registrada correctamente.", Alert.AlertType.INFORMATION);
-            limpiarCampos();
-            cargarDevoluciones();
-            cargarVentas(); // Recargar ventas
+            limpiarCamposInterno();
+            if (consultaPanel.isVisible()) {
+                cargarDevoluciones();
+                cargarVentas();
+            }
         } catch (SQLException e) {
             mostrarAlerta("Error", "" + e.getMessage(), Alert.AlertType.ERROR);
         }
@@ -469,9 +527,14 @@ public class RegistroDevolucionController implements Initializable {
 
     @FXML
     private void editarDevolucion() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador")) {
+            mostrarAlerta("Permiso denegado", "Solo Administradores pueden editar devoluciones", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (idDevolucionSeleccionada == 0) {
-            mostrarAlerta("Advertencia", "Seleccione una devolución de la tabla para editar.",
-                    Alert.AlertType.WARNING);
+            mostrarAlerta("Advertencia", "Seleccione una devolución de la tabla para editar.", Alert.AlertType.WARNING);
             return;
         }
         if (!validarCampos()) return;
@@ -491,9 +554,11 @@ public class RegistroDevolucionController implements Initializable {
             ps.setInt(11, idDevolucionSeleccionada);
             ps.executeUpdate();
             mostrarAlerta("Éxito", "Devolución actualizada correctamente.", Alert.AlertType.INFORMATION);
-            limpiarCampos();
-            cargarDevoluciones();
-            cargarVentas(); // Recargar ventas
+            limpiarCamposInterno();
+            if (consultaPanel.isVisible()) {
+                cargarDevoluciones();
+                cargarVentas();
+            }
         } catch (SQLException e) {
             mostrarAlerta("Error", "Error al actualizar: " + e.getMessage(), Alert.AlertType.ERROR);
         }
@@ -501,9 +566,14 @@ public class RegistroDevolucionController implements Initializable {
 
     @FXML
     private void eliminarDevolucion() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador")) {
+            mostrarAlerta("Permiso denegado", "Solo Administradores pueden eliminar devoluciones", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (idDevolucionSeleccionada == 0) {
-            mostrarAlerta("Advertencia", "Seleccione una devolución de la tabla para eliminar.",
-                    Alert.AlertType.WARNING);
+            mostrarAlerta("Advertencia", "Seleccione una devolución de la tabla para eliminar.", Alert.AlertType.WARNING);
             return;
         }
 
@@ -513,24 +583,23 @@ public class RegistroDevolucionController implements Initializable {
         conf.setContentText("¿Está seguro que desea eliminar esta devolución?\nEsta acción no se puede deshacer.");
         if (conf.showAndWait().get() != ButtonType.OK) return;
 
-        try (PreparedStatement ps = conexion.prepareStatement(
-                "DELETE FROM tbl_DEVOLUCION WHERE id_devolucion=?")) {
+        try (PreparedStatement ps = conexion.prepareStatement("DELETE FROM tbl_DEVOLUCION WHERE id_devolucion=?")) {
             ps.setInt(1, idDevolucionSeleccionada);
             ps.executeUpdate();
             mostrarAlerta("Éxito", "Devolución eliminada correctamente.", Alert.AlertType.INFORMATION);
-            limpiarCampos();
-            cargarDevoluciones();
-            cargarVentas(); // Recargar ventas
+            limpiarCamposInterno();
+            if (consultaPanel.isVisible()) {
+                cargarDevoluciones();
+                cargarVentas();
+            }
         } catch (SQLException e) {
-            mostrarAlerta("Error", "No se puede eliminar: la devolución tiene registros asociados.",
-                    Alert.AlertType.ERROR);
+            mostrarAlerta("Error", "No se puede eliminar: la devolución tiene registros asociados.", Alert.AlertType.ERROR);
         }
     }
 
     private void setearParametros(PreparedStatement ps) throws SQLException {
         int idx = 1;
 
-        // id_venta (obligatorio)
         String ventaVal = cmbVenta.getValue();
         if (ventaVal != null && !ventaVal.isEmpty()) {
             ps.setInt(idx++, Integer.parseInt(ventaVal.split(" - ")[0]));
@@ -538,49 +607,42 @@ public class RegistroDevolucionController implements Initializable {
             ps.setNull(idx++, Types.INTEGER);
         }
 
-        // id_producto
         String prodVal = cmbProducto.getValue();
         if (prodVal != null && !prodVal.equals("NINGUNO"))
             ps.setInt(idx++, Integer.parseInt(prodVal.split(" - ")[0]));
         else
             ps.setNull(idx++, Types.INTEGER);
 
-        // id_cliente (obligatorio)
         String clienteVal = cmbCliente.getValue();
         if (clienteVal != null && !clienteVal.isEmpty())
             ps.setInt(idx++, Integer.parseInt(clienteVal.split(" - ")[0]));
         else
             ps.setNull(idx++, Types.INTEGER);
 
-        // id_empleado (obligatorio)
         String empVal = cmbEmpleado.getValue();
         if (empVal != null && !empVal.isEmpty())
             ps.setInt(idx++, Integer.parseInt(empVal.split(" - ")[0]));
         else
             ps.setNull(idx++, Types.INTEGER);
 
-        // id_motivo (obligatorio)
         Motivo motivo = cmbMotivo.getValue();
         if (motivo != null)
             ps.setInt(idx++, motivo.getIdMotivo());
         else
             ps.setNull(idx++, Types.INTEGER);
 
-        // id_nota_credito
         String notaVal = cmbNotaCredito.getValue();
         if (notaVal != null && !notaVal.equals("NINGUNA"))
             ps.setInt(idx++, Integer.parseInt(notaVal.split(" - ")[0]));
         else
             ps.setNull(idx++, Types.INTEGER);
 
-        // fecha
         LocalDate fecha = dateFecha.getValue();
         if (fecha != null)
             ps.setDate(idx++, Date.valueOf(fecha));
         else
             ps.setNull(idx++, Types.DATE);
 
-        // monto_devuelto
         String montoTxt = txtMonto.getText().trim();
         if (!montoTxt.isEmpty()) {
             try {
@@ -592,24 +654,19 @@ public class RegistroDevolucionController implements Initializable {
             ps.setNull(idx++, Types.DECIMAL);
         }
 
-        // observacion
         ps.setString(idx++, txtObservacion.getText().trim());
 
-        // estado - Asegurar que sea uno de los valores permitidos
         String estado = cmbEstado.getValue();
-        if (estado == null || estado.isEmpty()) {
-            estado = "PENDIENTE";
-        }
-        // Validar que el estado sea uno de los permitidos
-        if (!estado.equals("PENDIENTE") && !estado.equals("APROBADA") &&
-                !estado.equals("RECHAZADA") && !estado.equals("PROCESADA")) {
-            estado = "PENDIENTE";
-        }
+        if (estado == null || estado.isEmpty()) estado = "PENDIENTE";
         ps.setString(idx++, estado);
     }
 
     @FXML
     private void limpiarCampos() {
+        limpiarCamposInterno();
+    }
+
+    private void limpiarCamposInterno() {
         idDevolucionSeleccionada = 0;
         cmbVenta.setValue(null);
         cmbCliente.setValue(null);
@@ -621,7 +678,9 @@ public class RegistroDevolucionController implements Initializable {
         dateFecha.setValue(LocalDate.now());
         txtMonto.clear();
         txtObservacion.clear();
-        txtBuscar.clear();
+        modoEdicion = false;
+        habilitarBotonesEdicion(false);
+        btnGuardar.setDisable(false);
         tblDevoluciones.getSelectionModel().clearSelection();
     }
 
@@ -631,45 +690,38 @@ public class RegistroDevolucionController implements Initializable {
             cmbVenta.requestFocus();
             return false;
         }
-
         if (cmbCliente.getValue() == null) {
             mostrarAlerta("Validación", "Seleccione el cliente.", Alert.AlertType.WARNING);
             cmbCliente.requestFocus();
             return false;
         }
-
         if (cmbEmpleado.getValue() == null) {
             mostrarAlerta("Validación", "Seleccione el empleado que procesa.", Alert.AlertType.WARNING);
             cmbEmpleado.requestFocus();
             return false;
         }
-
         if (cmbMotivo.getValue() == null) {
             mostrarAlerta("Validación", "Seleccione el motivo de devolución.", Alert.AlertType.WARNING);
             cmbMotivo.requestFocus();
             return false;
         }
-
         if (cmbEstado.getValue() == null) {
             mostrarAlerta("Validación", "Seleccione el estado.", Alert.AlertType.WARNING);
             cmbEstado.requestFocus();
             return false;
         }
-
         if (dateFecha.getValue() == null) {
             mostrarAlerta("Validación", "Seleccione la fecha.", Alert.AlertType.WARNING);
             dateFecha.requestFocus();
             return false;
         }
-
         String montoTxt = txtMonto.getText().trim();
         if (!montoTxt.isEmpty()) {
             try {
                 if (new BigDecimal(montoTxt).compareTo(BigDecimal.ZERO) < 0)
                     throw new NumberFormatException();
             } catch (NumberFormatException e) {
-                mostrarAlerta("Validación", "Si ingresa un monto, debe ser un número mayor o igual a 0.",
-                        Alert.AlertType.WARNING);
+                mostrarAlerta("Validación", "Si ingresa un monto, debe ser un número mayor o igual a 0.", Alert.AlertType.WARNING);
                 txtMonto.requestFocus();
                 return false;
             }

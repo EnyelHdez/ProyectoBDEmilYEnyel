@@ -1,6 +1,5 @@
 package org.example.proyecto.Modelos;
 
-import java.time.LocalDate;
 import java.util.Date;
 
 public class Cliente {
@@ -13,14 +12,22 @@ public class Cliente {
    private char sexo;
    private String telefono;
    private String email;
-   private LocalDate fecha_registro;
+   private Date fecha_registro;
    private int puntos_fidelidad;
    private boolean estado;
 
-   public Cliente(){
+    public Date getFecha_nacimiento() {
+        return fecha_nacimiento;
+    }
+
+    public void setFecha_nacimiento(Date fecha_nacimiento) {
+        this.fecha_nacimiento = fecha_nacimiento;
+    }
+
+    public Cliente(){
    }
 
-    public Cliente(int idCliente, int idDireccion, String cedula_rnc, String nombres, String apellidos, Date fecha_nacimiento, char sexo, String telefono, String email, LocalDate fecha_registro, int puntos_fidelidad, boolean estado) {
+    public Cliente(int idCliente, int idDireccion, String cedula_rnc, String nombres, String apellidos, Date fecha_nacimiento, char sexo, String telefono, String email, Date fecha_registro, int puntos_fidelidad, boolean estado) {
         this.idCliente = idCliente;
         this.idDireccion = idDireccion;
         this.cedula_rnc = cedula_rnc;
@@ -75,13 +82,6 @@ public class Cliente {
         this.apellidos = apellidos;
     }
 
-    public Date getFecha_nacimiento() {
-        return fecha_nacimiento;
-    }
-
-    public void setFecha_nacimiento(Date fecha_nacimiento) {
-        this.fecha_nacimiento = fecha_nacimiento;
-    }
 
     public char getSexo() {
         return sexo;
@@ -107,11 +107,11 @@ public class Cliente {
         this.email = email;
     }
 
-    public LocalDate getFecha_registro() {
+    public Date getFecha_registro() {
         return fecha_registro;
     }
 
-    public void setFecha_registro(LocalDate fecha_registro) {
+    public void setFecha_registro(Date fecha_registro) {
         this.fecha_registro = fecha_registro;
     }
 

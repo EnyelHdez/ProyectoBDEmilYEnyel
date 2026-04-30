@@ -8,9 +8,11 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
 import org.example.proyecto.Conexion.ConexionBD;
-import org.example.proyecto.Modelos.OrdenCompra;
 import org.example.proyecto.Modelos.DetalleOrdenCompra;
+import org.example.proyecto.Modelos.OrdenCompra;
+import org.example.proyecto.Modelos.Usuarios.SesionUsuario;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -26,8 +28,22 @@ import java.util.ResourceBundle;
 
 public class OrdenCompraController implements Initializable {
 
-    // Búsqueda
+    // Panel de consulta
+    @FXML private VBox consultaPanel;
     @FXML private TextField txtBuscar;
+    @FXML private Button btnBuscar;
+    @FXML private Button btnVerTodos;
+    @FXML private Button btnCerrarConsulta;
+
+    // Botones de acción
+    @FXML private Button btnConsultar;
+    @FXML private Button btnLimpiar;
+    @FXML private Button btnEliminar;
+    @FXML private Button btnEditar;
+    @FXML private Button btnGuardar;
+    @FXML private Button btnAgregarProducto;
+    @FXML private Button btnEliminarProducto;
+    @FXML private Button btnCambiarEstado;
 
     // Tabla de órdenes
     @FXML private TableView<OrdenCompra> tblOrdenes;
@@ -69,6 +85,7 @@ public class OrdenCompraController implements Initializable {
     private final ObservableList<DetalleOrdenCompra> listaDetalle = FXCollections.observableArrayList();
     private Connection conexion;
     private Map<Integer, String> mapaProductos = new HashMap<>();
+    private boolean modoEdicion = false;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -89,21 +106,89 @@ public class OrdenCompraController implements Initializable {
 
             configurarTablaOrdenes();
             configurarTablaDetalle();
-            cargarTablaOrdenes();
+            configurarSeleccionTabla();
+            configurarBotonesPorRol();
 
-            tblOrdenes.getSelectionModel().selectedItemProperty().addListener(
-                    (obs, oldVal, sel) -> {
-                        if (sel != null) {
-                            idOrdenSeleccionada = sel.getIdOrden();
-                            rellenarFormulario(sel);
-                            cargarDetalleOrden(sel.getIdOrden());
-                        }
-                    });
+            // Inicialmente el panel de consulta está oculto
+            consultaPanel.setVisible(false);
+            consultaPanel.setManaged(false);
+
+            // Botones de edición deshabilitados al inicio
+            habilitarBotonesEdicion(false);
+            btnGuardar.setDisable(false);
+
+            // Listener para auto-completar precio al seleccionar producto
+            cmbProducto.setOnAction(e -> {
+                String selected = cmbProducto.getValue();
+                if (selected != null && !selected.isEmpty()) {
+                    int idProducto = Integer.parseInt(selected.split(" - ")[0]);
+                    cargarPrecioProducto(idProducto);
+                }
+            });
 
         } catch (Exception e) {
             e.printStackTrace();
             mostrarError("Error al inicializar: " + e.getMessage());
         }
+    }
+
+    private void configurarBotonesPorRol() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+
+        boolean puedeEditar = false;
+        boolean puedeEliminar = false;
+        boolean puedeCambiarEstado = false;
+
+        switch (rol) {
+            case "Administrador":
+                puedeEditar = true;
+                puedeEliminar = true;
+                puedeCambiarEstado = true;
+                break;
+            case "Almacenista":
+                puedeEditar = true;
+                puedeEliminar = false;
+                puedeCambiarEstado = true;
+                break;
+            default:
+                puedeEditar = false;
+                puedeEliminar = false;
+                puedeCambiarEstado = false;
+                break;
+        }
+
+        btnEditar.setVisible(puedeEditar);
+        btnEditar.setManaged(puedeEditar);
+        btnEliminar.setVisible(puedeEliminar);
+        btnEliminar.setManaged(puedeEliminar);
+        btnCambiarEstado.setVisible(puedeCambiarEstado);
+        btnCambiarEstado.setManaged(puedeCambiarEstado);
+    }
+
+    private void habilitarBotonesEdicion(boolean habilitar) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+
+        if (!"Administrador".equals(rol) && !"Almacenista".equals(rol)) {
+            btnEditar.setDisable(true);
+            btnEliminar.setDisable(true);
+            return;
+        }
+
+        btnEditar.setDisable(!habilitar);
+        btnEliminar.setDisable(!habilitar);
+    }
+
+    @FXML
+    private void abrirConsulta() {
+        consultaPanel.setVisible(true);
+        consultaPanel.setManaged(true);
+        cargarTablaOrdenes();
+    }
+
+    @FXML
+    private void cerrarConsulta() {
+        consultaPanel.setVisible(false);
+        consultaPanel.setManaged(false);
     }
 
     private void cargarProveedores() {
@@ -153,15 +238,6 @@ public class OrdenCompraController implements Initializable {
             mostrarError("Error al cargar productos: " + e.getMessage());
         }
         cmbProducto.setItems(lista);
-
-        // Auto-completar precio al seleccionar producto
-        cmbProducto.setOnAction(e -> {
-            String selected = cmbProducto.getValue();
-            if (selected != null && !selected.isEmpty()) {
-                int idProducto = Integer.parseInt(selected.split(" - ")[0]);
-                cargarPrecioProducto(idProducto);
-            }
-        });
     }
 
     private void cargarPrecioProducto(int idProducto) {
@@ -316,6 +392,35 @@ public class OrdenCompraController implements Initializable {
         }
     }
 
+    private void configurarSeleccionTabla() {
+        tblOrdenes.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, sel) -> {
+            if (sel != null) {
+                idOrdenSeleccionada = sel.getIdOrden();
+                rellenarFormulario(sel);
+                cargarDetalleOrden(sel.getIdOrden());
+                habilitarBotonesEdicion(true);
+                modoEdicion = true;
+                btnGuardar.setDisable(true);
+            }
+        });
+    }
+
+    private void rellenarFormulario(OrdenCompra o) {
+        cmbProveedor.getItems().stream()
+                .filter(s -> s.startsWith(o.getIdProveedor() + " - "))
+                .findFirst().ifPresent(cmbProveedor::setValue);
+
+        cmbEmpleado.getItems().stream()
+                .filter(s -> s.startsWith(o.getIdEmpleado() + " - "))
+                .findFirst().ifPresent(cmbEmpleado::setValue);
+
+        dateFechaOrden.setValue(o.getFechaOrden() != null ? o.getFechaOrden().toLocalDate() : LocalDate.now());
+        dateFechaEntrega.setValue(o.getFechaEntrega() != null ? o.getFechaEntrega().toLocalDate() : null);
+        cmbCondicionPago.setValue(o.getCondicionPago());
+        txtObservaciones.setText(o.getObservaciones() != null ? o.getObservaciones() : "");
+        cmbEstado.setValue(o.getEstado());
+    }
+
     @FXML
     private void agregarProducto(ActionEvent event) {
         if (cmbProducto.getValue() == null) {
@@ -384,17 +489,25 @@ public class OrdenCompraController implements Initializable {
 
     @FXML
     private void guardarOrden(ActionEvent event) {
-        if (idOrdenSeleccionada == 0) NuevaOrden();
-        else editarOrden();
-    }
-
-    public void NuevaOrden() {
-        if (!validar()) return;
-        if (listaDetalle.isEmpty()) {
-            mostrarError("Debe agregar al menos un producto a la orden");
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador") && !rol.equals("Almacenista")) {
+            mostrarError("No tiene permisos para guardar órdenes de compra");
             return;
         }
 
+        if (idOrdenSeleccionada == 0) {
+            if (!validar()) return;
+            if (listaDetalle.isEmpty()) {
+                mostrarError("Debe agregar al menos un producto a la orden");
+                return;
+            }
+            nuevaOrden();
+        } else {
+            editarOrden();
+        }
+    }
+
+    private void nuevaOrden() {
         String sqlOrden = "INSERT INTO tbl_ORDEN_COMPRA " +
                 "(id_proveedor, id_empleado, fecha_orden, fecha_entrega, condicion_pago, " +
                 " observaciones, subtotal, total, estado) " +
@@ -411,7 +524,6 @@ public class OrdenCompraController implements Initializable {
                 if (!keys.next()) throw new SQLException("No se generó ID de orden");
                 int idOrdenGenerada = keys.getInt(1);
 
-                // Insertar detalles
                 String sqlDetalle = "INSERT INTO tbl_DETALLE_ORDEN_COMPRA " +
                         "(id_orden, id_producto, cantidad, precio_unitario, subtotal) " +
                         "VALUES (?, ?, ?, ?, ?)";
@@ -430,7 +542,9 @@ public class OrdenCompraController implements Initializable {
                 conexion.commit();
                 mostrarExito("Orden de compra registrada correctamente.\nID generado: " + idOrdenGenerada);
                 limpiarTodo();
-                cargarTablaOrdenes();
+                if (consultaPanel.isVisible()) {
+                    cargarTablaOrdenes();
+                }
 
             } catch (SQLException e) {
                 conexion.rollback();
@@ -444,31 +558,128 @@ public class OrdenCompraController implements Initializable {
         }
     }
 
-
-
-    private void setearParametrosOrden(PreparedStatement ps) throws SQLException {
-        ps.setInt(1, obtenerIdFromCombo(cmbProveedor.getValue()));
-        ps.setInt(2, obtenerIdFromCombo(cmbEmpleado.getValue()));
-
-        ps.setTimestamp(3, Timestamp.valueOf(
-                LocalDateTime.of(dateFechaOrden.getValue(), LocalTime.now())));
-
-        if (dateFechaEntrega.getValue() != null) {
-            ps.setTimestamp(4, Timestamp.valueOf(
-                    LocalDateTime.of(dateFechaEntrega.getValue(), LocalTime.now())));
-        } else {
-            ps.setNull(4, Types.TIMESTAMP);
+    @FXML
+    private void editarOrden() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador") && !rol.equals("Almacenista")) {
+            mostrarError("No tiene permisos para editar órdenes de compra");
+            return;
         }
 
-        ps.setString(5, cmbCondicionPago.getValue());
-        ps.setString(6, txtObservaciones.getText().trim());
-        ps.setBigDecimal(7, new BigDecimal(txtSubtotal.getText().trim()));
-        ps.setBigDecimal(8, new BigDecimal(txtTotal.getText().trim()));
-        ps.setString(9, cmbEstado.getValue() != null ? cmbEstado.getValue() : "PENDIENTE");
+        if (idOrdenSeleccionada == 0) {
+            mostrarError("Seleccione una orden de la tabla");
+            return;
+        }
+
+        if (!validar()) return;
+        if (listaDetalle.isEmpty()) {
+            mostrarError("Debe agregar al menos un producto a la orden");
+            return;
+        }
+
+        String sqlOrden = "UPDATE tbl_ORDEN_COMPRA " +
+                "SET id_proveedor=?, id_empleado=?, fecha_orden=?, fecha_entrega=?, " +
+                "    condicion_pago=?, observaciones=?, subtotal=?, total=?, estado=? " +
+                "WHERE id_orden=?";
+
+        try {
+            conexion.setAutoCommit(false);
+
+            try (PreparedStatement psDelete = conexion.prepareStatement(
+                    "DELETE FROM tbl_DETALLE_ORDEN_COMPRA WHERE id_orden = ?")) {
+                psDelete.setInt(1, idOrdenSeleccionada);
+                psDelete.executeUpdate();
+            }
+
+            try (PreparedStatement psOrden = conexion.prepareStatement(sqlOrden)) {
+                setearParametrosOrden(psOrden);
+                psOrden.setInt(10, idOrdenSeleccionada);
+                psOrden.executeUpdate();
+            }
+
+            String sqlDetalle = "INSERT INTO tbl_DETALLE_ORDEN_COMPRA " +
+                    "(id_orden, id_producto, cantidad, precio_unitario, subtotal) " +
+                    "VALUES (?, ?, ?, ?, ?)";
+
+            try (PreparedStatement psDetalle = conexion.prepareStatement(sqlDetalle)) {
+                for (DetalleOrdenCompra d : listaDetalle) {
+                    psDetalle.setInt(1, idOrdenSeleccionada);
+                    psDetalle.setInt(2, d.getIdProducto());
+                    psDetalle.setInt(3, d.getCantidad());
+                    psDetalle.setBigDecimal(4, d.getPrecioUnitario());
+                    psDetalle.setBigDecimal(5, d.getSubtotal());
+                    psDetalle.executeUpdate();
+                }
+            }
+
+            conexion.commit();
+            mostrarExito("Orden actualizada correctamente.");
+            limpiarTodo();
+            if (consultaPanel.isVisible()) {
+                cargarTablaOrdenes();
+            }
+
+        } catch (SQLException e) {
+            try {
+                conexion.rollback();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+            mostrarError("Error al actualizar:\n" + e.getMessage());
+        } finally {
+            try {
+                conexion.setAutoCommit(true);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @FXML
+    private void eliminarOrden(ActionEvent actionEvent) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador")) {
+            mostrarError("Solo Administradores pueden eliminar órdenes de compra");
+            return;
+        }
+
+        if (idOrdenSeleccionada == 0) {
+            mostrarError("Seleccione una orden de la tabla");
+            return;
+        }
+
+        Alert conf = new Alert(Alert.AlertType.CONFIRMATION);
+        conf.setTitle("Confirmar eliminación");
+        conf.setHeaderText("¿Está seguro de eliminar esta orden?");
+        conf.setContentText("Esta acción no se puede deshacer.");
+        Optional<ButtonType> result = conf.showAndWait();
+
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            try (PreparedStatement ps = conexion.prepareStatement(
+                    "DELETE FROM tbl_ORDEN_COMPRA WHERE id_orden = ?")) {
+                ps.setInt(1, idOrdenSeleccionada);
+                ps.executeUpdate();
+
+                mostrarExito("Orden eliminada correctamente.");
+                limpiarTodo();
+                if (consultaPanel.isVisible()) {
+                    cargarTablaOrdenes();
+                }
+
+            } catch (SQLException e) {
+                mostrarError("Error al eliminar orden: " + e.getMessage());
+            }
+        }
     }
 
     @FXML
     private void cambiarEstado(ActionEvent event) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador") && !rol.equals("Almacenista")) {
+            mostrarError("No tiene permisos para cambiar el estado de órdenes");
+            return;
+        }
+
         if (idOrdenSeleccionada == 0) {
             mostrarError("Seleccione una orden de la tabla");
             return;
@@ -505,9 +716,10 @@ public class OrdenCompraController implements Initializable {
             ps.executeUpdate();
 
             mostrarExito("Estado cambiado a: " + nuevoEstado);
-            cargarTablaOrdenes();
+            if (consultaPanel.isVisible()) {
+                cargarTablaOrdenes();
+            }
 
-            // Si se recibe, actualizar stock
             if (nuevoEstado.equals("RECIBIDA")) {
                 recibirOrden(idOrdenSeleccionada);
             }
@@ -519,7 +731,6 @@ public class OrdenCompraController implements Initializable {
 
     private void recibirOrden(int idOrden) {
         try {
-            // Actualizar stock de productos
             String sql = "SELECT id_producto, cantidad FROM tbl_DETALLE_ORDEN_COMPRA WHERE id_orden = ?";
             try (PreparedStatement ps = conexion.prepareStatement(sql)) {
                 ps.setInt(1, idOrden);
@@ -547,27 +758,34 @@ public class OrdenCompraController implements Initializable {
         }
     }
 
-    private void rellenarFormulario(OrdenCompra o) {
-        cmbProveedor.getItems().stream()
-                .filter(s -> s.startsWith(o.getIdProveedor() + " - "))
-                .findFirst().ifPresent(cmbProveedor::setValue);
+    private void setearParametrosOrden(PreparedStatement ps) throws SQLException {
+        ps.setInt(1, obtenerIdFromCombo(cmbProveedor.getValue()));
+        ps.setInt(2, obtenerIdFromCombo(cmbEmpleado.getValue()));
 
-        cmbEmpleado.getItems().stream()
-                .filter(s -> s.startsWith(o.getIdEmpleado() + " - "))
-                .findFirst().ifPresent(cmbEmpleado::setValue);
+        ps.setTimestamp(3, Timestamp.valueOf(
+                LocalDateTime.of(dateFechaOrden.getValue(), LocalTime.now())));
 
-        dateFechaOrden.setValue(o.getFechaOrden() != null ? o.getFechaOrden().toLocalDate() : LocalDate.now());
-        dateFechaEntrega.setValue(o.getFechaEntrega() != null ? o.getFechaEntrega().toLocalDate() : null);
-        cmbCondicionPago.setValue(o.getCondicionPago());
-        txtObservaciones.setText(o.getObservaciones() != null ? o.getObservaciones() : "");
-        cmbEstado.setValue(o.getEstado());
+        if (dateFechaEntrega.getValue() != null) {
+            ps.setTimestamp(4, Timestamp.valueOf(
+                    LocalDateTime.of(dateFechaEntrega.getValue(), LocalTime.now())));
+        } else {
+            ps.setNull(4, Types.TIMESTAMP);
+        }
+
+        ps.setString(5, cmbCondicionPago.getValue());
+        ps.setString(6, txtObservaciones.getText().trim());
+        ps.setBigDecimal(7, new BigDecimal(txtSubtotal.getText().trim()));
+        ps.setBigDecimal(8, new BigDecimal(txtTotal.getText().trim()));
+        ps.setString(9, cmbEstado.getValue() != null ? cmbEstado.getValue() : "PENDIENTE");
     }
 
     @FXML
     private void buscarOrden(ActionEvent event) {
         String busqueda = txtBuscar.getText().trim().toLowerCase();
         if (busqueda.isEmpty()) {
-            cargarTablaOrdenes();
+            if (consultaPanel.isVisible()) {
+                cargarTablaOrdenes();
+            }
             return;
         }
 
@@ -584,7 +802,9 @@ public class OrdenCompraController implements Initializable {
 
     @FXML
     private void mostrarTodos(ActionEvent event) {
-        cargarTablaOrdenes();
+        if (consultaPanel.isVisible()) {
+            cargarTablaOrdenes();
+        }
         txtBuscar.clear();
     }
 
@@ -607,29 +827,38 @@ public class OrdenCompraController implements Initializable {
         actualizarTotales();
 
         idOrdenSeleccionada = 0;
+        modoEdicion = false;
+        habilitarBotonesEdicion(false);
+        btnGuardar.setDisable(false);
         tblOrdenes.getSelectionModel().clearSelection();
     }
 
     private boolean validar() {
         if (cmbProveedor.getValue() == null) {
             mostrarError("Seleccione un proveedor.");
-            cmbProveedor.requestFocus(); return false;
+            cmbProveedor.requestFocus();
+            return false;
         }
         if (cmbEmpleado.getValue() == null) {
             mostrarError("Seleccione un empleado.");
-            cmbEmpleado.requestFocus(); return false;
+            cmbEmpleado.requestFocus();
+            return false;
         }
         if (dateFechaOrden.getValue() == null) {
             mostrarError("Seleccione una fecha de orden.");
-            dateFechaOrden.requestFocus(); return false;
+            dateFechaOrden.requestFocus();
+            return false;
         }
         return true;
     }
 
     private int obtenerIdFromCombo(String val) {
         if (val == null) return 0;
-        try { return Integer.parseInt(val.split(" - ")[0]); }
-        catch (NumberFormatException e) { return 0; }
+        try {
+            return Integer.parseInt(val.split(" - ")[0]);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     private void mostrarError(String mensaje) {
@@ -646,98 +875,5 @@ public class OrdenCompraController implements Initializable {
         a.setHeaderText(null);
         a.setContentText(mensaje);
         a.showAndWait();
-    }
-
-    public void eliminarOrden(ActionEvent actionEvent) {
-            if (idOrdenSeleccionada == 0) {
-                mostrarError("Seleccione una orden de la tabla");
-                return;
-            }
-
-            Alert conf = new Alert(Alert.AlertType.CONFIRMATION);
-            conf.setTitle("Confirmar cancelación");
-            conf.setHeaderText("¿Está seguro de cancelar esta orden?");
-            conf.setContentText("Esta acción no se puede deshacer.");
-            Optional<ButtonType> result = conf.showAndWait();
-
-            if (result.isPresent() && result.get() == ButtonType.OK) {
-                try (PreparedStatement ps = conexion.prepareStatement(
-                        "Delete from tbl_ORDEN_COMPRA WHERE id_orden = ?")) {
-                    ps.setInt(1, idOrdenSeleccionada);
-                    ps.executeUpdate();
-
-                    mostrarExito("Orden eliminada correctamente.");
-                    cargarTablaOrdenes();
-
-                } catch (SQLException e) {
-                    mostrarError("Error al eliminar orden: " + e.getMessage());
-                }
-            }
-    }
-
-    public void editarOrden() {
-        if (!validar()) return;
-        if (listaDetalle.isEmpty()) {
-            mostrarError("Debe agregar al menos un producto a la orden");
-            return;
-        }
-
-        String sqlOrden = "UPDATE tbl_ORDEN_COMPRA " +
-                "SET id_proveedor=?, id_empleado=?, fecha_orden=?, fecha_entrega=?, " +
-                "    condicion_pago=?, observaciones=?, subtotal=?, total=?, estado=? " +
-                "WHERE id_orden=?";
-
-        try {
-            conexion.setAutoCommit(false);
-
-            // Eliminar detalles antiguos
-            try (PreparedStatement psDelete = conexion.prepareStatement(
-                    "DELETE FROM tbl_DETALLE_ORDEN_COMPRA WHERE id_orden = ?")) {
-                psDelete.setInt(1, idOrdenSeleccionada);
-                psDelete.executeUpdate();
-            }
-
-            // Actualizar orden
-            try (PreparedStatement psOrden = conexion.prepareStatement(sqlOrden)) {
-                setearParametrosOrden(psOrden);
-                psOrden.setInt(10, idOrdenSeleccionada);
-                psOrden.executeUpdate();
-            }
-
-            // Insertar nuevos detalles
-            String sqlDetalle = "INSERT INTO tbl_DETALLE_ORDEN_COMPRA " +
-                    "(id_orden, id_producto, cantidad, precio_unitario, subtotal) " +
-                    "VALUES (?, ?, ?, ?, ?)";
-
-            try (PreparedStatement psDetalle = conexion.prepareStatement(sqlDetalle)) {
-                for (DetalleOrdenCompra d : listaDetalle) {
-                    psDetalle.setInt(1, idOrdenSeleccionada);
-                    psDetalle.setInt(2, d.getIdProducto());
-                    psDetalle.setInt(3, d.getCantidad());
-                    psDetalle.setBigDecimal(4, d.getPrecioUnitario());
-                    psDetalle.setBigDecimal(5, d.getSubtotal());
-                    psDetalle.executeUpdate();
-                }
-            }
-
-            conexion.commit();
-            mostrarExito("Orden actualizada correctamente.");
-            limpiarTodo();
-            cargarTablaOrdenes();
-
-        } catch (SQLException e) {
-            try {
-                conexion.rollback();
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-            mostrarError("Error al actualizar:\n" + e.getMessage());
-        } finally {
-            try {
-                conexion.setAutoCommit(true);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
     }
 }

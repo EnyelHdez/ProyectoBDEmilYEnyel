@@ -6,8 +6,10 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
 import org.example.proyecto.Conexion.ConexionBD;
 import org.example.proyecto.Modelos.Convenio;
+import org.example.proyecto.Modelos.Usuarios.SesionUsuario;
 
 import java.math.BigDecimal;
 import java.net.URL;
@@ -18,7 +20,21 @@ import java.util.ResourceBundle;
 
 public class RegistroConvenioController implements Initializable {
 
+    // Panel de consulta
+    @FXML private VBox consultaPanel;
     @FXML private TextField txtBuscar;
+    @FXML private Button btnBuscar;
+    @FXML private Button btnVerTodos;
+    @FXML private Button btnCerrarConsulta;
+
+    // Botones de acción
+    @FXML private Button btnConsultar;
+    @FXML private Button btnLimpiar;
+    @FXML private Button btnEliminar;
+    @FXML private Button btnEditar;
+    @FXML private Button btnGuardar;
+
+    // Tabla
     @FXML private TableView<Convenio> tblConvenios;
     @FXML private TableColumn<Convenio, Integer> colId;
     @FXML private TableColumn<Convenio, String> colNombre;
@@ -29,6 +45,7 @@ public class RegistroConvenioController implements Initializable {
     @FXML private TableColumn<Convenio, LocalDate> colFechaFin;
     @FXML private TableColumn<Convenio, String> colEstado;
 
+    // Formulario
     @FXML private TextField txtNombre;
     @FXML private ComboBox<String> cmbArs;
     @FXML private TextArea txtDescripcion;
@@ -41,16 +58,75 @@ public class RegistroConvenioController implements Initializable {
     private Convenio convenioSeleccionado = null;
     private Connection conexion;
     private java.util.Map<Integer, String> mapaArs = new java.util.HashMap<>();
+    private boolean modoEdicion = false;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         conexion = new ConexionBD().EstablecerConexion();
         configurarTabla();
         cargarArs();
-        cargarConvenios();
         configurarSeleccionTabla();
+        configurarBotonesPorRol();
+
         dateFechaInicio.setValue(LocalDate.now());
         chkEstado.setSelected(true);
+
+        // Inicialmente el panel de consulta está oculto
+        consultaPanel.setVisible(false);
+        consultaPanel.setManaged(false);
+
+        // Botones de edición deshabilitados al inicio
+        habilitarBotonesEdicion(false);
+        btnGuardar.setDisable(false);
+    }
+
+    private void configurarBotonesPorRol() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+
+        boolean puedeEditar = false;
+        boolean puedeEliminar = false;
+
+        switch (rol) {
+            case "Administrador":
+                puedeEditar = true;
+                puedeEliminar = true;
+                break;
+            default:
+                puedeEditar = false;
+                puedeEliminar = false;
+                break;
+        }
+
+        btnEditar.setVisible(puedeEditar);
+        btnEditar.setManaged(puedeEditar);
+        btnEliminar.setVisible(puedeEliminar);
+        btnEliminar.setManaged(puedeEliminar);
+    }
+
+    private void habilitarBotonesEdicion(boolean habilitar) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+
+        if (!"Administrador".equals(rol)) {
+            btnEditar.setDisable(true);
+            btnEliminar.setDisable(true);
+            return;
+        }
+
+        btnEditar.setDisable(!habilitar);
+        btnEliminar.setDisable(!habilitar);
+    }
+
+    @FXML
+    private void abrirConsulta() {
+        consultaPanel.setVisible(true);
+        consultaPanel.setManaged(true);
+        cargarConvenios();
+    }
+
+    @FXML
+    private void cerrarConsulta() {
+        consultaPanel.setVisible(false);
+        consultaPanel.setManaged(false);
     }
 
     private void configurarTabla() {
@@ -63,7 +139,6 @@ public class RegistroConvenioController implements Initializable {
         colFechaFin.setCellValueFactory(new PropertyValueFactory<>("fechaFin"));
         colEstado.setCellValueFactory(new PropertyValueFactory<>("estadoTexto"));
 
-        // Formatear porcentaje
         colPorcentajeCob.setCellFactory(col -> new TableCell<Convenio, BigDecimal>() {
             @Override
             protected void updateItem(BigDecimal item, boolean empty) {
@@ -124,6 +199,9 @@ public class RegistroConvenioController implements Initializable {
             if (sel != null) {
                 convenioSeleccionado = sel;
                 cargarConvenioEnFormulario(sel);
+                habilitarBotonesEdicion(true);
+                modoEdicion = true;
+                btnGuardar.setDisable(true);
             }
         });
     }
@@ -136,7 +214,6 @@ public class RegistroConvenioController implements Initializable {
         dateFechaFin.setValue(c.getFechaFin());
         chkEstado.setSelected(c.isEstado());
 
-        // Seleccionar ARS
         cmbArs.getItems().stream()
                 .filter(item -> item.startsWith(c.getIdArs() + " - "))
                 .findFirst()
@@ -150,58 +227,86 @@ public class RegistroConvenioController implements Initializable {
 
     @FXML
     private void guardarConvenio() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador")) {
+            mostrarAlerta("Permiso denegado", "No tiene permisos para guardar convenios", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (!validarCampos()) return;
 
-        String sql = "INSERT INTO tbl_CONVENIO (id_ars, nombre, descripcion, porcentaje_cob, " +
-                "fecha_inicio, fecha_fin, estado) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        if (modoEdicion && convenioSeleccionado != null) {
+            // Actualizar convenio existente
+            Alert conf = new Alert(Alert.AlertType.CONFIRMATION);
+            conf.setTitle("Confirmar edición");
+            conf.setHeaderText(null);
+            conf.setContentText("¿Guardar cambios en este convenio?");
+            if (conf.showAndWait().get() != ButtonType.OK) return;
 
-        try (PreparedStatement ps = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            setearParametros(ps);
-            ps.executeUpdate();
+            String sql = "UPDATE tbl_CONVENIO SET id_ars=?, nombre=?, descripcion=?, " +
+                    "porcentaje_cob=?, fecha_inicio=?, fecha_fin=?, estado=? WHERE id_convenio=?";
 
-            ResultSet rs = ps.getGeneratedKeys();
-            if (rs.next()) {
-                mostrarAlerta("Éxito", "Convenio guardado correctamente (ID: " + rs.getInt(1) + ")",
-                        Alert.AlertType.INFORMATION);
+            try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+                setearParametros(ps);
+                ps.setInt(8, convenioSeleccionado.getIdConvenio());
+                ps.executeUpdate();
+                mostrarAlerta("Éxito", "Convenio actualizado correctamente", Alert.AlertType.INFORMATION);
+                limpiarCamposInterno();
+                if (consultaPanel.isVisible()) {
+                    cargarConvenios();
+                }
+            } catch (SQLException e) {
+                mostrarAlerta("Error", "Error al actualizar: " + e.getMessage(), Alert.AlertType.ERROR);
             }
-            limpiarCampos();
-            cargarConvenios();
-        } catch (SQLException e) {
-            mostrarAlerta("Error", "Error al guardar: " + e.getMessage(), Alert.AlertType.ERROR);
+        } else {
+            // Crear nuevo convenio
+            String sql = "INSERT INTO tbl_CONVENIO (id_ars, nombre, descripcion, porcentaje_cob, " +
+                    "fecha_inicio, fecha_fin, estado) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+            try (PreparedStatement ps = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                setearParametros(ps);
+                ps.executeUpdate();
+
+                ResultSet rs = ps.getGeneratedKeys();
+                if (rs.next()) {
+                    mostrarAlerta("Éxito", "Convenio guardado correctamente (ID: " + rs.getInt(1) + ")",
+                            Alert.AlertType.INFORMATION);
+                }
+                limpiarCamposInterno();
+                if (consultaPanel.isVisible()) {
+                    cargarConvenios();
+                }
+            } catch (SQLException e) {
+                mostrarAlerta("Error", "Error al guardar: " + e.getMessage(), Alert.AlertType.ERROR);
+            }
         }
+        modoEdicion = false;
+        btnGuardar.setDisable(false);
     }
 
     @FXML
     private void editarConvenio() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador")) {
+            mostrarAlerta("Permiso denegado", "Solo Administradores pueden editar convenios", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (convenioSeleccionado == null) {
             mostrarAlerta("Advertencia", "Seleccione un convenio para editar", Alert.AlertType.WARNING);
             return;
         }
-        if (!validarCampos()) return;
-
-        Alert conf = new Alert(Alert.AlertType.CONFIRMATION);
-        conf.setTitle("Confirmar edición");
-        conf.setHeaderText(null);
-        conf.setContentText("¿Guardar cambios en este convenio?");
-        if (conf.showAndWait().get() != ButtonType.OK) return;
-
-        String sql = "UPDATE tbl_CONVENIO SET id_ars=?, nombre=?, descripcion=?, " +
-                "porcentaje_cob=?, fecha_inicio=?, fecha_fin=?, estado=? WHERE id_convenio=?";
-
-        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
-            setearParametros(ps);
-            ps.setInt(8, convenioSeleccionado.getIdConvenio());
-            ps.executeUpdate();
-            mostrarAlerta("Éxito", "Convenio actualizado correctamente", Alert.AlertType.INFORMATION);
-            limpiarCampos();
-            cargarConvenios();
-        } catch (SQLException e) {
-            mostrarAlerta("Error", "Error al actualizar: " + e.getMessage(), Alert.AlertType.ERROR);
-        }
+        guardarConvenio();
     }
 
     @FXML
     private void eliminarConvenio() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador")) {
+            mostrarAlerta("Permiso denegado", "Solo Administradores pueden eliminar convenios", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (convenioSeleccionado == null) {
             mostrarAlerta("Advertencia", "Seleccione un convenio para eliminar", Alert.AlertType.WARNING);
             return;
@@ -213,21 +318,25 @@ public class RegistroConvenioController implements Initializable {
         conf.setContentText("¿Eliminar este convenio? Esta acción no se puede deshacer.");
         if (conf.showAndWait().get() != ButtonType.OK) return;
 
-        try (PreparedStatement ps = conexion.prepareStatement(
-                "DELETE FROM tbl_CONVENIO WHERE id_convenio=?")) {
+        try (PreparedStatement ps = conexion.prepareStatement("DELETE FROM tbl_CONVENIO WHERE id_convenio=?")) {
             ps.setInt(1, convenioSeleccionado.getIdConvenio());
             ps.executeUpdate();
             mostrarAlerta("Éxito", "Convenio eliminado correctamente", Alert.AlertType.INFORMATION);
-            limpiarCampos();
-            cargarConvenios();
+            limpiarCamposInterno();
+            if (consultaPanel.isVisible()) {
+                cargarConvenios();
+            }
         } catch (SQLException e) {
-            mostrarAlerta("Error", "No se puede eliminar: el convenio tiene registros asociados",
-                    Alert.AlertType.ERROR);
+            mostrarAlerta("Error", "No se puede eliminar: el convenio tiene registros asociados", Alert.AlertType.ERROR);
         }
     }
 
     @FXML
     private void limpiarCampos() {
+        limpiarCamposInterno();
+    }
+
+    private void limpiarCamposInterno() {
         txtNombre.clear();
         cmbArs.setValue(null);
         txtDescripcion.clear();
@@ -236,6 +345,9 @@ public class RegistroConvenioController implements Initializable {
         dateFechaFin.setValue(null);
         chkEstado.setSelected(true);
         convenioSeleccionado = null;
+        modoEdicion = false;
+        habilitarBotonesEdicion(false);
+        btnGuardar.setDisable(false);
         tblConvenios.getSelectionModel().clearSelection();
     }
 
@@ -303,15 +415,18 @@ public class RegistroConvenioController implements Initializable {
     private boolean validarCampos() {
         if (txtNombre.getText().trim().isEmpty()) {
             mostrarAlerta("Validación", "El nombre es obligatorio", Alert.AlertType.WARNING);
-            txtNombre.requestFocus(); return false;
+            txtNombre.requestFocus();
+            return false;
         }
         if (cmbArs.getValue() == null) {
             mostrarAlerta("Validación", "Seleccione una ARS", Alert.AlertType.WARNING);
-            cmbArs.requestFocus(); return false;
+            cmbArs.requestFocus();
+            return false;
         }
         if (dateFechaInicio.getValue() == null) {
             mostrarAlerta("Validación", "La fecha de inicio es obligatoria", Alert.AlertType.WARNING);
-            dateFechaInicio.requestFocus(); return false;
+            dateFechaInicio.requestFocus();
+            return false;
         }
         if (dateFechaFin.getValue() != null &&
                 dateFechaFin.getValue().isBefore(dateFechaInicio.getValue())) {

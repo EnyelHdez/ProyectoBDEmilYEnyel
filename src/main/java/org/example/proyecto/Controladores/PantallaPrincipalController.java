@@ -5,8 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -26,10 +25,16 @@ public class PantallaPrincipalController implements Initializable {
     @FXML private Label lblBadgeEstado;
 
     // Botones del menú
+    @FXML private Button btnMedicamentos;
+    @FXML private Button btnRecetas;
+    @FXML private Button btnPerdidas;
+    @FXML private Button btnCuentasPago;
+    @FXML private Button btnHistorialReclamaciones;
     @FXML private Button btnClientes;
     @FXML private Button btnVentas;
     @FXML private Button btnProductos;
     @FXML private Button btnCompras;
+    @FXML private Button btnUsuarios;
     @FXML private Button btnEmpleados;
     @FXML private Button btnProveedores;
     @FXML private Button btnPedidos;
@@ -46,6 +51,7 @@ public class PantallaPrincipalController implements Initializable {
     private Map<Button, String[]> mapaPantallas = new HashMap<>();
     private Map<String, List<String>> permisosPorCargo = new HashMap<>();
     private Button botonActivo = null;
+    private Map<String, Parent> vistasCache = new HashMap<>();
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -55,34 +61,36 @@ public class PantallaPrincipalController implements Initializable {
         aplicarEstilosBotones();
         cargarPantallaBienvenida();
         mostrarInformacionUsuario();
+        configurarBadgePorRol();
     }
 
     private void configurarPermisos() {
         // Administrador: ACCESO TOTAL
         permisosPorCargo.put("Administrador", Arrays.asList(
-                "Clientes", "Ventas", "Productos", "Compras", "Empleados",
+                "Usuarios", "Clientes", "Ventas", "Productos", "Compras", "Empleados",
                 "Proveedores", "Pedidos", "Pagos", "Envios", "Devoluciones",
-                "Fidelizacion", "Reclamaciones", "OrdenCompra", "Convenios"
+                "Fidelizacion", "Reclamaciones", "OrdenCompra", "Convenios",
+                "Medicamentos", "Recetas", "Perdidas", "CuentasPago", "HistorialReclamaciones"  // ← NUEVOS
         ));
 
-        // Farmacéutico
+// Farmacéutico
         permisosPorCargo.put("Farmacéutico", Arrays.asList(
-                "Clientes", "Ventas", "Productos", "Pedidos", "Convenios"
+                "Clientes", "Ventas", "Productos", "Pedidos", "Convenios", "Medicamentos", "Recetas"  // ← NUEVOS
         ));
 
-        // Cajero
+// Cajero
         permisosPorCargo.put("Cajero", Arrays.asList(
-                "Clientes", "Ventas"
+                "Clientes", "Ventas", "CuentasPago"  // ← NUEVO
         ));
 
-        // Almacenista
+// Almacenista
         permisosPorCargo.put("Almacenista", Arrays.asList(
-                "Productos", "Compras", "Proveedores", "OrdenCompra"
+                "Productos", "Compras", "Proveedores", "OrdenCompra", "Perdidas"  // ← NUEVO
         ));
 
-        // Auxiliar
+// Auxiliar
         permisosPorCargo.put("Auxiliar", Arrays.asList(
-                "Clientes", "Ventas", "Productos"
+                "Clientes", "Ventas", "Productos", "Medicamentos"  // ← NUEVO
         ));
     }
 
@@ -90,65 +98,117 @@ public class PantallaPrincipalController implements Initializable {
         String cargoUsuario = SesionUsuario.getInstancia().getCargoUsuario();
         List<String> permisos = permisosPorCargo.getOrDefault(cargoUsuario, new ArrayList<>());
 
-        if (permisos.isEmpty() && !cargoUsuario.equals("Administrador")) {
-            cerrarSesion();
-            return;
+        // Aplicar visibilidad según permisos
+        if (btnUsuarios != null) {
+            btnUsuarios.setVisible(permisos.contains("Usuarios"));
+            btnUsuarios.setManaged(permisos.contains("Usuarios"));
         }
 
-        btnClientes.setVisible(permisos.contains("Clientes"));
-        btnClientes.setManaged(permisos.contains("Clientes"));
+        if (btnClientes != null) {
+            btnClientes.setVisible(permisos.contains("Clientes"));
+            btnClientes.setManaged(permisos.contains("Clientes"));
+        }
 
-        btnVentas.setVisible(permisos.contains("Ventas"));
-        btnVentas.setManaged(permisos.contains("Ventas"));
+        if (btnVentas != null) {
+            btnVentas.setVisible(permisos.contains("Ventas"));
+            btnVentas.setManaged(permisos.contains("Ventas"));
+        }
 
-        btnProductos.setVisible(permisos.contains("Productos"));
-        btnProductos.setManaged(permisos.contains("Productos"));
+        if (btnProductos != null) {
+            btnProductos.setVisible(permisos.contains("Productos"));
+            btnProductos.setManaged(permisos.contains("Productos"));
+        }
 
-        btnCompras.setVisible(permisos.contains("Compras"));
-        btnCompras.setManaged(permisos.contains("Compras"));
+        if (btnCompras != null) {
+            btnCompras.setVisible(permisos.contains("Compras"));
+            btnCompras.setManaged(permisos.contains("Compras"));
+        }
 
-        btnEmpleados.setVisible(permisos.contains("Empleados"));
-        btnEmpleados.setManaged(permisos.contains("Empleados"));
+        if (btnEmpleados != null) {
+            btnEmpleados.setVisible(permisos.contains("Empleados"));
+            btnEmpleados.setManaged(permisos.contains("Empleados"));
+        }
 
-        btnProveedores.setVisible(permisos.contains("Proveedores"));
-        btnProveedores.setManaged(permisos.contains("Proveedores"));
+        if (btnProveedores != null) {
+            btnProveedores.setVisible(permisos.contains("Proveedores"));
+            btnProveedores.setManaged(permisos.contains("Proveedores"));
+        }
 
-        btnPedidos.setVisible(permisos.contains("Pedidos"));
-        btnPedidos.setManaged(permisos.contains("Pedidos"));
+        if (btnPedidos != null) {
+            btnPedidos.setVisible(permisos.contains("Pedidos"));
+            btnPedidos.setManaged(permisos.contains("Pedidos"));
+        }
 
-        btnPagos.setVisible(permisos.contains("Pagos"));
-        btnPagos.setManaged(permisos.contains("Pagos"));
+        if (btnPagos != null) {
+            btnPagos.setVisible(permisos.contains("Pagos"));
+            btnPagos.setManaged(permisos.contains("Pagos"));
+        }
 
-        btnEnvios.setVisible(permisos.contains("Envios"));
-        btnEnvios.setManaged(permisos.contains("Envios"));
+        if (btnEnvios != null) {
+            btnEnvios.setVisible(permisos.contains("Envios"));
+            btnEnvios.setManaged(permisos.contains("Envios"));
+        }
 
-        btnDevoluciones.setVisible(permisos.contains("Devoluciones"));
-        btnDevoluciones.setManaged(permisos.contains("Devoluciones"));
+        if (btnDevoluciones != null) {
+            btnDevoluciones.setVisible(permisos.contains("Devoluciones"));
+            btnDevoluciones.setManaged(permisos.contains("Devoluciones"));
+        }
 
-        btnFidelizacion.setVisible(permisos.contains("Fidelizacion"));
-        btnFidelizacion.setManaged(permisos.contains("Fidelizacion"));
+        if (btnFidelizacion != null) {
+            btnFidelizacion.setVisible(permisos.contains("Fidelizacion"));
+            btnFidelizacion.setManaged(permisos.contains("Fidelizacion"));
+        }
 
-        btnReclamaciones.setVisible(permisos.contains("Reclamaciones"));
-        btnReclamaciones.setManaged(permisos.contains("Reclamaciones"));
+        if (btnReclamaciones != null) {
+            btnReclamaciones.setVisible(permisos.contains("Reclamaciones"));
+            btnReclamaciones.setManaged(permisos.contains("Reclamaciones"));
+        }
 
-        btnOrdenCompra.setVisible(permisos.contains("OrdenCompra"));
-        btnOrdenCompra.setManaged(permisos.contains("OrdenCompra"));
+        if (btnOrdenCompra != null) {
+            btnOrdenCompra.setVisible(permisos.contains("OrdenCompra"));
+            btnOrdenCompra.setManaged(permisos.contains("OrdenCompra"));
+        }
 
-        btnConvenios.setVisible(permisos.contains("Convenios"));
-        btnConvenios.setManaged(permisos.contains("Convenios"));
+        if (btnConvenios != null) {
+            btnConvenios.setVisible(permisos.contains("Convenios"));
+            btnConvenios.setManaged(permisos.contains("Convenios"));
+        }
     }
 
     private void mostrarInformacionUsuario() {
         if (SesionUsuario.getInstancia().isSesionActiva()) {
             String nombreUsuario = SesionUsuario.getInstancia().getNombreUsuario();
             String cargo = SesionUsuario.getInstancia().getCargoUsuario();
-            String nombreCompleto = SesionUsuario.getInstancia().getUsuarioActual().getNombreCompleto();
+            String nombreCompleto = SesionUsuario.getInstancia().getNombreUsuario();
 
             if (lblUsuario != null) lblUsuario.setText("👤 " + nombreUsuario);
             if (lblCargo != null) lblCargo.setText("📋 " + cargo);
             if (lblNombreUsuario != null) lblNombreUsuario.setText(nombreCompleto);
         } else {
             cerrarSesion();
+        }
+    }
+
+    private void configurarBadgePorRol() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (lblBadgeEstado != null) {
+            switch (rol) {
+                case "Administrador":
+                    lblBadgeEstado.setText("🔒 Administrador");
+                    lblBadgeEstado.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #1A4F6E; -fx-background-color: #E3F2FD; -fx-padding: 6 16; -fx-background-radius: 30;");
+                    break;
+                case "Cajero":
+                    lblBadgeEstado.setText("💰 Cajero");
+                    lblBadgeEstado.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #E65100; -fx-background-color: #FFF3E0; -fx-padding: 6 16; -fx-background-radius: 30;");
+                    break;
+                case "Farmacéutico":
+                    lblBadgeEstado.setText("💊 Farmacéutico");
+                    lblBadgeEstado.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #2E7D32; -fx-background-color: #E8F5E9; -fx-padding: 6 16; -fx-background-radius: 30;");
+                    break;
+                default:
+                    lblBadgeEstado.setText("👤 " + rol);
+                    break;
+            }
         }
     }
 
@@ -175,6 +235,7 @@ public class PantallaPrincipalController implements Initializable {
     }
 
     private void configurarMapaPantallas() {
+        mapaPantallas.put(btnUsuarios, new String[]{"Gestión de Usuarios", "/GestionUsuarios.fxml"});
         mapaPantallas.put(btnClientes, new String[]{"Gestión de Clientes", "/RegistroCliente.fxml"});
         mapaPantallas.put(btnVentas, new String[]{"Gestión de Ventas", "/RegistroVenta.fxml"});
         mapaPantallas.put(btnProductos, new String[]{"Gestión de Productos", "/RegistroProducto.fxml"});
@@ -186,24 +247,31 @@ public class PantallaPrincipalController implements Initializable {
         mapaPantallas.put(btnEnvios, new String[]{"Gestión de Envíos", "/RegistroEnvio.fxml"});
         mapaPantallas.put(btnDevoluciones, new String[]{"Gestión de Devoluciones", "/RegistroDevolucion.fxml"});
         mapaPantallas.put(btnFidelizacion, new String[]{"Gestión de Fidelización", "/RegistroFidelizacion.fxml"});
-        mapaPantallas.put(btnReclamaciones, new String[]{"Gestión de Reclamaciones", "/RegistroReclamacion.fxml"});
+        mapaPantallas.put(btnReclamaciones, new String[]{"Gestión de Reclamaciones", "/RegistroReclamacion.fxml"});  // ← NUEVO
         mapaPantallas.put(btnOrdenCompra, new String[]{"Orden de Compra", "/OrdenCompra.fxml"});
+        mapaPantallas.put(btnMedicamentos, new String[]{"Gestión de Medicamentos", "/RegistroMedicamento.fxml"});
+        mapaPantallas.put(btnRecetas, new String[]{"Gestión de Recetas Médicas", "/RecetaMedica.fxml"});
+        mapaPantallas.put(btnPerdidas, new String[]{"Registro de Pérdidas", "/RegistroPerdida.fxml"});
+        mapaPantallas.put(btnCuentasPago, new String[]{"Cuentas de Pago", "/CuentaPago.fxml"});
+        mapaPantallas.put(btnHistorialReclamaciones, new String[]{"Historial de Reclamaciones", "/HistorialReclamacion.fxml"});
         mapaPantallas.put(btnConvenios, new String[]{"Gestión de Convenios", "/RegistroConvenio.fxml"});
     }
 
     private void aplicarEstilosBotones() {
         for (Button btn : mapaPantallas.keySet()) {
-            btn.getStyleClass().add("menu-button");
-            btn.setOnMouseEntered(e -> {
-                if (botonActivo != btn) {
-                    btn.setStyle("-fx-background-color: rgba(255,255,255,0.15); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 12; -fx-cursor: hand; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;");
-                }
-            });
-            btn.setOnMouseExited(e -> {
-                if (botonActivo != btn) {
-                    btn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: normal; -fx-background-radius: 12; -fx-cursor: hand; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;");
-                }
-            });
+            if (btn != null) {
+                btn.getStyleClass().add("menu-button");
+                btn.setOnMouseEntered(e -> {
+                    if (botonActivo != btn) {
+                        btn.setStyle("-fx-background-color: rgba(255,255,255,0.15); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 12; -fx-cursor: hand; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;");
+                    }
+                });
+                btn.setOnMouseExited(e -> {
+                    if (botonActivo != btn) {
+                        btn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: normal; -fx-background-radius: 12; -fx-cursor: hand; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;");
+                    }
+                });
+            }
         }
     }
 
@@ -220,8 +288,15 @@ public class PantallaPrincipalController implements Initializable {
     private void cargarPantalla(String titulo, String rutaFXML) {
         try {
             lblTituloPantalla.setText(titulo);
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(rutaFXML));
-            Parent nuevaPantalla = loader.load();
+
+            // Usar caché de vistas para mejorar rendimiento
+            Parent nuevaPantalla = vistasCache.get(rutaFXML);
+            if (nuevaPantalla == null) {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource(rutaFXML));
+                nuevaPantalla = loader.load();
+                vistasCache.put(rutaFXML, nuevaPantalla);
+            }
+
             contenedorPrincipal.getChildren().clear();
             contenedorPrincipal.getChildren().add(nuevaPantalla);
         } catch (IOException e) {
@@ -235,7 +310,7 @@ public class PantallaPrincipalController implements Initializable {
 
         String nombreUsuario = "Usuario";
         if (SesionUsuario.getInstancia().isSesionActiva()) {
-            nombreUsuario = SesionUsuario.getInstancia().getUsuarioActual().getNombreCompleto();
+            nombreUsuario = SesionUsuario.getInstancia().getNombreUsuario();
         }
 
         VBox bienvenida = new VBox(20);
@@ -281,27 +356,83 @@ public class PantallaPrincipalController implements Initializable {
         contenedorPrincipal.getChildren().add(errorBox);
     }
 
-    // Métodos de navegación
-    @FXML private void abrirClientes() { abrirPantalla("Clientes"); }
-    @FXML private void abrirVentas() { abrirPantalla("Ventas"); }
-    @FXML private void abrirProductos() { abrirPantalla("Productos"); }
-    @FXML private void abrirCompras() { abrirPantalla("Compras"); }
-    @FXML private void abrirEmpleados() { abrirPantalla("Empleados"); }
-    @FXML private void abrirProveedores() { abrirPantalla("Proveedores"); }
-    @FXML private void abrirPedidos() { abrirPantalla("Pedidos"); }
-    @FXML private void abrirPagos() { abrirPantalla("Pagos"); }
-    @FXML private void abrirEnvios() { abrirPantalla("Envios"); }
-    @FXML private void abrirDevoluciones() { abrirPantalla("Devoluciones"); }
-    @FXML private void abrirFidelizacion() { abrirPantalla("Fidelizacion"); }
-    @FXML private void abrirReclamaciones() { abrirPantalla("Reclamaciones"); }
-    @FXML private void abrirOrdenCompra() { abrirPantalla("OrdenCompra"); }
-    @FXML private void abrirConvenios() { abrirPantalla("Convenios"); }
+    // Métodos para abrir cada módulo
+    @FXML private void abrirClientes() {
+        abrirPantalla("Clientes");
+    }
 
-    @FXML private void irAInicio() { cargarPantallaBienvenida(); }
+    @FXML private void abrirUsuarios() {
+        abrirPantalla("Usuarios");
+    }
+
+    @FXML private void abrirVentas() {
+        abrirPantalla("Ventas");
+    }
+
+    @FXML private void abrirProductos() {
+        abrirPantalla("Productos");
+    }
+
+    @FXML private void abrirCompras() {
+        abrirPantalla("Compras");
+    }
+
+    @FXML private void abrirEmpleados() {
+        abrirPantalla("Empleados");
+    }
+
+
+    @FXML private void abrirProveedores() {
+        abrirPantalla("Proveedores");
+    }
+
+    @FXML private void abrirPedidos() {
+        abrirPantalla("Pedidos");
+    }
+
+    @FXML private void abrirPagos() {
+        abrirPantalla("Pagos");
+    }
+
+    @FXML private void abrirEnvios() {
+        abrirPantalla("Envios");
+    }
+
+    @FXML private void abrirDevoluciones() {
+        abrirPantalla("Devoluciones");
+    }
+
+    @FXML private void abrirFidelizacion() {
+        abrirPantalla("Fidelizacion");
+    }
+
+    @FXML private void abrirReclamaciones() {
+        abrirPantalla("Reclamaciones");
+    }
+
+    @FXML private void abrirOrdenCompra() {
+        abrirPantalla("OrdenCompra");
+    }
+
+    @FXML private void abrirConvenios() {
+        abrirPantalla("Convenios");
+    }
+    @FXML private void abrirMedicamentos() { abrirPantalla("Medicamentos"); }
+    @FXML private void abrirRecetas() { abrirPantalla("Recetas"); }
+    @FXML private void abrirPerdidas() { abrirPantalla("Perdidas"); }
+    @FXML private void abrirCuentasPago() { abrirPantalla("CuentasPago"); }
+    @FXML private void abrirHistorialReclamaciones() { abrirPantalla("HistorialReclamaciones"); }
+
+    @FXML
+    private void irAInicio() {
+        cargarPantallaBienvenida();
+        if (botonActivo != null) marcarBotonActivo(null);
+    }
 
     private void abrirPantalla(String modulo) {
         Button btn = null;
         switch (modulo) {
+            case "Usuarios": btn = btnUsuarios; break;
             case "Clientes": btn = btnClientes; break;
             case "Ventas": btn = btnVentas; break;
             case "Productos": btn = btnProductos; break;
@@ -313,15 +444,30 @@ public class PantallaPrincipalController implements Initializable {
             case "Envios": btn = btnEnvios; break;
             case "Devoluciones": btn = btnDevoluciones; break;
             case "Fidelizacion": btn = btnFidelizacion; break;
-            case "Reclamaciones": btn = btnReclamaciones; break;
+            case "Reclamaciones": btn = btnReclamaciones; break;  // ← NUEVO
             case "OrdenCompra": btn = btnOrdenCompra; break;
             case "Convenios": btn = btnConvenios; break;
+            case "Medicamentos": btn = btnMedicamentos; break;
+            case "Recetas": btn = btnRecetas; break;
+            case "Perdidas": btn = btnPerdidas; break;
+            case "CuentasPago": btn = btnCuentasPago; break;
+            case "HistorialReclamaciones": btn = btnHistorialReclamaciones; break;
         }
 
-        if (btn != null) {
+        if (btn != null && mapaPantallas.containsKey(btn)) {
             String[] datos = mapaPantallas.get(btn);
             marcarBotonActivo(btn);
             cargarPantalla(datos[0], datos[1]);
+        } else {
+            mostrarAlerta("Módulo no disponible", "Esta funcionalidad estará disponible próximamente.");
         }
+    }
+
+    private void mostrarAlerta(String titulo, String mensaje) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(titulo);
+        alert.setHeaderText(null);
+        alert.setContentText(mensaje);
+        alert.showAndWait();
     }
 }

@@ -8,9 +8,11 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
 import org.example.proyecto.Conexion.ConexionBD;
 import org.example.proyecto.Modelos.Compra;
 import org.example.proyecto.Modelos.DetalleCompra;
+import org.example.proyecto.Modelos.Usuarios.SesionUsuario;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -26,8 +28,21 @@ import java.util.ResourceBundle;
 
 public class RegistroCompraController implements Initializable {
 
-    // Búsqueda
+    // Panel de consulta
+    @FXML private VBox consultaPanel;
     @FXML private TextField txtBuscar;
+    @FXML private Button btnBuscar;
+    @FXML private Button btnVerTodos;
+    @FXML private Button btnCerrarConsulta;
+
+    // Botones de acción
+    @FXML private Button btnConsultar;
+    @FXML private Button btnLimpiar;
+    @FXML private Button btnEliminar;
+    @FXML private Button btnEditar;
+    @FXML private Button btnGuardar;
+    @FXML private Button btnAgregarProducto;
+    @FXML private Button btnEliminarProducto;
 
     // Tabla de compras
     @FXML private TableView<Compra> tblCompras;
@@ -70,14 +85,14 @@ public class RegistroCompraController implements Initializable {
     private final ObservableList<DetalleCompra> listaDetalle = FXCollections.observableArrayList();
     private Connection conexion;
     private static final BigDecimal ITBIS_RATE = new BigDecimal("0.18");
+    private boolean modoEdicion = false;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         try {
             conexion = new ConexionBD().EstablecerConexion();
 
-            cmbEstado.setItems(FXCollections.observableArrayList(
-                    "PENDIENTE", "RECIBIDA", "ANULADA"));
+            cmbEstado.setItems(FXCollections.observableArrayList("PENDIENTE", "RECIBIDA", "ANULADA"));
 
             cargarProveedores();
             cargarEmpleados();
@@ -88,22 +103,91 @@ public class RegistroCompraController implements Initializable {
 
             configurarTablaCompras();
             configurarTablaDetalle();
-            cargarTablaCompras();
+            configurarSeleccionTabla();
+            configurarBotonesPorRol();
 
-            // Cuando se selecciona una compra, se cargan sus datos y productos
-            tblCompras.getSelectionModel().selectedItemProperty().addListener(
-                    (obs, oldVal, sel) -> {
-                        if (sel != null) {
-                            idCompraSeleccionada = sel.getIdCompra();
-                            cargarCompraEnFormulario(sel);
-                            cargarDetalleCompra(sel.getIdCompra());
-                        }
-                    });
+            // Inicialmente el panel de consulta está oculto
+            consultaPanel.setVisible(false);
+            consultaPanel.setManaged(false);
+
+            // Botones de edición deshabilitados al inicio
+            habilitarBotonesEdicion(false);
+            btnGuardar.setDisable(false);
 
         } catch (Exception e) {
             e.printStackTrace();
             mostrarError("Error al inicializar: " + e.getMessage());
         }
+    }
+
+    private void configurarBotonesPorRol() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+
+        boolean puedeEditar = false;
+        boolean puedeEliminar = false;
+
+        switch (rol) {
+            case "Administrador":
+                puedeEditar = true;
+                puedeEliminar = true;
+                break;
+            case "Almacenista":
+                puedeEditar = true;
+                puedeEliminar = false;
+                break;
+            default:
+                puedeEditar = false;
+                puedeEliminar = false;
+                break;
+        }
+
+        if (btnEditar != null) {
+            btnEditar.setVisible(puedeEditar);
+            btnEditar.setManaged(puedeEditar);
+        }
+        if (btnEliminar != null) {
+            btnEliminar.setVisible(puedeEliminar);
+            btnEliminar.setManaged(puedeEliminar);
+        }
+    }
+
+    private void habilitarBotonesEdicion(boolean habilitar) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+
+        if (!"Administrador".equals(rol) && !"Almacenista".equals(rol)) {
+            if (btnEditar != null) btnEditar.setDisable(true);
+            if (btnEliminar != null) btnEliminar.setDisable(true);
+            return;
+        }
+
+        if (btnEditar != null) btnEditar.setDisable(!habilitar);
+        if (btnEliminar != null) btnEliminar.setDisable(!habilitar);
+    }
+
+    @FXML
+    private void abrirConsulta() {
+        consultaPanel.setVisible(true);
+        consultaPanel.setManaged(true);
+        cargarTablaCompras();
+    }
+
+    @FXML
+    private void cerrarConsulta() {
+        consultaPanel.setVisible(false);
+        consultaPanel.setManaged(false);
+    }
+
+    private void configurarSeleccionTabla() {
+        tblCompras.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, sel) -> {
+            if (sel != null) {
+                idCompraSeleccionada = sel.getIdCompra();
+                cargarCompraEnFormulario(sel);
+                cargarDetalleCompra(sel.getIdCompra());
+                habilitarBotonesEdicion(true);
+                modoEdicion = true;
+                btnGuardar.setDisable(true);
+            }
+        });
     }
 
     private void cargarProveedores() {
@@ -161,9 +245,7 @@ public class RegistroCompraController implements Initializable {
         String sql = "SELECT id_producto, nombre FROM tbl_PRODUCTO ORDER BY nombre";
         try (Statement st = conexion.createStatement(); ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
-                int id = rs.getInt("id_producto");
-                String nombre = rs.getString("nombre");
-                lista.add(id + " - " + nombre);
+                lista.add(rs.getInt("id_producto") + " - " + rs.getString("nombre"));
             }
         } catch (SQLException e) {
             mostrarError("Error al cargar productos: " + e.getMessage());
@@ -185,7 +267,6 @@ public class RegistroCompraController implements Initializable {
     }
 
     private void configurarTablaDetalle() {
-        // Aquí se muestra el PRODUCTO RELACIONADO de la compra
         colProdNombre.setCellValueFactory(new PropertyValueFactory<>("nombreProducto"));
         colProdCantidad.setCellValueFactory(new PropertyValueFactory<>("cantidad"));
         colProdPrecio.setCellValueFactory(new PropertyValueFactory<>("precioUnitario"));
@@ -209,15 +290,10 @@ public class RegistroCompraController implements Initializable {
                 c.setIdProveedor(rs.getInt("id_proveedor"));
                 c.setNombreProveedor(rs.getString("nombre_proveedor"));
                 c.setIdEmpleado(rs.getInt("id_empleado"));
-
                 int idComp = rs.getInt("id_comprobante");
-                if (!rs.wasNull()) {
-                    c.setIdComprobante(idComp);
-                }
-
+                if (!rs.wasNull()) c.setIdComprobante(idComp);
                 Timestamp ts = rs.getTimestamp("fecha");
                 if (ts != null) c.setFecha(ts.toLocalDateTime());
-
                 c.setNroFacturaProv(rs.getString("nro_factura_prov"));
                 c.setSubtotal(rs.getBigDecimal("subtotal"));
                 c.setDescuento(rs.getBigDecimal("descuento"));
@@ -233,8 +309,6 @@ public class RegistroCompraController implements Initializable {
 
     private void cargarDetalleCompra(int idCompra) {
         listaDetalle.clear();
-        tblDetalleProductos.setItems(null); // Forzar refresh de la tabla
-
         String sql = "SELECT d.id_det_compra, d.id_compra, d.id_producto, d.cantidad, " +
                 "d.precio_costo, d.descuento, d.subtotal, p.nombre as nombre_producto " +
                 "FROM tbl_DETALLE_COMPRA d " +
@@ -255,32 +329,24 @@ public class RegistroCompraController implements Initializable {
                 d.setSubtotal(rs.getBigDecimal("subtotal"));
                 listaDetalle.add(d);
             }
-
-            // Reasignar explícitamente la lista a la tabla
             tblDetalleProductos.setItems(listaDetalle);
-            tblDetalleProductos.refresh(); // ✅ Fuerza el repintado visual
-
             actualizarTotales();
-
-            System.out.println("✅ Productos cargados: " + listaDetalle.size()); // Para debug en consola
-
         } catch (SQLException e) {
             mostrarError("Error al cargar detalle: " + e.getMessage());
         }
     }
 
     private void cargarCompraEnFormulario(Compra c) {
-        // Cargar proveedor
-        cmbProveedor.getItems().stream()
-                .filter(s -> s.startsWith(c.getIdProveedor() + " - "))
-                .findFirst().ifPresent(cmbProveedor::setValue);
+        if (false) {
+            cmbProveedor.getItems().stream()
+                    .filter(s -> s.startsWith(c.getIdProveedor() + " - "))
+                    .findFirst().ifPresent(cmbProveedor::setValue);
+        }
 
-        // Cargar empleado
         cmbEmpleado.getItems().stream()
                 .filter(s -> s.startsWith(c.getIdEmpleado() + " - "))
                 .findFirst().ifPresent(cmbEmpleado::setValue);
 
-        // Cargar comprobante
         if (c.getIdComprobante() != null && c.getIdComprobante() > 0) {
             cmbComprobante.getItems().stream()
                     .filter(s -> s.startsWith(c.getIdComprobante() + " - "))
@@ -290,16 +356,10 @@ public class RegistroCompraController implements Initializable {
             cmbComprobante.setValue("NINGUNO");
         }
 
-        // Cargar fecha
         dateFecha.setValue(c.getFecha() != null ? c.getFecha().toLocalDate() : LocalDate.now());
-
-        // Cargar número de factura
         txtNroFacturaProv.setText(c.getNroFacturaProv() != null ? c.getNroFacturaProv() : "");
-
-        // Cargar estado
         cmbEstado.setValue(c.getEstado());
 
-        // Actualizar totales
         txtSubtotal.setText(c.getSubtotal() != null ? c.getSubtotal().toString() : "0.00");
         txtDescuento.setText(c.getDescuento() != null ? c.getDescuento().toString() : "0.00");
         txtItbis.setText(c.getItbis() != null ? c.getItbis().toString() : "0.00");
@@ -312,22 +372,18 @@ public class RegistroCompraController implements Initializable {
             mostrarError("Seleccione un producto");
             return;
         }
-
-        String cantStr = txtCantidad.getText().trim();
-        if (cantStr.isEmpty()) {
+        if (txtCantidad.getText().trim().isEmpty()) {
             mostrarError("Ingrese la cantidad");
             return;
         }
-
-        String precioStr = txtPrecioUnitario.getText().trim();
-        if (precioStr.isEmpty()) {
+        if (txtPrecioUnitario.getText().trim().isEmpty()) {
             mostrarError("Ingrese el precio unitario");
             return;
         }
 
         try {
-            int cantidad = Integer.parseInt(cantStr);
-            BigDecimal precio = new BigDecimal(precioStr);
+            int cantidad = Integer.parseInt(txtCantidad.getText().trim());
+            BigDecimal precio = new BigDecimal(txtPrecioUnitario.getText().trim());
             BigDecimal descuento = txtDescuentoProducto.getText().trim().isEmpty() ?
                     BigDecimal.ZERO : new BigDecimal(txtDescuentoProducto.getText().trim());
 
@@ -337,7 +393,6 @@ public class RegistroCompraController implements Initializable {
 
             DetalleCompra detalle = new DetalleCompra(idProducto, nombreProducto, cantidad, precio, descuento);
             listaDetalle.add(detalle);
-
             actualizarTotales();
             limpiarCamposProducto();
 
@@ -386,6 +441,12 @@ public class RegistroCompraController implements Initializable {
 
     @FXML
     private void guardarCompra(ActionEvent event) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador") && !rol.equals("Almacenista")) {
+            mostrarError("No tiene permisos para guardar compras");
+            return;
+        }
+
         if (!validar()) return;
         if (listaDetalle.isEmpty()) {
             mostrarError("Debe agregar al menos un producto");
@@ -399,9 +460,14 @@ public class RegistroCompraController implements Initializable {
         }
     }
 
-    // Corregir el editar — ya tiene los productos cargados, no necesita validar lista vacía como bloqueo
     @FXML
     private void editarCompra(ActionEvent event) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador")) {
+            mostrarError("Solo Administradores pueden editar compras");
+            return;
+        }
+
         if (idCompraSeleccionada == 0) {
             mostrarError("Seleccione una compra de la tabla para editar");
             return;
@@ -415,13 +481,77 @@ public class RegistroCompraController implements Initializable {
     }
 
     @FXML
-    private void NuevaCompra(ActionEvent event) {
-        limpiarTodo();
-        idCompraSeleccionada = 0;
-        cmbProveedor.requestFocus();
-    }
+    private void eliminarCompra(ActionEvent event) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador")) {
+            mostrarError("Solo Administradores pueden eliminar compras");
+            return;
+        }
 
-    // ==================== MÉTODOS SQL ====================
+        if (idCompraSeleccionada == 0) {
+            mostrarError("Seleccione una compra de la tabla.");
+            return;
+        }
+
+        Alert conf = new Alert(Alert.AlertType.CONFIRMATION);
+        conf.setTitle("Confirmar eliminación");
+        conf.setHeaderText("¿Está seguro?");
+        conf.setContentText("Esta acción eliminará la compra #" + idCompraSeleccionada + " y todos sus productos.");
+        Optional<ButtonType> result = conf.showAndWait();
+
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            try {
+                conexion.setAutoCommit(false);
+
+                Map<Integer, Integer> detallesAEliminar = new HashMap<>();
+                String sqlObtener = "SELECT id_producto, cantidad FROM tbl_DETALLE_COMPRA WHERE id_compra = ?";
+                try (PreparedStatement psObtener = conexion.prepareStatement(sqlObtener)) {
+                    psObtener.setInt(1, idCompraSeleccionada);
+                    ResultSet rs = psObtener.executeQuery();
+                    while (rs.next()) {
+                        detallesAEliminar.put(rs.getInt("id_producto"), rs.getInt("cantidad"));
+                    }
+                }
+
+                for (Map.Entry<Integer, Integer> entry : detallesAEliminar.entrySet()) {
+                    revertirStock(entry.getKey(), entry.getValue());
+                }
+
+                String sqlDeleteDetalle = "DELETE FROM tbl_DETALLE_COMPRA WHERE id_compra = ?";
+                try (PreparedStatement psDet = conexion.prepareStatement(sqlDeleteDetalle)) {
+                    psDet.setInt(1, idCompraSeleccionada);
+                    psDet.executeUpdate();
+                }
+
+                String sqlDeleteCompra = "DELETE FROM tbl_COMPRA WHERE id_compra = ?";
+                try (PreparedStatement ps = conexion.prepareStatement(sqlDeleteCompra)) {
+                    ps.setInt(1, idCompraSeleccionada);
+                    ps.executeUpdate();
+                }
+
+                conexion.commit();
+                mostrarExito("✅ Compra eliminada correctamente.");
+                limpiarTodo();
+                if (consultaPanel.isVisible()) {
+                    cargarTablaCompras();
+                }
+
+            } catch (SQLException e) {
+                try {
+                    conexion.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+                mostrarError("Error al eliminar: " + e.getMessage());
+            } finally {
+                try {
+                    conexion.setAutoCommit(true);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
     private void insertarNuevaCompra() {
         String sqlCompra = "INSERT INTO tbl_COMPRA " +
@@ -461,7 +591,9 @@ public class RegistroCompraController implements Initializable {
                 conexion.commit();
                 mostrarExito("✅ Compra registrada correctamente.\nID generado: " + idCompraGenerada);
                 limpiarTodo();
-                cargarTablaCompras();
+                if (consultaPanel.isVisible()) {
+                    cargarTablaCompras();
+                }
 
             } catch (SQLException e) {
                 conexion.rollback();
@@ -537,7 +669,9 @@ public class RegistroCompraController implements Initializable {
             conexion.commit();
             mostrarExito("✅ Compra actualizada correctamente.");
             limpiarTodo();
-            cargarTablaCompras();
+            if (consultaPanel.isVisible()) {
+                cargarTablaCompras();
+            }
 
         } catch (SQLException e) {
             try {
@@ -553,98 +687,6 @@ public class RegistroCompraController implements Initializable {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-        }
-    }
-
-    @FXML
-    private void eliminarCompra(ActionEvent event) {
-        if (idCompraSeleccionada == 0) {
-            mostrarError("Seleccione una compra de la tabla.");
-            return;
-        }
-
-        Alert conf = new Alert(Alert.AlertType.CONFIRMATION);
-        conf.setTitle("Confirmar eliminación");
-        conf.setHeaderText("¿Está seguro?");
-        conf.setContentText("Esta acción eliminará la compra #" + idCompraSeleccionada + " y todos sus productos.");
-        Optional<ButtonType> result = conf.showAndWait();
-
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            try {
-                conexion.setAutoCommit(false);
-
-                // 1. Obtener detalles para revertir stock
-                Map<Integer, Integer> detallesAEliminar = new HashMap<>();
-                String sqlObtener = "SELECT id_producto, cantidad FROM tbl_DETALLE_COMPRA WHERE id_compra = ?";
-                try (PreparedStatement psObtener = conexion.prepareStatement(sqlObtener)) {
-                    psObtener.setInt(1, idCompraSeleccionada);
-                    ResultSet rs = psObtener.executeQuery();
-                    while (rs.next()) {
-                        detallesAEliminar.put(rs.getInt("id_producto"), rs.getInt("cantidad"));
-                    }
-                }
-
-                // 2. Revertir stock
-                for (Map.Entry<Integer, Integer> entry : detallesAEliminar.entrySet()) {
-                    revertirStock(entry.getKey(), entry.getValue());
-                }
-
-                // 3. Eliminar detalles
-                String sqlDeleteDetalle = "DELETE FROM tbl_DETALLE_COMPRA WHERE id_compra = ?";
-                try (PreparedStatement psDet = conexion.prepareStatement(sqlDeleteDetalle)) {
-                    psDet.setInt(1, idCompraSeleccionada);
-                    psDet.executeUpdate();
-                }
-
-                // 4. Eliminar compra
-                String sqlDeleteCompra = "DELETE FROM tbl_COMPRA WHERE id_compra = ?";
-                try (PreparedStatement ps = conexion.prepareStatement(sqlDeleteCompra)) {
-                    ps.setInt(1, idCompraSeleccionada);
-                    ps.executeUpdate();
-                }
-
-                conexion.commit();
-                mostrarExito("✅ Compra eliminada correctamente.");
-                limpiarTodo();
-                cargarTablaCompras();
-
-            } catch (SQLException e) {
-                try {
-                    conexion.rollback();
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
-                }
-                mostrarError("Error al eliminar: " + e.getMessage());
-            } finally {
-                try {
-                    conexion.setAutoCommit(true);
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    private void actualizarStock(int idProducto, int cantidad) {
-        String sql = "UPDATE tbl_PRODUCTO SET stock = COALESCE(stock, 0) + ? WHERE id_producto = ?";
-        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
-            ps.setInt(1, cantidad);
-            ps.setInt(2, idProducto);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            System.err.println("Error al actualizar stock: " + e.getMessage());
-        }
-    }
-
-    private void revertirStock(int idProducto, int cantidad) {
-        String sql = "UPDATE tbl_PRODUCTO SET stock = stock - ? WHERE id_producto = ? AND stock >= ?";
-        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
-            ps.setInt(1, cantidad);
-            ps.setInt(2, idProducto);
-            ps.setInt(3, cantidad);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            System.err.println("Error al revertir stock: " + e.getMessage());
         }
     }
 
@@ -668,6 +710,29 @@ public class RegistroCompraController implements Initializable {
         ps.setBigDecimal(8, new BigDecimal(txtItbis.getText().trim()));
         ps.setBigDecimal(9, new BigDecimal(txtTotal.getText().trim()));
         ps.setString(10, cmbEstado.getValue());
+    }
+
+    private void actualizarStock(int idProducto, int cantidad) {
+        String sql = "UPDATE tbl_PRODUCTO SET stock_actual = stock_actual + ? WHERE id_producto = ?";
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            ps.setInt(1, cantidad);
+            ps.setInt(2, idProducto);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Error al actualizar stock: " + e.getMessage());
+        }
+    }
+
+    private void revertirStock(int idProducto, int cantidad) {
+        String sql = "UPDATE tbl_PRODUCTO SET stock_actual = stock_actual - ? WHERE id_producto = ? AND stock_actual >= ?";
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            ps.setInt(1, cantidad);
+            ps.setInt(2, idProducto);
+            ps.setInt(3, cantidad);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Error al revertir stock: " + e.getMessage());
+        }
     }
 
     @FXML
@@ -707,12 +772,13 @@ public class RegistroCompraController implements Initializable {
         dateFecha.setValue(LocalDate.now());
         txtNroFacturaProv.clear();
         cmbEstado.setValue(null);
-
         listaDetalle.clear();
         limpiarCamposProducto();
         actualizarTotales();
-
         idCompraSeleccionada = 0;
+        modoEdicion = false;
+        habilitarBotonesEdicion(false);
+        btnGuardar.setDisable(false);
         tblCompras.getSelectionModel().clearSelection();
     }
 
