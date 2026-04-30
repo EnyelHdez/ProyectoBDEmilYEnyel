@@ -7,8 +7,10 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
 import org.example.proyecto.Conexion.ConexionBD;
 import org.example.proyecto.Modelos.Empleado;
+import org.example.proyecto.Modelos.Usuarios.SesionUsuario;
 
 import java.math.BigDecimal;
 import java.net.URL;
@@ -19,7 +21,21 @@ import java.util.ResourceBundle;
 
 public class RegistroEmpleadoController implements Initializable {
 
+    // Panel de consulta
+    @FXML private VBox consultaPanel;
     @FXML private TextField txtBuscar;
+    @FXML private Button btnBuscar;
+    @FXML private Button btnVerTodos;
+    @FXML private Button btnCerrarConsulta;
+
+    // Botones de acción
+    @FXML private Button btnConsultar;
+    @FXML private Button btnLimpiar;
+    @FXML private Button btnEliminar;
+    @FXML private Button btnEditar;
+    @FXML private Button btnGuardar;
+
+    // Tabla
     @FXML private TableView<Empleado> tblEmpleados;
     @FXML private TableColumn<Empleado, Integer> colId;
     @FXML private TableColumn<Empleado, String> colCedula;
@@ -32,6 +48,7 @@ public class RegistroEmpleadoController implements Initializable {
     @FXML private TableColumn<Empleado, BigDecimal> colSalario;
     @FXML private TableColumn<Empleado, Character> colEstado;
 
+    // Campos del formulario
     @FXML private TextField txtCedula;
     @FXML private TextField txtNombres;
     @FXML private TextField txtApellidos;
@@ -48,6 +65,7 @@ public class RegistroEmpleadoController implements Initializable {
     private ObservableList<Empleado> empleadosList = FXCollections.observableArrayList();
     private Empleado empleadoSeleccionado = null;
     private Connection conexion;
+    private boolean modoEdicion = false;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -61,11 +79,73 @@ public class RegistroEmpleadoController implements Initializable {
 
         configurarTabla();
         configurarCombos();
-        cargarEmpleados();
         cargarCargos();
         cargarDirecciones();
         configurarSeleccionTabla();
+        configurarBotonesPorRol();
+
         dateFechaIngreso.setValue(LocalDate.now());
+
+        // Inicialmente el panel de consulta está oculto
+        consultaPanel.setVisible(false);
+        consultaPanel.setManaged(false);
+
+        // Botones de edición deshabilitados al inicio
+        habilitarBotonesEdicion(false);
+        btnGuardar.setDisable(false);
+    }
+
+    private void configurarBotonesPorRol() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+
+        boolean puedeEditar = false;
+        boolean puedeEliminar = false;
+
+        switch (rol) {
+            case "Administrador":
+                puedeEditar = true;
+                puedeEliminar = true;
+                break;
+            case "Farmacéutico":
+                puedeEditar = true;
+                puedeEliminar = false;
+                break;
+            default:
+                puedeEditar = false;
+                puedeEliminar = false;
+                break;
+        }
+
+        btnEditar.setVisible(puedeEditar);
+        btnEditar.setManaged(puedeEditar);
+        btnEliminar.setVisible(puedeEliminar);
+        btnEliminar.setManaged(puedeEliminar);
+    }
+
+    private void habilitarBotonesEdicion(boolean habilitar) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+
+        if (!"Administrador".equals(rol) && !"Farmacéutico".equals(rol)) {
+            btnEditar.setDisable(true);
+            btnEliminar.setDisable(true);
+            return;
+        }
+
+        btnEditar.setDisable(!habilitar);
+        btnEliminar.setDisable(!habilitar);
+    }
+
+    @FXML
+    private void abrirConsulta() {
+        consultaPanel.setVisible(true);
+        consultaPanel.setManaged(true);
+        cargarEmpleados();
+    }
+
+    @FXML
+    private void cerrarConsulta() {
+        consultaPanel.setVisible(false);
+        consultaPanel.setManaged(false);
     }
 
     private void configurarTabla() {
@@ -175,6 +255,9 @@ public class RegistroEmpleadoController implements Initializable {
             if (newSelection != null) {
                 empleadoSeleccionado = newSelection;
                 cargarEmpleadoEnFormulario(newSelection);
+                habilitarBotonesEdicion(true);
+                modoEdicion = true;
+                btnGuardar.setDisable(true);
             }
         });
     }
@@ -215,6 +298,12 @@ public class RegistroEmpleadoController implements Initializable {
 
     @FXML
     public void guardarEmpleado(ActionEvent event) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador") && !rol.equals("Farmacéutico")) {
+            mostrarAlerta("Permiso denegado", "No tiene permisos para guardar empleados", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (!validarCampos()) return;
 
         int idCargo = getIdSeleccionado(cmbCargo);
@@ -230,7 +319,6 @@ public class RegistroEmpleadoController implements Initializable {
         BigDecimal salario = new BigDecimal(txtSalarioBase.getText());
         char estado = cmbEstado.getValue() != null ? cmbEstado.getValue().charAt(0) : 'A';
 
-        // INSERT sin id_empleado porque es IDENTITY
         String sql = "INSERT INTO tbl_EMPLEADO (id_cargo, id_direccion, cedula, nombres, apellidos, fecha_nacimiento, sexo, telefono, email, fecha_ingreso, salario_base, estado_temp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -256,8 +344,10 @@ public class RegistroEmpleadoController implements Initializable {
                     System.out.println("Empleado insertado con ID: " + nuevoId);
                 }
                 mostrarAlerta("Éxito", "Empleado guardado correctamente", Alert.AlertType.INFORMATION);
-                limpiarCampos();
-                cargarEmpleados();
+                limpiarCamposInterno();
+                if (consultaPanel.isVisible()) {
+                    cargarEmpleados();
+                }
             }
         } catch (SQLException e) {
             mostrarAlerta("Error", "Error al guardar: " + e.getMessage(), Alert.AlertType.ERROR);
@@ -266,6 +356,12 @@ public class RegistroEmpleadoController implements Initializable {
 
     @FXML
     public void editarEmpleado(ActionEvent event) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador")) {
+            mostrarAlerta("Permiso denegado", "Solo Administradores pueden editar empleados", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (empleadoSeleccionado == null) {
             mostrarAlerta("Error", "Seleccione un empleado de la tabla para editar", Alert.AlertType.WARNING);
             return;
@@ -307,8 +403,10 @@ public class RegistroEmpleadoController implements Initializable {
             int filas = pstmt.executeUpdate();
             if (filas > 0) {
                 mostrarAlerta("Éxito", "Empleado actualizado correctamente", Alert.AlertType.INFORMATION);
-                limpiarCampos();
-                cargarEmpleados();
+                limpiarCamposInterno();
+                if (consultaPanel.isVisible()) {
+                    cargarEmpleados();
+                }
             }
         } catch (SQLException e) {
             mostrarAlerta("Error", "Error al actualizar: " + e.getMessage(), Alert.AlertType.ERROR);
@@ -317,6 +415,12 @@ public class RegistroEmpleadoController implements Initializable {
 
     @FXML
     public void eliminarEmpleado(ActionEvent event) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador")) {
+            mostrarAlerta("Permiso denegado", "Solo Administradores pueden eliminar empleados", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (empleadoSeleccionado == null) {
             mostrarAlerta("Error", "Seleccione un empleado para eliminar", Alert.AlertType.WARNING);
             return;
@@ -335,8 +439,10 @@ public class RegistroEmpleadoController implements Initializable {
                 pstmt.executeUpdate();
 
                 mostrarAlerta("Éxito", "Empleado eliminado correctamente", Alert.AlertType.INFORMATION);
-                limpiarCampos();
-                cargarEmpleados();
+                limpiarCamposInterno();
+                if (consultaPanel.isVisible()) {
+                    cargarEmpleados();
+                }
             } catch (SQLException e) {
                 mostrarAlerta("Error", "Error al eliminar: " + e.getMessage(), Alert.AlertType.ERROR);
             }
@@ -345,10 +451,10 @@ public class RegistroEmpleadoController implements Initializable {
 
     @FXML
     public void limpiarCampos(ActionEvent event) {
-        limpiarCampos();
+        limpiarCamposInterno();
     }
 
-    private void limpiarCampos() {
+    private void limpiarCamposInterno() {
         txtCedula.clear();
         txtNombres.clear();
         txtApellidos.clear();
@@ -362,6 +468,9 @@ public class RegistroEmpleadoController implements Initializable {
         dateFechaIngreso.setValue(LocalDate.now());
         cmbEstado.setValue(null);
         empleadoSeleccionado = null;
+        modoEdicion = false;
+        habilitarBotonesEdicion(false);
+        btnGuardar.setDisable(false);
         tblEmpleados.getSelectionModel().clearSelection();
     }
 

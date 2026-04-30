@@ -7,8 +7,10 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
 import org.example.proyecto.Conexion.ConexionBD;
 import org.example.proyecto.Modelos.SistemaFidelizacion;
+import org.example.proyecto.Modelos.Usuarios.SesionUsuario;
 
 import java.math.BigDecimal;
 import java.net.URL;
@@ -19,9 +21,29 @@ import java.util.ResourceBundle;
 
 public class RegistroFidelizacionController implements Initializable {
 
-    // Búsqueda y filtros
+    // Panel de consulta
+    @FXML private VBox consultaPanel;
     @FXML private TextField txtBusqueda;
     @FXML private ComboBox<String> cmbFiltroEstado;
+    @FXML private Button btnBuscar;
+    @FXML private Button btnVerTodos;
+    @FXML private Button btnCerrarConsulta;
+
+    // Botones de acción
+    @FXML private Button btnConsultar;
+    @FXML private Button btnNuevoPrograma;
+    @FXML private Button btnLimpiar;
+    @FXML private Button btnEliminar;
+    @FXML private Button btnEditar;
+    @FXML private Button btnGuardar;
+
+    // Botones de gestión de puntos
+    @FXML private Button btnBuscarCliente;
+    @FXML private Button btnRegistrarPuntos;
+    @FXML private Button btnRenovarCaducidad;
+    @FXML private Button btnCanjearPuntos;
+
+    // Contadores
     @FXML private Label lblContActivo;
     @FXML private Label lblContVencido;
     @FXML private Label lblTotalPuntos;
@@ -64,6 +86,7 @@ public class RegistroFidelizacionController implements Initializable {
     private SistemaFidelizacion programaSeleccionado = null;
     private int idClienteActual = 0;
     private int puntosDisponiblesCliente = 0;
+    private boolean modoEdicion = false;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -73,9 +96,81 @@ public class RegistroFidelizacionController implements Initializable {
         configurarFiltros();
         cargarProgramas();
         configurarSeleccionTabla();
+        configurarBotonesPorRol();
         actualizarContadores();
 
         dpFechaCaducidad.setValue(LocalDate.now().plusMonths(6));
+
+        // Inicialmente el panel de consulta está oculto
+        consultaPanel.setVisible(false);
+        consultaPanel.setManaged(false);
+
+        // Botones de edición deshabilitados al inicio
+        habilitarBotonesEdicion(false);
+        btnGuardar.setDisable(false);
+    }
+
+    private void configurarBotonesPorRol() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+
+        boolean puedeEditar = false;
+        boolean puedeEliminar = false;
+        boolean puedeGestionarPuntos = false;
+
+        switch (rol) {
+            case "Administrador":
+                puedeEditar = true;
+                puedeEliminar = true;
+                puedeGestionarPuntos = true;
+                break;
+            case "Cajero":
+                puedeEditar = false;
+                puedeEliminar = false;
+                puedeGestionarPuntos = true;
+                break;
+            default:
+                puedeEditar = false;
+                puedeEliminar = false;
+                puedeGestionarPuntos = false;
+                break;
+        }
+
+        btnEditar.setVisible(puedeEditar);
+        btnEditar.setManaged(puedeEditar);
+        btnEliminar.setVisible(puedeEliminar);
+        btnEliminar.setManaged(puedeEliminar);
+
+        // Botones de gestión de puntos
+        btnRegistrarPuntos.setDisable(!puedeGestionarPuntos);
+        btnRenovarCaducidad.setDisable(!puedeGestionarPuntos);
+        btnCanjearPuntos.setDisable(!puedeGestionarPuntos);
+        btnBuscarCliente.setDisable(!puedeGestionarPuntos);
+    }
+
+    private void habilitarBotonesEdicion(boolean habilitar) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+
+        if (!"Administrador".equals(rol)) {
+            btnEditar.setDisable(true);
+            btnEliminar.setDisable(true);
+            return;
+        }
+
+        btnEditar.setDisable(!habilitar);
+        btnEliminar.setDisable(!habilitar);
+    }
+
+    @FXML
+    private void abrirConsulta() {
+        consultaPanel.setVisible(true);
+        consultaPanel.setManaged(true);
+        cargarProgramas();
+    }
+
+    @FXML
+    private void cerrarConsulta() {
+        consultaPanel.setVisible(false);
+        consultaPanel.setManaged(false);
     }
 
     private void configurarTabla() {
@@ -92,9 +187,7 @@ public class RegistroFidelizacionController implements Initializable {
     }
 
     private void configurarFiltros() {
-        cmbFiltroEstado.setItems(FXCollections.observableArrayList(
-                "Todos", "Activos", "Inactivos"
-        ));
+        cmbFiltroEstado.setItems(FXCollections.observableArrayList("Todos", "Activos", "Inactivos"));
         cmbFiltroEstado.setValue("Todos");
     }
 
@@ -103,6 +196,9 @@ public class RegistroFidelizacionController implements Initializable {
             if (sel != null) {
                 programaSeleccionado = sel;
                 cargarProgramaEnFormulario(sel);
+                habilitarBotonesEdicion(true);
+                modoEdicion = true;
+                btnGuardar.setDisable(true);
             }
         });
     }
@@ -187,65 +283,96 @@ public class RegistroFidelizacionController implements Initializable {
     private void nuevoPrograma() {
         limpiarFormularioPrograma();
         txtNombre.requestFocus();
+        modoEdicion = false;
+        habilitarBotonesEdicion(false);
+        btnGuardar.setDisable(false);
     }
 
     @FXML
     private void guardarPrograma() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador")) {
+            mostrarAlerta("Permiso denegado", "No tiene permisos para guardar programas", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (!validarFormularioPrograma()) return;
 
-        String sql = "INSERT INTO tbl_SISTEMA_FIDELIZACION " +
-                "(nombre, puntos_por_peso, valor_punto, minimo_canje, descripcion, estado) " +
-                "VALUES (?, ?, ?, ?, ?, ?)";
+        if (modoEdicion && programaSeleccionado != null) {
+            // Editar programa existente
+            Alert conf = new Alert(Alert.AlertType.CONFIRMATION);
+            conf.setTitle("Confirmar edición");
+            conf.setHeaderText(null);
+            conf.setContentText("¿Guardar cambios en este programa?");
+            if (conf.showAndWait().get() != ButtonType.OK) return;
 
-        try (PreparedStatement ps = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            setearParametrosPrograma(ps);
-            ps.executeUpdate();
+            String sql = "UPDATE tbl_SISTEMA_FIDELIZACION SET nombre=?, puntos_por_peso=?, " +
+                    "valor_punto=?, minimo_canje=?, descripcion=?, estado=? WHERE id_fidelizacion=?";
 
-            ResultSet rs = ps.getGeneratedKeys();
-            if (rs.next()) {
-                mostrarAlerta("Éxito", "Programa guardado correctamente (ID: " + rs.getInt(1) + ")",
-                        Alert.AlertType.INFORMATION);
+            try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+                setearParametrosPrograma(ps);
+                ps.setInt(7, programaSeleccionado.getIdFidelizacion());
+                ps.executeUpdate();
+                mostrarAlerta("Éxito", "Programa actualizado correctamente", Alert.AlertType.INFORMATION);
+                limpiarFormularioPrograma();
+                if (consultaPanel.isVisible()) {
+                    cargarProgramas();
+                }
+                actualizarContadores();
+            } catch (SQLException e) {
+                mostrarAlerta("Error", "Error al actualizar: " + e.getMessage(), Alert.AlertType.ERROR);
             }
-            limpiarFormularioPrograma();
-            cargarProgramas();
-            actualizarContadores();
-        } catch (SQLException e) {
-            mostrarAlerta("Error", "Error al guardar: " + e.getMessage(), Alert.AlertType.ERROR);
+        } else {
+            // Crear nuevo programa
+            String sql = "INSERT INTO tbl_SISTEMA_FIDELIZACION " +
+                    "(nombre, puntos_por_peso, valor_punto, minimo_canje, descripcion, estado) " +
+                    "VALUES (?, ?, ?, ?, ?, ?)";
+
+            try (PreparedStatement ps = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                setearParametrosPrograma(ps);
+                ps.executeUpdate();
+
+                ResultSet rs = ps.getGeneratedKeys();
+                if (rs.next()) {
+                    mostrarAlerta("Éxito", "Programa guardado correctamente (ID: " + rs.getInt(1) + ")",
+                            Alert.AlertType.INFORMATION);
+                }
+                limpiarFormularioPrograma();
+                if (consultaPanel.isVisible()) {
+                    cargarProgramas();
+                }
+                actualizarContadores();
+            } catch (SQLException e) {
+                mostrarAlerta("Error", "Error al guardar: " + e.getMessage(), Alert.AlertType.ERROR);
+            }
         }
+        modoEdicion = false;
+        btnGuardar.setDisable(false);
     }
 
     @FXML
     private void editarPrograma() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador")) {
+            mostrarAlerta("Permiso denegado", "Solo Administradores pueden editar programas", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (programaSeleccionado == null) {
             mostrarAlerta("Advertencia", "Seleccione un programa para editar", Alert.AlertType.WARNING);
             return;
         }
-        if (!validarFormularioPrograma()) return;
-
-        Alert conf = new Alert(Alert.AlertType.CONFIRMATION);
-        conf.setTitle("Confirmar edición");
-        conf.setHeaderText(null);
-        conf.setContentText("¿Guardar cambios en este programa?");
-        if (conf.showAndWait().get() != ButtonType.OK) return;
-
-        String sql = "UPDATE tbl_SISTEMA_FIDELIZACION SET nombre=?, puntos_por_peso=?, " +
-                "valor_punto=?, minimo_canje=?, descripcion=?, estado=? WHERE id_fidelizacion=?";
-
-        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
-            setearParametrosPrograma(ps);
-            ps.setInt(7, programaSeleccionado.getIdFidelizacion());
-            ps.executeUpdate();
-            mostrarAlerta("Éxito", "Programa actualizado correctamente", Alert.AlertType.INFORMATION);
-            limpiarFormularioPrograma();
-            cargarProgramas();
-            actualizarContadores();
-        } catch (SQLException e) {
-            mostrarAlerta("Error", "Error al actualizar: " + e.getMessage(), Alert.AlertType.ERROR);
-        }
+        guardarPrograma();
     }
 
     @FXML
     private void eliminarPrograma() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador")) {
+            mostrarAlerta("Permiso denegado", "Solo Administradores pueden eliminar programas", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (programaSeleccionado == null) {
             mostrarAlerta("Advertencia", "Seleccione un programa para eliminar", Alert.AlertType.WARNING);
             return;
@@ -257,17 +384,19 @@ public class RegistroFidelizacionController implements Initializable {
         conf.setContentText("¿Eliminar este programa? Esta acción no se puede deshacer.");
         if (conf.showAndWait().get() != ButtonType.OK) return;
 
-        try (PreparedStatement ps = conexion.prepareStatement(
-                "DELETE FROM tbl_SISTEMA_FIDELIZACION WHERE id_fidelizacion=?")) {
+        try (PreparedStatement ps = conexion.prepareStatement("DELETE FROM tbl_SISTEMA_FIDELIZACION WHERE id_fidelizacion=?")) {
             ps.setInt(1, programaSeleccionado.getIdFidelizacion());
             ps.executeUpdate();
             mostrarAlerta("Éxito", "Programa eliminado correctamente", Alert.AlertType.INFORMATION);
             limpiarFormularioPrograma();
-            cargarProgramas();
+            if (consultaPanel.isVisible()) {
+                cargarProgramas();
+            }
             actualizarContadores();
+            habilitarBotonesEdicion(false);
+            btnGuardar.setDisable(false);
         } catch (SQLException e) {
-            mostrarAlerta("Error", "No se puede eliminar: el programa tiene registros asociados",
-                    Alert.AlertType.ERROR);
+            mostrarAlerta("Error", "No se puede eliminar: el programa tiene registros asociados", Alert.AlertType.ERROR);
         }
     }
 
@@ -275,6 +404,9 @@ public class RegistroFidelizacionController implements Initializable {
     private void limpiarCampos() {
         limpiarFormularioPrograma();
         limpiarFormularioCliente();
+        modoEdicion = false;
+        habilitarBotonesEdicion(false);
+        btnGuardar.setDisable(false);
     }
 
     private void limpiarFormularioPrograma() {
@@ -303,6 +435,12 @@ public class RegistroFidelizacionController implements Initializable {
 
     @FXML
     private void onBuscarCliente() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador") && !rol.equals("Cajero")) {
+            mostrarAlerta("Permiso denegado", "No tiene permisos para buscar clientes", Alert.AlertType.ERROR);
+            return;
+        }
+
         String idClienteStr = txtIdCliente.getText().trim();
         if (idClienteStr.isEmpty()) {
             mostrarAlerta("Validación", "Ingrese un ID de cliente", Alert.AlertType.WARNING);
@@ -340,13 +478,18 @@ public class RegistroFidelizacionController implements Initializable {
 
     private void cargarHistorialCliente() {
         listHistorial.getItems().clear();
-        // Aquí puedes cargar el historial de puntos del cliente desde una tabla de historial
         listHistorial.getItems().add("Cliente: " + txtNombreCliente.getText());
         listHistorial.getItems().add("Puntos disponibles: " + puntosDisponiblesCliente);
     }
 
     @FXML
     private void onRegistrarPuntos() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador") && !rol.equals("Cajero")) {
+            mostrarAlerta("Permiso denegado", "No tiene permisos para registrar puntos", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (idClienteActual == 0) {
             mostrarAlerta("Validación", "Primero busque un cliente", Alert.AlertType.WARNING);
             return;
@@ -372,7 +515,7 @@ public class RegistroFidelizacionController implements Initializable {
                 ps.executeUpdate();
 
                 mostrarAlerta("Éxito", puntos + " puntos registrados correctamente", Alert.AlertType.INFORMATION);
-                onBuscarCliente(); // Refrescar
+                onBuscarCliente();
                 txtPuntosAcumulados.clear();
             }
         } catch (NumberFormatException e) {
@@ -384,6 +527,12 @@ public class RegistroFidelizacionController implements Initializable {
 
     @FXML
     private void onRenovarCaducidad() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador") && !rol.equals("Cajero")) {
+            mostrarAlerta("Permiso denegado", "No tiene permisos para renovar caducidad", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (idClienteActual == 0) {
             mostrarAlerta("Validación", "Primero busque un cliente", Alert.AlertType.WARNING);
             return;
@@ -396,11 +545,16 @@ public class RegistroFidelizacionController implements Initializable {
         }
 
         mostrarAlerta("Éxito", "Fecha de caducidad renovada hasta: " + nuevaFecha, Alert.AlertType.INFORMATION);
-        // Aquí puedes guardar la fecha en una tabla de caducidad si la tienes
     }
 
     @FXML
     private void onCanjearPuntos() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador") && !rol.equals("Cajero")) {
+            mostrarAlerta("Permiso denegado", "No tiene permisos para canjear puntos", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (idClienteActual == 0) {
             mostrarAlerta("Validación", "Primero busque un cliente", Alert.AlertType.WARNING);
             return;
@@ -420,8 +574,7 @@ public class RegistroFidelizacionController implements Initializable {
             }
 
             if (puntos > puntosDisponiblesCliente) {
-                mostrarAlerta("Validación", "Puntos insuficientes. Disponibles: " + puntosDisponiblesCliente,
-                        Alert.AlertType.WARNING);
+                mostrarAlerta("Validación", "Puntos insuficientes. Disponibles: " + puntosDisponiblesCliente, Alert.AlertType.WARNING);
                 return;
             }
 
@@ -432,7 +585,7 @@ public class RegistroFidelizacionController implements Initializable {
                 ps.executeUpdate();
 
                 mostrarAlerta("Éxito", puntos + " puntos canjeados correctamente", Alert.AlertType.INFORMATION);
-                onBuscarCliente(); // Refrescar
+                onBuscarCliente();
                 txtPuntosACanjear.clear();
             }
         } catch (NumberFormatException e) {
@@ -472,7 +625,22 @@ public class RegistroFidelizacionController implements Initializable {
         int inactivos = 0;
         int totalPuntos = 0;
 
-        // Aquí puedes hacer un query para contar programas activos/inactivos y puntos totales
+        try {
+            String sql = "SELECT estado, COUNT(*) as total FROM tbl_SISTEMA_FIDELIZACION GROUP BY estado";
+            try (Statement st = conexion.createStatement(); ResultSet rs = st.executeQuery(sql)) {
+                while (rs.next()) {
+                    boolean estado = rs.getBoolean("estado");
+                    int total = rs.getInt("total");
+                    if (estado) {
+                        activos = total;
+                    } else {
+                        inactivos = total;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al contar programas: " + e.getMessage());
+        }
 
         lblContActivo.setText("✔ " + activos + " Activos");
         lblContVencido.setText("✖ " + inactivos + " Inactivos");

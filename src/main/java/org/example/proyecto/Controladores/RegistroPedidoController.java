@@ -7,8 +7,10 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
 import org.example.proyecto.Conexion.ConexionBD;
 import org.example.proyecto.Modelos.Pedido;
+import org.example.proyecto.Modelos.Usuarios.SesionUsuario;
 
 import java.math.BigDecimal;
 import java.net.URL;
@@ -20,7 +22,21 @@ import java.util.ResourceBundle;
 
 public class RegistroPedidoController implements Initializable {
 
+    // Panel de consulta
+    @FXML private VBox consultaPanel;
     @FXML private TextField txtBuscar;
+    @FXML private Button btnBuscar;
+    @FXML private Button btnVerTodos;
+    @FXML private Button btnCerrarConsulta;
+
+    // Botones de acción
+    @FXML private Button btnConsultar;
+    @FXML private Button btnLimpiar;
+    @FXML private Button btnEliminar;
+    @FXML private Button btnEditar;
+    @FXML private Button btnGuardar;
+
+    // Tabla
     @FXML private TableView<Pedido> tblPedidos;
     @FXML private TableColumn<Pedido, Integer> colId;
     @FXML private TableColumn<Pedido, Integer> colCliente;
@@ -33,6 +49,7 @@ public class RegistroPedidoController implements Initializable {
     @FXML private TableColumn<Pedido, BigDecimal> colTotal;
     @FXML private TableColumn<Pedido, String> colEstado;
 
+    // Campos del formulario
     @FXML private ComboBox<String> cmbCliente;
     @FXML private ComboBox<String> cmbEmpleado;
     @FXML private ComboBox<String> cmbMetodoEnvio;
@@ -46,19 +63,81 @@ public class RegistroPedidoController implements Initializable {
     private ObservableList<Pedido> pedidosList = FXCollections.observableArrayList();
     private Pedido pedidoSeleccionado = null;
     private Connection conexion;
+    private boolean modoEdicion = false;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         conexion = new ConexionBD().EstablecerConexion();
         configurarTabla();
         configurarCombos();
-        cargarPedidos();
         cargarClientes();
         cargarEmpleados();
         cargarMetodosEnvio();
         cargarDirecciones();
         configurarSeleccionTabla();
         configurarCalculoTotal();
+        configurarBotonesPorRol();
+
+        // Inicialmente el panel de consulta está oculto
+        consultaPanel.setVisible(false);
+        consultaPanel.setManaged(false);
+
+        // Botones de edición deshabilitados al inicio
+        habilitarBotonesEdicion(false);
+        btnGuardar.setDisable(false);
+    }
+
+    private void configurarBotonesPorRol() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+
+        boolean puedeEditar = false;
+        boolean puedeEliminar = false;
+
+        switch (rol) {
+            case "Administrador":
+                puedeEditar = true;
+                puedeEliminar = true;
+                break;
+            case "Farmacéutico":
+                puedeEditar = true;
+                puedeEliminar = false;
+                break;
+            default:
+                puedeEditar = false;
+                puedeEliminar = false;
+                break;
+        }
+
+        btnEditar.setVisible(puedeEditar);
+        btnEditar.setManaged(puedeEditar);
+        btnEliminar.setVisible(puedeEliminar);
+        btnEliminar.setManaged(puedeEliminar);
+    }
+
+    private void habilitarBotonesEdicion(boolean habilitar) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+
+        if (!"Administrador".equals(rol) && !"Farmacéutico".equals(rol)) {
+            btnEditar.setDisable(true);
+            btnEliminar.setDisable(true);
+            return;
+        }
+
+        btnEditar.setDisable(!habilitar);
+        btnEliminar.setDisable(!habilitar);
+    }
+
+    @FXML
+    private void abrirConsulta() {
+        consultaPanel.setVisible(true);
+        consultaPanel.setManaged(true);
+        cargarPedidos();
+    }
+
+    @FXML
+    private void cerrarConsulta() {
+        consultaPanel.setVisible(false);
+        consultaPanel.setManaged(false);
     }
 
     private void configurarTabla() {
@@ -194,6 +273,9 @@ public class RegistroPedidoController implements Initializable {
             if (newSelection != null) {
                 pedidoSeleccionado = newSelection;
                 cargarPedidoEnFormulario(newSelection);
+                habilitarBotonesEdicion(true);
+                modoEdicion = true;
+                btnGuardar.setDisable(true);
             }
         });
     }
@@ -227,6 +309,8 @@ public class RegistroPedidoController implements Initializable {
                     break;
                 }
             }
+        } else {
+            cmbDireccionEnvio.setValue(null);
         }
 
         dateFechaEstimada.setValue(pedido.getFechaEstimada());
@@ -238,6 +322,12 @@ public class RegistroPedidoController implements Initializable {
 
     @FXML
     public void guardarPedido(ActionEvent event) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador") && !rol.equals("Farmacéutico")) {
+            mostrarAlerta("Permiso denegado", "No tiene permisos para guardar pedidos", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (!validarCampos()) return;
 
         int idCliente = getIdSeleccionado(cmbCliente);
@@ -274,8 +364,10 @@ public class RegistroPedidoController implements Initializable {
                     System.out.println("Pedido insertado con ID: " + nuevoId);
                 }
                 mostrarAlerta("Éxito", "Pedido guardado correctamente", Alert.AlertType.INFORMATION);
-                limpiarCampos();
-                cargarPedidos();
+                limpiarCamposInterno();
+                if (consultaPanel.isVisible()) {
+                    cargarPedidos();
+                }
             }
         } catch (SQLException e) {
             mostrarAlerta("Error", "Error al guardar: " + e.getMessage(), Alert.AlertType.ERROR);
@@ -284,6 +376,12 @@ public class RegistroPedidoController implements Initializable {
 
     @FXML
     public void editarPedido(ActionEvent event) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador")) {
+            mostrarAlerta("Permiso denegado", "Solo Administradores pueden editar pedidos", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (pedidoSeleccionado == null) {
             mostrarAlerta("Error", "Seleccione un pedido de la tabla para editar", Alert.AlertType.WARNING);
             return;
@@ -319,8 +417,10 @@ public class RegistroPedidoController implements Initializable {
             int filas = pstmt.executeUpdate();
             if (filas > 0) {
                 mostrarAlerta("Éxito", "Pedido actualizado correctamente", Alert.AlertType.INFORMATION);
-                limpiarCampos();
-                cargarPedidos();
+                limpiarCamposInterno();
+                if (consultaPanel.isVisible()) {
+                    cargarPedidos();
+                }
             }
         } catch (SQLException e) {
             mostrarAlerta("Error", "Error al actualizar: " + e.getMessage(), Alert.AlertType.ERROR);
@@ -329,6 +429,12 @@ public class RegistroPedidoController implements Initializable {
 
     @FXML
     public void eliminarPedido(ActionEvent event) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador")) {
+            mostrarAlerta("Permiso denegado", "Solo Administradores pueden eliminar pedidos", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (pedidoSeleccionado == null) {
             mostrarAlerta("Error", "Seleccione un pedido para eliminar", Alert.AlertType.WARNING);
             return;
@@ -347,8 +453,10 @@ public class RegistroPedidoController implements Initializable {
                 pstmt.executeUpdate();
 
                 mostrarAlerta("Éxito", "Pedido eliminado correctamente", Alert.AlertType.INFORMATION);
-                limpiarCampos();
-                cargarPedidos();
+                limpiarCamposInterno();
+                if (consultaPanel.isVisible()) {
+                    cargarPedidos();
+                }
             } catch (SQLException e) {
                 mostrarAlerta("Error", "Error al eliminar: " + e.getMessage(), Alert.AlertType.ERROR);
             }
@@ -357,10 +465,10 @@ public class RegistroPedidoController implements Initializable {
 
     @FXML
     public void limpiarCampos(ActionEvent event) {
-        limpiarCampos();
+        limpiarCamposInterno();
     }
 
-    private void limpiarCampos() {
+    private void limpiarCamposInterno() {
         cmbCliente.setValue(null);
         cmbEmpleado.setValue(null);
         cmbMetodoEnvio.setValue(null);
@@ -371,6 +479,9 @@ public class RegistroPedidoController implements Initializable {
         txtCostoEnvio.setText("0.00");
         txtTotal.setText("0.00");
         pedidoSeleccionado = null;
+        modoEdicion = false;
+        habilitarBotonesEdicion(false);
+        btnGuardar.setDisable(false);
         tblPedidos.getSelectionModel().clearSelection();
     }
 

@@ -7,8 +7,10 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
 import org.example.proyecto.Conexion.ConexionBD;
 import org.example.proyecto.Modelos.Envio;
+import org.example.proyecto.Modelos.Usuarios.SesionUsuario;
 
 import java.net.URL;
 import java.sql.*;
@@ -19,7 +21,21 @@ import java.util.ResourceBundle;
 
 public class RegistroEnvioController implements Initializable {
 
+    // Panel de consulta
+    @FXML private VBox consultaPanel;
     @FXML private TextField txtBuscar;
+    @FXML private Button btnBuscar;
+    @FXML private Button btnVerTodos;
+    @FXML private Button btnCerrarConsulta;
+
+    // Botones de acción
+    @FXML private Button btnConsultar;
+    @FXML private Button btnLimpiar;
+    @FXML private Button btnEliminar;
+    @FXML private Button btnEditar;
+    @FXML private Button btnGuardar;
+
+    // Tabla
     @FXML private TableView<Envio> tblEnvios;
     @FXML private TableColumn<Envio, Integer> colId;
     @FXML private TableColumn<Envio, Integer> colIdPedido;
@@ -30,6 +46,7 @@ public class RegistroEnvioController implements Initializable {
     @FXML private TableColumn<Envio, String> colEstado;
     @FXML private TableColumn<Envio, String> colObservacion;
 
+    // Campos del formulario
     @FXML private ComboBox<String> cmbPedido;
     @FXML private TextField txtNroGuia;
     @FXML private TextField txtTransportista;
@@ -41,15 +58,73 @@ public class RegistroEnvioController implements Initializable {
     private ObservableList<Envio> enviosList = FXCollections.observableArrayList();
     private Envio envioSeleccionado = null;
     private Connection conexion;
+    private boolean modoEdicion = false;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         conexion = new ConexionBD().EstablecerConexion();
         configurarTabla();
         configurarCombos();
-        cargarEnvios();
         cargarPedidos();
         configurarSeleccionTabla();
+        configurarBotonesPorRol();
+
+        // Inicialmente el panel de consulta está oculto
+        consultaPanel.setVisible(false);
+        consultaPanel.setManaged(false);
+
+        // Botones de edición deshabilitados al inicio
+        habilitarBotonesEdicion(false);
+        btnGuardar.setDisable(false);
+    }
+
+    private void configurarBotonesPorRol() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+
+        boolean puedeEditar = false;
+        boolean puedeEliminar = false;
+
+        switch (rol) {
+            case "Administrador":
+                puedeEditar = true;
+                puedeEliminar = true;
+                break;
+            default:
+                puedeEditar = false;
+                puedeEliminar = false;
+                break;
+        }
+
+        btnEditar.setVisible(puedeEditar);
+        btnEditar.setManaged(puedeEditar);
+        btnEliminar.setVisible(puedeEliminar);
+        btnEliminar.setManaged(puedeEliminar);
+    }
+
+    private void habilitarBotonesEdicion(boolean habilitar) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+
+        if (!"Administrador".equals(rol)) {
+            btnEditar.setDisable(true);
+            btnEliminar.setDisable(true);
+            return;
+        }
+
+        btnEditar.setDisable(!habilitar);
+        btnEliminar.setDisable(!habilitar);
+    }
+
+    @FXML
+    private void abrirConsulta() {
+        consultaPanel.setVisible(true);
+        consultaPanel.setManaged(true);
+        cargarEnvios();
+    }
+
+    @FXML
+    private void cerrarConsulta() {
+        consultaPanel.setVisible(false);
+        consultaPanel.setManaged(false);
     }
 
     private void configurarTabla() {
@@ -82,7 +157,7 @@ public class RegistroEnvioController implements Initializable {
 
     private void cargarEnvios() {
         enviosList.clear();
-        String sql = "SELECT id_envio, id_pedido, nro_guia, fecha_despacho, fecha_entrega, transportista, observacion, estado FROM tbl_ENVIO";
+        String sql = "SELECT id_envio, id_pedido, nro_guia, fecha_despacho, fecha_entrega, transportista, observacion, estado FROM tbl_ENVIO ORDER BY id_envio DESC";
 
         try (Statement stmt = conexion.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -110,6 +185,9 @@ public class RegistroEnvioController implements Initializable {
             if (newSelection != null) {
                 envioSeleccionado = newSelection;
                 cargarEnvioEnFormulario(newSelection);
+                habilitarBotonesEdicion(true);
+                modoEdicion = true;
+                btnGuardar.setDisable(true);
             }
         });
     }
@@ -130,6 +208,12 @@ public class RegistroEnvioController implements Initializable {
 
     @FXML
     public void guardarEnvio(ActionEvent event) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador")) {
+            mostrarAlerta("Permiso denegado", "No tiene permisos para guardar envíos", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (!validarCampos()) return;
 
         int idPedido = Integer.parseInt(cmbPedido.getValue());
@@ -140,7 +224,6 @@ public class RegistroEnvioController implements Initializable {
         LocalDateTime fechaEntrega = dateFechaEntrega.getValue() != null ? LocalDateTime.of(dateFechaEntrega.getValue(), LocalTime.now()) : null;
         String observacion = txtObservacion.getText();
 
-        // INSERT sin id_envio (es IDENTITY)
         String sql = "INSERT INTO tbl_ENVIO (id_pedido, nro_guia, fecha_despacho, fecha_entrega, transportista, observacion, estado) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -160,8 +243,10 @@ public class RegistroEnvioController implements Initializable {
                     System.out.println("Envío insertado con ID: " + nuevoId);
                 }
                 mostrarAlerta("Éxito", "Envío guardado correctamente", Alert.AlertType.INFORMATION);
-                limpiarCampos();
-                cargarEnvios();
+                limpiarCamposInterno();
+                if (consultaPanel.isVisible()) {
+                    cargarEnvios();
+                }
             }
         } catch (SQLException e) {
             mostrarAlerta("Error", "Error al guardar: " + e.getMessage(), Alert.AlertType.ERROR);
@@ -170,6 +255,12 @@ public class RegistroEnvioController implements Initializable {
 
     @FXML
     public void editarEnvio(ActionEvent event) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador")) {
+            mostrarAlerta("Permiso denegado", "Solo Administradores pueden editar envíos", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (envioSeleccionado == null) {
             mostrarAlerta("Error", "Seleccione un envío de la tabla para editar", Alert.AlertType.WARNING);
             return;
@@ -200,8 +291,10 @@ public class RegistroEnvioController implements Initializable {
             int filas = pstmt.executeUpdate();
             if (filas > 0) {
                 mostrarAlerta("Éxito", "Envío actualizado correctamente", Alert.AlertType.INFORMATION);
-                limpiarCampos();
-                cargarEnvios();
+                limpiarCamposInterno();
+                if (consultaPanel.isVisible()) {
+                    cargarEnvios();
+                }
             }
         } catch (SQLException e) {
             mostrarAlerta("Error", "Error al actualizar: " + e.getMessage(), Alert.AlertType.ERROR);
@@ -210,6 +303,12 @@ public class RegistroEnvioController implements Initializable {
 
     @FXML
     public void eliminarEnvio(ActionEvent event) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador")) {
+            mostrarAlerta("Permiso denegado", "Solo Administradores pueden eliminar envíos", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (envioSeleccionado == null) {
             mostrarAlerta("Error", "Seleccione un envío para eliminar", Alert.AlertType.WARNING);
             return;
@@ -228,8 +327,10 @@ public class RegistroEnvioController implements Initializable {
                 pstmt.executeUpdate();
 
                 mostrarAlerta("Éxito", "Envío eliminado correctamente", Alert.AlertType.INFORMATION);
-                limpiarCampos();
-                cargarEnvios();
+                limpiarCamposInterno();
+                if (consultaPanel.isVisible()) {
+                    cargarEnvios();
+                }
             } catch (SQLException e) {
                 mostrarAlerta("Error", "Error al eliminar: " + e.getMessage(), Alert.AlertType.ERROR);
             }
@@ -238,10 +339,10 @@ public class RegistroEnvioController implements Initializable {
 
     @FXML
     public void limpiarCampos(ActionEvent event) {
-        limpiarCampos();
+        limpiarCamposInterno();
     }
 
-    private void limpiarCampos() {
+    private void limpiarCamposInterno() {
         cmbPedido.setValue(null);
         txtNroGuia.clear();
         txtTransportista.clear();
@@ -250,6 +351,9 @@ public class RegistroEnvioController implements Initializable {
         dateFechaEntrega.setValue(null);
         txtObservacion.clear();
         envioSeleccionado = null;
+        modoEdicion = false;
+        habilitarBotonesEdicion(false);
+        btnGuardar.setDisable(false);
         tblEnvios.getSelectionModel().clearSelection();
     }
 

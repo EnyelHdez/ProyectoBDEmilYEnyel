@@ -4,168 +4,108 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.*?>
 
-<BorderPane prefHeight="700.0" prefWidth="1100.0"
-            style="-fx-background-color: #EEF4FB;"
-            xmlns="http://javafx.com/javafx/17.0.12"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.example.proyecto.Controladores.RegistroConvenioController">
+<ScrollPane fitToWidth="true" style="-fx-background-color: #EEF4FB; -fx-background: #EEF4FB; -fx-border-color: transparent;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.proyecto.Controladores.RegistroConvenioController">
 
-    <center>
-        <VBox spacing="0">
-            <ScrollPane fitToWidth="true"
-                        style="-fx-background-color: transparent;"
-                        VBox.vgrow="ALWAYS">
-                <VBox spacing="16" style="-fx-padding: 22 28 10 28;">
+    <VBox spacing="16" style="-fx-padding: 22 28 10 28; -fx-background-color: #EEF4FB;">
 
-                    <!-- BLOQUE DE BÚSQUEDA -->
-                    <VBox spacing="10"
-                          style="-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 18 20 18 20;">
-                        <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1A6BAD;"
-                               text="🔍  Buscar Convenios" />
-                        <HBox alignment="CENTER_LEFT" spacing="10">
-                            <TextField fx:id="txtBuscar" prefHeight="36" prefWidth="400"
-                                       promptText="Buscar por nombre, ARS o descripción..."
-                                       style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 4 10;" />
-                            <Button onAction="#buscarConvenio" prefHeight="36" prefWidth="90"
-                                    style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-font-size: 13px;"
-                                    text="Buscar" />
-                            <Button onAction="#mostrarTodos" prefHeight="36" prefWidth="95"
-                                    style="-fx-background-color: #EEF4FB; -fx-text-fill: #1A6BAD; -fx-font-weight: bold; -fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-cursor: hand; -fx-font-size: 13px;"
-                                    text="Ver todos" />
-                        </HBox>
-                    </VBox>
-
-                    <!-- TABLA DE CONVENIOS -->
-                    <VBox style="-fx-background-color: white; -fx-background-radius: 14;">
-                        <TableView fx:id="tblConvenios" prefHeight="200"
-                                   style="-fx-border-color: #D6E8F5; -fx-border-radius: 8; -fx-background-radius: 8;">
-                            <columns>
-                                <TableColumn fx:id="colId" prefWidth="50" text="ID" />
-                                <TableColumn fx:id="colNombre" prefWidth="180" text="Nombre" />
-                                <TableColumn fx:id="colArs" prefWidth="150" text="ARS" />
-                                <TableColumn fx:id="colDescripcion" prefWidth="200" text="Descripción" />
-                                <TableColumn fx:id="colPorcentajeCob" prefWidth="100" text="Cobertura" />
-                                <TableColumn fx:id="colFechaInicio" prefWidth="100" text="Fecha Inicio" />
-                                <TableColumn fx:id="colFechaFin" prefWidth="100" text="Fecha Fin" />
-                                <TableColumn fx:id="colEstado" prefWidth="80" text="Estado" />
-                            </columns>
-                            <placeholder>
-                                <Label style="-fx-text-fill: #9BBDD6; -fx-font-size: 13px;"
-                                       text="No hay convenios registrados" />
-                            </placeholder>
-                        </TableView>
-                    </VBox>
-
-                    <!-- FORMULARIO -->
-                    <VBox spacing="14"
-                          style="-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 20;">
-
-                        <HBox alignment="CENTER_LEFT" spacing="8">
-                            <Label style="-fx-font-size: 15px;" text="📋" />
-                            <Label style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;"
-                                   text="Información del Convenio" />
-                            <Rectangle fill="#D6E8F5" height="16" width="1" />
-                            <Label style="-fx-font-size: 11px; -fx-text-fill: #9BBDD6;"
-                                   text="Seleccione un convenio de la tabla para editar o eliminar" />
-                        </HBox>
-
-                        <GridPane hgap="16" vgap="12">
-                            <columnConstraints>
-                                <ColumnConstraints percentWidth="50" />
-                                <ColumnConstraints percentWidth="50" />
-                            </columnConstraints>
-
-                            <!-- Fila 0 -->
-                            <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="0">
-                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
-                                       text="Nombre del Convenio *" />
-                                <TextField fx:id="txtNombre" prefHeight="34"
-                                           promptText="Ej: Plan Básico"
-                                           style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
-                            </VBox>
-
-                            <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
-                                       text="ARS *" />
-                                <ComboBox fx:id="cmbArs" prefHeight="34"
-                                          promptText="Seleccione ARS"
-                                          style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px;" />
-                            </VBox>
-
-                            <!-- Fila 1 -->
-                            <VBox spacing="5" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="1">
-                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
-                                       text="Descripción" />
-                                <TextArea fx:id="txtDescripcion" prefHeight="60"
-                                          promptText="Descripción del convenio..."
-                                          style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
-                            </VBox>
-
-                            <!-- Fila 2 -->
-                            <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="2">
-                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
-                                       text="Porcentaje de Cobertura (%)" />
-                                <TextField fx:id="txtPorcentajeCob" prefHeight="34"
-                                           promptText="Ej: 80.00"
-                                           style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
-                            </VBox>
-
-                            <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="2">
-                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
-                                       text="Fecha Inicio *" />
-                                <DatePicker fx:id="dateFechaInicio" prefHeight="34"
-                                            style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
-                            </VBox>
-
-                            <!-- Fila 3 -->
-                            <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="3">
-                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
-                                       text="Fecha Fin" />
-                                <DatePicker fx:id="dateFechaFin" prefHeight="34"
-                                            style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
-                            </VBox>
-
-                            <VBox alignment="CENTER_LEFT" spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="3">
-                                <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;"
-                                       text="Estado" />
-                                <CheckBox fx:id="chkEstado" selected="true"
-                                          style="-fx-font-size: 13px;"
-                                          text="Convenio activo" />
-                            </VBox>
-
-                            <rowConstraints>
-                                <RowConstraints />
-                                <RowConstraints />
-                                <RowConstraints />
-                                <RowConstraints />
-                            </rowConstraints>
-                        </GridPane>
-                    </VBox>
-                </VBox>
-            </ScrollPane>
-
-            <!-- BARRA DE ACCIONES -->
-            <HBox alignment="CENTER_RIGHT" spacing="12"
-                  style="-fx-background-color: white; -fx-padding: 14 28;">
-                <Label style="-fx-font-size: 11px; -fx-text-fill: #9BBDD6;" text="* Campos obligatorios" />
-                <Region HBox.hgrow="ALWAYS" />
-
-                <Button onAction="#limpiarCampos" prefHeight="40" prefWidth="120"
-                        style="-fx-background-color: white; -fx-text-fill: #546E7A; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #B0BEC5; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;"
-                        text="🧹  Limpiar" />
-
-                <Button onAction="#eliminarConvenio" prefHeight="40" prefWidth="130"
-                        style="-fx-background-color: white; -fx-text-fill: #E53935; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #EF5350; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;"
-                        text="🗑  Eliminar" />
-
-                <Button onAction="#editarConvenio" prefHeight="40" prefWidth="130"
-                        style="-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand;"
-                        text="✏  Editar" />
-
-                <Button onAction="#guardarConvenio" prefHeight="40" prefWidth="170"
-                        style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 10; -fx-cursor: hand;"
-                        text="✔  Guardar Convenio" />
+        <!-- TÍTULO -->
+        <VBox spacing="8" style="-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 18 20 18 20; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label style="-fx-font-size: 24px;" text="🤝" />
+                <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;" text="Registro de Convenios" />
+                <Rectangle fill="#D6E8F5" height="24" width="1" />
+                <Label style="-fx-font-size: 12px; -fx-text-fill: #7A9FBB;" text="Complete los datos del convenio" />
             </HBox>
+            <Separator />
+            <Label style="-fx-font-size: 11px; -fx-text-fill: #E53935;" text="* Campos obligatorios" />
         </VBox>
-    </center>
-</BorderPane>
+
+        <!-- PANEL DE CONSULTA (OCULTO INICIALMENTE) -->
+        <VBox fx:id="consultaPanel" spacing="10" style="-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 15 20; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);" managed="false" visible="false">
+            <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1A6BAD;" text="🔍 Buscar Convenios" />
+            <HBox spacing="10">
+                <TextField fx:id="txtBuscar" prefHeight="36" HBox.hgrow="ALWAYS" promptText="Buscar por nombre, ARS o descripción..." style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 4 10;" />
+                <Button fx:id="btnBuscar" onAction="#buscarConvenio" prefHeight="36" prefWidth="90" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-font-size: 13px;" text="Buscar" />
+                <Button fx:id="btnVerTodos" onAction="#mostrarTodos" prefHeight="36" prefWidth="95" style="-fx-background-color: #EEF4FB; -fx-text-fill: #1A6BAD; -fx-font-weight: bold; -fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-cursor: hand; -fx-font-size: 13px;" text="Ver todos" />
+                <Button fx:id="btnCerrarConsulta" onAction="#cerrarConsulta" prefHeight="36" prefWidth="95" style="-fx-background-color: #E53935; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-font-size: 13px;" text="✖ Cerrar" />
+            </HBox>
+
+            <!-- TABLA DE CONVENIOS -->
+            <TableView fx:id="tblConvenios" prefHeight="250" style="-fx-border-color: #D6E8F5; -fx-border-radius: 8; -fx-background-radius: 8;">
+                <columns>
+                    <TableColumn fx:id="colId" prefWidth="60" text="ID" />
+                    <TableColumn fx:id="colNombre" prefWidth="200" text="Nombre" />
+                    <TableColumn fx:id="colArs" prefWidth="160" text="ARS" />
+                    <TableColumn fx:id="colDescripcion" prefWidth="250" text="Descripción" />
+                    <TableColumn fx:id="colPorcentajeCob" prefWidth="110" text="Cobertura" />
+                    <TableColumn fx:id="colFechaInicio" prefWidth="110" text="Fecha Inicio" />
+                    <TableColumn fx:id="colFechaFin" prefWidth="110" text="Fecha Fin" />
+                    <TableColumn fx:id="colEstado" prefWidth="90" text="Estado" />
+                </columns>
+                <placeholder>
+                    <Label style="-fx-text-fill: #9BBDD6; -fx-font-size: 13px;" text="No hay convenios registrados" />
+                </placeholder>
+            </TableView>
+        </VBox>
+
+        <!-- FORMULARIO DE REGISTRO/EDICIÓN -->
+        <VBox spacing="14" style="-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);" VBox.vgrow="ALWAYS">
+
+            <Label style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;" text="📋 Datos del Convenio" />
+
+            <GridPane hgap="16" vgap="12">
+                <columnConstraints>
+                    <ColumnConstraints percentWidth="50" />
+                    <ColumnConstraints percentWidth="50" />
+                </columnConstraints>
+
+                <!-- Fila 0: Nombre | ARS -->
+                <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                    <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="📛 Nombre del Convenio *" />
+                    <TextField fx:id="txtNombre" promptText="Ej: Plan Básico" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                </VBox>
+                <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                    <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="🏥 ARS *" />
+                    <ComboBox fx:id="cmbArs" prefHeight="34" promptText="Seleccione ARS" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px;" />
+                </VBox>
+
+                <!-- Fila 1: Descripción (ancho completo) -->
+                <VBox spacing="5" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="1">
+                    <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="📝 Descripción" />
+                    <TextArea fx:id="txtDescripcion" prefHeight="60" promptText="Descripción del convenio..." style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                </VBox>
+
+                <!-- Fila 2: Porcentaje Cobertura | Fecha Inicio -->
+                <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                    <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="📊 Porcentaje de Cobertura (%)" />
+                    <TextField fx:id="txtPorcentajeCob" promptText="Ej: 80.00" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                </VBox>
+                <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                    <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="📅 Fecha Inicio *" />
+                    <DatePicker fx:id="dateFechaInicio" prefHeight="34" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                </VBox>
+
+                <!-- Fila 3: Fecha Fin | Estado -->
+                <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="3">
+                    <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="📅 Fecha Fin" />
+                    <DatePicker fx:id="dateFechaFin" prefHeight="34" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                </VBox>
+                <VBox alignment="CENTER_LEFT" spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                    <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="📌 Estado" />
+                    <CheckBox fx:id="chkEstado" selected="true" style="-fx-font-size: 13px;" text="Convenio activo" />
+                </VBox>
+            </GridPane>
+        </VBox>
+
+        <!-- BARRA DE ACCIONES -->
+        <HBox alignment="CENTER_RIGHT" spacing="12" style="-fx-background-color: white; -fx-padding: 14 28 14 28; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.08), 6, 0, -2, 0);">
+            <Label style="-fx-font-size: 11px; -fx-text-fill: #9BBDD6;" text="* Campos obligatorios" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Button fx:id="btnConsultar" onAction="#abrirConsulta" prefHeight="40" prefWidth="130" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand;" text="🔍 Consultar" />
+            <Button fx:id="btnLimpiar" onAction="#limpiarCampos" prefHeight="40" prefWidth="120" style="-fx-background-color: white; -fx-text-fill: #546E7A; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #B0BEC5; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="🧹 Limpiar" />
+            <Button fx:id="btnEliminar" onAction="#eliminarConvenio" prefHeight="40" prefWidth="130" style="-fx-background-color: white; -fx-text-fill: #E53935; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #EF5350; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="🗑 Eliminar" />
+            <Button fx:id="btnEditar" onAction="#editarConvenio" prefHeight="40" prefWidth="130" style="-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(46,125,50,0.35), 8, 0, 0, 3);" text="✏ Editar" />
+            <Button fx:id="btnGuardar" onAction="#guardarConvenio" prefHeight="40" prefWidth="180" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(26,107,173,0.35), 8, 0, 0, 3);" text="✔ Guardar Convenio" />
+        </HBox>
+    </VBox>
+</ScrollPane>

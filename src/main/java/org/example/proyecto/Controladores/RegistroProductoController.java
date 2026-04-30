@@ -6,11 +6,13 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import org.example.proyecto.Conexion.ConexionBD;
 import org.example.proyecto.Modelos.CategoriaProducto;
 import org.example.proyecto.Modelos.Producto;
 import org.example.proyecto.Modelos.Proveedor;
+import org.example.proyecto.Modelos.Usuarios.SesionUsuario;
 
 import java.net.URL;
 import java.sql.*;
@@ -19,35 +21,42 @@ import java.util.ResourceBundle;
 
 public class RegistroProductoController implements Initializable {
 
-    // ── Campos de búsqueda ───────────────────────────────────
+    // Panel de consulta
+    @FXML private VBox consultaPanel;
     @FXML private TextField txtBuscar;
+    @FXML private Button btnBuscar;
+    @FXML private Button btnVerTodos;
+    @FXML private Button btnCerrarConsulta;
 
-    // ── Campos del formulario ────────────────────────────────
-    @FXML private TextField  txtNombre, txtCodigoBarra, txtDescripcion;
-    @FXML private TextField  txtPrecioCosto, txtPrecioVenta, txtPorcentajeItbis;
+    // Botones de acción
+    @FXML private Button btnConsultar;
+    @FXML private Button btnLimpiar;
+    @FXML private Button btnEliminar;
+    @FXML private Button btnEditar;
+    @FXML private Button btnGuardar;
+
+    // Campos del formulario
+    @FXML private TextField txtNombre, txtCodigoBarra, txtDescripcion;
+    @FXML private TextField txtPrecioCosto, txtPrecioVenta, txtPorcentajeItbis;
     @FXML private ComboBox<CategoriaProducto> cbCategoria;
     @FXML private ComboBox<Proveedor> cbProveedor;
-    @FXML private Spinner<Integer>    spnStockActual, spnStockMinimo;
-    @FXML private CheckBox   chkAplicaItbis, chkRequiereReceta, chkEstado;
+    @FXML private Spinner<Integer> spnStockActual, spnStockMinimo;
+    @FXML private CheckBox chkAplicaItbis, chkRequiereReceta, chkEstado;
 
-    // ── Tabla ────────────────────────────────────────────────
-    @FXML private TableView<Producto>              tblProductos;
-    @FXML private TableColumn<Producto, Integer>   colId, colStockActual, colStockMinimo;
-    @FXML private TableColumn<Producto, String>    colNombre, colCodigoBarra, colCategoria,
-            colProveedor;
-    @FXML private TableColumn<Producto, Double>    colPrecioCosto, colPrecioVenta;
-    @FXML private TableColumn<Producto, Boolean>   colRequiereReceta, colAplicaItbis, colEstado;
+    // Tabla
+    @FXML private TableView<Producto> tblProductos;
+    @FXML private TableColumn<Producto, Integer> colId, colStockActual, colStockMinimo;
+    @FXML private TableColumn<Producto, String> colNombre, colCodigoBarra, colCategoria, colProveedor;
+    @FXML private TableColumn<Producto, Double> colPrecioCosto, colPrecioVenta;
+    @FXML private TableColumn<Producto, Boolean> colRequiereReceta, colAplicaItbis, colEstado;
 
-    // ── Estado interno ───────────────────────────────────────
-    private final ObservableList<Producto>          listaProductos   = FXCollections.observableArrayList();
-    private final ObservableList<Proveedor>         listaProveedores = FXCollections.observableArrayList();
-    private final ObservableList<CategoriaProducto> listaCategorias  = FXCollections.observableArrayList();
+    // Variables internas
+    private final ObservableList<Producto> listaProductos = FXCollections.observableArrayList();
+    private final ObservableList<Proveedor> listaProveedores = FXCollections.observableArrayList();
+    private final ObservableList<CategoriaProducto> listaCategorias = FXCollections.observableArrayList();
     private Connection conexion;
     private int idProductoSeleccionado = 0;
-
-    // ─────────────────────────────────────────────────────────
-    // INICIALIZACIÓN
-    // ─────────────────────────────────────────────────────────
+    private boolean modoEdicion = false;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -57,17 +66,76 @@ public class RegistroProductoController implements Initializable {
         cargarCategorias();
         cargarProveedores();
         configurarConverters();
-        cargarProductos();
         configurarSeleccionTabla();
+        configurarBotonesPorRol();
+
+        // Inicialmente el panel de consulta está oculto
+        consultaPanel.setVisible(false);
+        consultaPanel.setManaged(false);
+
+        // Botones de edición deshabilitados al inicio
+        habilitarBotonesEdicion(false);
+        btnGuardar.setDisable(false);
+    }
+
+    private void configurarBotonesPorRol() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+
+        boolean puedeEditar = false;
+        boolean puedeEliminar = false;
+
+        switch (rol) {
+            case "Administrador":
+                puedeEditar = true;
+                puedeEliminar = true;
+                break;
+            case "Farmacéutico":
+                puedeEditar = true;
+                puedeEliminar = false;
+                break;
+            default:
+                puedeEditar = false;
+                puedeEliminar = false;
+                break;
+        }
+
+        btnEditar.setVisible(puedeEditar);
+        btnEditar.setManaged(puedeEditar);
+        btnEliminar.setVisible(puedeEliminar);
+        btnEliminar.setManaged(puedeEliminar);
+    }
+
+    private void habilitarBotonesEdicion(boolean habilitar) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+
+        if (!"Administrador".equals(rol) && !"Farmacéutico".equals(rol)) {
+            btnEditar.setDisable(true);
+            btnEliminar.setDisable(true);
+            return;
+        }
+
+        btnEditar.setDisable(!habilitar);
+        btnEliminar.setDisable(!habilitar);
+    }
+
+    @FXML
+    private void abrirConsulta() {
+        consultaPanel.setVisible(true);
+        consultaPanel.setManaged(true);
+        cargarProductos();
+    }
+
+    @FXML
+    private void cerrarConsulta() {
+        consultaPanel.setVisible(false);
+        consultaPanel.setManaged(false);
     }
 
     private void configurarSpinners() {
-        spnStockActual.setValueFactory(
-                new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 100000, 0));
+        spnStockActual.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 100000, 0));
         spnStockActual.setEditable(true);
 
-        spnStockMinimo.setValueFactory(
-                new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 100000, 0));
+        spnStockMinimo.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 100000, 0));
         spnStockMinimo.setEditable(true);
     }
 
@@ -111,7 +179,12 @@ public class RegistroProductoController implements Initializable {
     private void configurarSeleccionTabla() {
         tblProductos.getSelectionModel().selectedItemProperty()
                 .addListener((obs, oldVal, newVal) -> {
-                    if (newVal != null) cargarDatosEnFormulario(newVal);
+                    if (newVal != null) {
+                        cargarDatosEnFormulario(newVal);
+                        habilitarBotonesEdicion(true);
+                        modoEdicion = true;
+                        btnGuardar.setDisable(true);
+                    }
                 });
     }
 
@@ -129,13 +202,11 @@ public class RegistroProductoController implements Initializable {
         chkRequiereReceta.setSelected(p.isRequiereReceta());
         chkEstado.setSelected(p.isEstado());
 
-        // Seleccionar categoría
         listaCategorias.stream()
                 .filter(c -> c.getIdCategoria() == p.getIdCategoria())
                 .findFirst()
                 .ifPresent(cbCategoria::setValue);
 
-        // Seleccionar proveedor (puede ser null)
         if (p.getIdProveedor() != null) {
             listaProveedores.stream()
                     .filter(prov -> prov.getIdProveedor() == p.getIdProveedor())
@@ -146,17 +217,12 @@ public class RegistroProductoController implements Initializable {
         }
     }
 
-    // ─────────────────────────────────────────────────────────
-    // CARGA DE DATOS
-    // ─────────────────────────────────────────────────────────
-
     private void cargarCategorias() {
         listaCategorias.clear();
         String sql = "SELECT id_categoria, nombre FROM tbl_CATEGORIA_PRODUCTO WHERE estado = 1 ORDER BY nombre";
 
         try (Statement stmt = conexion.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
-
             while (rs.next()) {
                 CategoriaProducto c = new CategoriaProducto();
                 c.setIdCategoria(rs.getInt("id_categoria"));
@@ -164,7 +230,6 @@ public class RegistroProductoController implements Initializable {
                 listaCategorias.add(c);
             }
             cbCategoria.setItems(listaCategorias);
-
         } catch (SQLException e) {
             mostrarAlerta("Error", "Error al cargar categorías: " + e.getMessage(), Alert.AlertType.ERROR);
         }
@@ -176,7 +241,6 @@ public class RegistroProductoController implements Initializable {
 
         try (Statement stmt = conexion.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
-
             while (rs.next()) {
                 Proveedor p = new Proveedor();
                 p.setIdProveedor(rs.getInt("id_proveedor"));
@@ -184,7 +248,6 @@ public class RegistroProductoController implements Initializable {
                 listaProveedores.add(p);
             }
             cbProveedor.setItems(listaProveedores);
-
         } catch (SQLException e) {
             mostrarAlerta("Error", "Error al cargar proveedores: " + e.getMessage(), Alert.AlertType.ERROR);
         }
@@ -209,12 +272,10 @@ public class RegistroProductoController implements Initializable {
 
         try (Statement stmt = conexion.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
-
             while (rs.next()) {
                 listaProductos.add(mapearProducto(rs));
             }
             tblProductos.setItems(listaProductos);
-
         } catch (SQLException e) {
             mostrarAlerta("Error", "Error al cargar productos: " + e.getMessage(), Alert.AlertType.ERROR);
         }
@@ -224,10 +285,8 @@ public class RegistroProductoController implements Initializable {
         Producto p = new Producto();
         p.setIdProducto(rs.getInt("id_producto"));
         p.setIdCategoria(rs.getInt("id_categoria"));
-
         int idProv = rs.getInt("id_proveedor");
         p.setIdProveedor(rs.wasNull() ? null : idProv);
-
         p.setCodigoBarra(rs.getString("codigo_barra"));
         p.setNombre(rs.getString("nombre"));
         p.setDescripcion(rs.getString("descripcion"));
@@ -244,23 +303,18 @@ public class RegistroProductoController implements Initializable {
         return p;
     }
 
-    // ─────────────────────────────────────────────────────────
-    // BÚSQUEDA
-    // ─────────────────────────────────────────────────────────
-
     @FXML
     private void buscarProducto() {
         String filtro = txtBuscar.getText().trim();
         if (filtro.isEmpty()) { cargarProductos(); return; }
 
         listaProductos.clear();
-
         String sql = "SELECT p.id_producto, p.id_categoria, p.id_proveedor, " +
                 "       p.codigo_barra, p.nombre, p.descripcion, " +
                 "       p.precio_costo, p.precio_venta, " +
                 "       p.stock_actual, p.stock_minimo, " +
                 "       p.requiere_receta, p.aplica_itbis, " +
-                "       p.porcentaje_itbis, p.estado, " +
+                "       p.porcentaje_itbis, p.estado_temp, " +
                 "       cat.nombre AS nombre_categoria, " +
                 "       prov.razon_social AS nombre_proveedor " +
                 "FROM tbl_PRODUCTO p " +
@@ -273,14 +327,12 @@ public class RegistroProductoController implements Initializable {
             String like = "%" + filtro + "%";
             ps.setString(1, like);
             ps.setString(2, like);
-
             ResultSet rs = ps.executeQuery();
             while (rs.next()) listaProductos.add(mapearProducto(rs));
             tblProductos.setItems(listaProductos);
 
             if (listaProductos.isEmpty())
                 mostrarAlerta("Información", "No se encontraron resultados para: " + filtro, Alert.AlertType.INFORMATION);
-
         } catch (SQLException e) {
             mostrarAlerta("Error", "Error en la búsqueda: " + e.getMessage(), Alert.AlertType.ERROR);
         }
@@ -292,18 +344,14 @@ public class RegistroProductoController implements Initializable {
         cargarProductos();
     }
 
-    // ─────────────────────────────────────────────────────────
-    // CRUD
-    // ─────────────────────────────────────────────────────────
-
-    @FXML
-    private void nuevoProducto() {
-        limpiarCampos();
-        txtNombre.requestFocus();
-    }
-
     @FXML
     private void guardarProducto() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador") && !rol.equals("Farmacéutico")) {
+            mostrarAlerta("Permiso denegado", "No tiene permisos para guardar productos", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (!validarCampos()) return;
 
         String sql = "INSERT INTO tbl_PRODUCTO " +
@@ -316,9 +364,10 @@ public class RegistroProductoController implements Initializable {
             setearParametros(ps);
             ps.executeUpdate();
             mostrarAlerta("Éxito", "Producto registrado correctamente", Alert.AlertType.INFORMATION);
-            limpiarCampos();
-            cargarProductos();
-
+            limpiarCamposInterno();
+            if (consultaPanel.isVisible()) {
+                cargarProductos();
+            }
         } catch (SQLException e) {
             mostrarAlerta("Error", "Error al guardar: " + e.getMessage(), Alert.AlertType.ERROR);
         }
@@ -326,6 +375,12 @@ public class RegistroProductoController implements Initializable {
 
     @FXML
     private void editarProducto() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador")) {
+            mostrarAlerta("Permiso denegado", "Solo Administradores pueden editar productos", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (idProductoSeleccionado == 0) {
             mostrarAlerta("Advertencia", "Seleccione un producto de la tabla para editar", Alert.AlertType.WARNING);
             return;
@@ -350,9 +405,10 @@ public class RegistroProductoController implements Initializable {
             ps.setInt(14, idProductoSeleccionado);
             ps.executeUpdate();
             mostrarAlerta("Éxito", "Producto actualizado correctamente", Alert.AlertType.INFORMATION);
-            limpiarCampos();
-            cargarProductos();
-
+            limpiarCamposInterno();
+            if (consultaPanel.isVisible()) {
+                cargarProductos();
+            }
         } catch (SQLException e) {
             mostrarAlerta("Error", "Error al actualizar: " + e.getMessage(), Alert.AlertType.ERROR);
         }
@@ -360,6 +416,12 @@ public class RegistroProductoController implements Initializable {
 
     @FXML
     private void eliminarProducto() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador")) {
+            mostrarAlerta("Permiso denegado", "Solo Administradores pueden eliminar productos", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (idProductoSeleccionado == 0) {
             mostrarAlerta("Advertencia", "Seleccione un producto de la tabla para eliminar", Alert.AlertType.WARNING);
             return;
@@ -372,29 +434,25 @@ public class RegistroProductoController implements Initializable {
         Optional<ButtonType> r = conf.showAndWait();
         if (r.isEmpty() || r.get() != ButtonType.OK) return;
 
-        try (PreparedStatement ps = conexion.prepareStatement(
-                "DELETE FROM tbl_PRODUCTO WHERE id_producto=?")) {
+        try (PreparedStatement ps = conexion.prepareStatement("DELETE FROM tbl_PRODUCTO WHERE id_producto=?")) {
             ps.setInt(1, idProductoSeleccionado);
             ps.executeUpdate();
             mostrarAlerta("Éxito", "Producto eliminado correctamente", Alert.AlertType.INFORMATION);
-            limpiarCampos();
-            cargarProductos();
-
+            limpiarCamposInterno();
+            if (consultaPanel.isVisible()) {
+                cargarProductos();
+            }
         } catch (SQLException e) {
             mostrarAlerta("Error", "No se puede eliminar: el producto tiene registros asociados", Alert.AlertType.ERROR);
         }
     }
-
-    // ─────────────────────────────────────────────────────────
-    // UTILIDADES
-    // ─────────────────────────────────────────────────────────
 
     private void setearParametros(PreparedStatement ps) throws SQLException {
         ps.setInt(1, cbCategoria.getValue().getIdCategoria());
 
         Proveedor prov = cbProveedor.getValue();
         if (prov != null) ps.setInt(2, prov.getIdProveedor());
-        else              ps.setNull(2, Types.INTEGER);
+        else ps.setNull(2, Types.INTEGER);
 
         String codigo = txtCodigoBarra.getText().trim();
         ps.setString(3, codigo.isEmpty() ? null : codigo);
@@ -418,6 +476,10 @@ public class RegistroProductoController implements Initializable {
 
     @FXML
     private void limpiarCampos() {
+        limpiarCamposInterno();
+    }
+
+    private void limpiarCamposInterno() {
         idProductoSeleccionado = 0;
         txtNombre.clear();
         txtCodigoBarra.clear();
@@ -432,26 +494,34 @@ public class RegistroProductoController implements Initializable {
         chkEstado.setSelected(true);
         cbCategoria.setValue(null);
         cbProveedor.setValue(null);
-        txtBuscar.clear();
+        modoEdicion = false;
+
+        habilitarBotonesEdicion(false);
+        btnGuardar.setDisable(false);
+
         tblProductos.getSelectionModel().clearSelection();
     }
 
     private boolean validarCampos() {
         if (txtNombre.getText().trim().isEmpty()) {
             mostrarAlerta("Validación", "El nombre del producto es obligatorio", Alert.AlertType.WARNING);
-            txtNombre.requestFocus(); return false;
+            txtNombre.requestFocus();
+            return false;
         }
         if (cbCategoria.getValue() == null) {
             mostrarAlerta("Validación", "Debe seleccionar una categoría", Alert.AlertType.WARNING);
-            cbCategoria.requestFocus(); return false;
+            cbCategoria.requestFocus();
+            return false;
         }
         if (txtPrecioCosto.getText().trim().isEmpty()) {
             mostrarAlerta("Validación", "El precio de costo es obligatorio", Alert.AlertType.WARNING);
-            txtPrecioCosto.requestFocus(); return false;
+            txtPrecioCosto.requestFocus();
+            return false;
         }
         if (txtPrecioVenta.getText().trim().isEmpty()) {
             mostrarAlerta("Validación", "El precio de venta es obligatorio", Alert.AlertType.WARNING);
-            txtPrecioVenta.requestFocus(); return false;
+            txtPrecioVenta.requestFocus();
+            return false;
         }
         try {
             double costo = Double.parseDouble(txtPrecioCosto.getText().trim());
@@ -472,7 +542,8 @@ public class RegistroProductoController implements Initializable {
                 double itbis = Double.parseDouble(txtPorcentajeItbis.getText().trim());
                 if (itbis < 0 || itbis > 100) {
                     mostrarAlerta("Validación", "El porcentaje de ITBIS debe estar entre 0 y 100", Alert.AlertType.WARNING);
-                    txtPorcentajeItbis.requestFocus(); return false;
+                    txtPorcentajeItbis.requestFocus();
+                    return false;
                 }
             }
         } catch (NumberFormatException e) {

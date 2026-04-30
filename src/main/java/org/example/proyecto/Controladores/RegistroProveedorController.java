@@ -2,38 +2,131 @@ package org.example.proyecto.Controladores;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
 import org.example.proyecto.Conexion.ConexionBD;
 import org.example.proyecto.Modelos.Proveedor;
+import org.example.proyecto.Modelos.Usuarios.SesionUsuario;
 
 import java.net.URL;
 import java.sql.*;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class RegistroProveedorController implements Initializable {
 
-    @FXML private TextField txtBuscar, txtNombre, txtNombreComercial, txtRNC,
-            txtTelefono, txtEmail, txtContacto, txtDireccion;
+    // Panel de consulta
+    @FXML private VBox consultaPanel;
+    @FXML private TextField txtBuscar;
+    @FXML private Button btnBuscar;
+    @FXML private Button btnVerTodos;
+    @FXML private Button btnCerrarConsulta;
+
+    // Botones de acción
+    @FXML private Button btnConsultar;
+    @FXML private Button btnLimpiar;
+    @FXML private Button btnEliminar;
+    @FXML private Button btnEditar;
+    @FXML private Button btnGuardar;
+
+    // Campos del formulario
+    @FXML private TextField txtNombre;
+    @FXML private TextField txtNombreComercial;
+    @FXML private TextField txtRNC;
+    @FXML private TextField txtTelefono;
+    @FXML private TextField txtEmail;
+    @FXML private TextField txtContacto;
+    @FXML private TextField txtDireccion;
     @FXML private CheckBox chkEstado;
 
+    // Tabla
     @FXML private TableView<Proveedor> tblProveedores;
     @FXML private TableColumn<Proveedor, Integer> colId;
-    @FXML private TableColumn<Proveedor, String>  colRazonSocial, colNombreComercial,
-            colRnc, colTelefono, colEmail, colContacto, colDireccion, colEstado;
+    @FXML private TableColumn<Proveedor, String> colRazonSocial;
+    @FXML private TableColumn<Proveedor, String> colNombreComercial;
+    @FXML private TableColumn<Proveedor, String> colRnc;
+    @FXML private TableColumn<Proveedor, String> colTelefono;
+    @FXML private TableColumn<Proveedor, String> colEmail;
+    @FXML private TableColumn<Proveedor, String> colContacto;
+    @FXML private TableColumn<Proveedor, String> colDireccion;
+    @FXML private TableColumn<Proveedor, String> colEstado;
 
     private final ObservableList<Proveedor> listaProveedores = FXCollections.observableArrayList();
     private Connection conexion;
     private int idProveedorSeleccionado = 0;
+    private boolean modoEdicion = false;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         conexion = new ConexionBD().EstablecerConexion();
         configurarTabla();
-        cargarProveedores();
         configurarSeleccionTabla();
+        configurarBotonesPorRol();
+
+        // Inicialmente el panel de consulta está oculto
+        consultaPanel.setVisible(false);
+        consultaPanel.setManaged(false);
+
+        // Botones de edición deshabilitados al inicio
+        habilitarBotonesEdicion(false);
+        btnGuardar.setDisable(false);
+    }
+
+    private void configurarBotonesPorRol() {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+
+        boolean puedeEditar = false;
+        boolean puedeEliminar = false;
+
+        switch (rol) {
+            case "Administrador":
+                puedeEditar = true;
+                puedeEliminar = true;
+                break;
+            case "Almacenista":
+                puedeEditar = true;
+                puedeEliminar = false;
+                break;
+            default:
+                puedeEditar = false;
+                puedeEliminar = false;
+                break;
+        }
+
+        btnEditar.setVisible(puedeEditar);
+        btnEditar.setManaged(puedeEditar);
+        btnEliminar.setVisible(puedeEliminar);
+        btnEliminar.setManaged(puedeEliminar);
+    }
+
+    private void habilitarBotonesEdicion(boolean habilitar) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+
+        if (!"Administrador".equals(rol) && !"Almacenista".equals(rol)) {
+            btnEditar.setDisable(true);
+            btnEliminar.setDisable(true);
+            return;
+        }
+
+        btnEditar.setDisable(!habilitar);
+        btnEliminar.setDisable(!habilitar);
+    }
+
+    @FXML
+    private void abrirConsulta() {
+        consultaPanel.setVisible(true);
+        consultaPanel.setManaged(true);
+        cargarProveedores();
+    }
+
+    @FXML
+    private void cerrarConsulta() {
+        consultaPanel.setVisible(false);
+        consultaPanel.setManaged(false);
     }
 
     private void configurarTabla() {
@@ -52,7 +145,12 @@ public class RegistroProveedorController implements Initializable {
     private void configurarSeleccionTabla() {
         tblProveedores.getSelectionModel().selectedItemProperty()
                 .addListener((obs, oldVal, newVal) -> {
-                    if (newVal != null) cargarDatosEnFormulario(newVal);
+                    if (newVal != null) {
+                        cargarDatosEnFormulario(newVal);
+                        habilitarBotonesEdicion(true);
+                        modoEdicion = true;
+                        btnGuardar.setDisable(true);
+                    }
                 });
     }
 
@@ -101,7 +199,13 @@ public class RegistroProveedorController implements Initializable {
     }
 
     @FXML
-    private void guardarProveedor() {
+    private void guardarProveedor(ActionEvent event) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador") && !rol.equals("Almacenista")) {
+            mostrarAlerta("Permiso denegado", "No tiene permisos para guardar proveedores", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (!validarCampos()) return;
 
         String sql = "INSERT INTO tbl_PROVEEDOR (rnc, razon_social, nombre_comercial, " +
@@ -112,8 +216,10 @@ public class RegistroProveedorController implements Initializable {
             setearParametros(ps);
             ps.executeUpdate();
             mostrarAlerta("Éxito", "Proveedor guardado correctamente", Alert.AlertType.INFORMATION);
-            limpiarCampos();
-            cargarProveedores();
+            limpiarCamposInterno();
+            if (consultaPanel.isVisible()) {
+                cargarProveedores();
+            }
 
         } catch (SQLException e) {
             mostrarAlerta("Error", "Error al guardar: " + e.getMessage(), Alert.AlertType.ERROR);
@@ -121,7 +227,13 @@ public class RegistroProveedorController implements Initializable {
     }
 
     @FXML
-    private void editarProveedor() {
+    private void editarProveedor(ActionEvent event) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador")) {
+            mostrarAlerta("Permiso denegado", "Solo Administradores pueden editar proveedores", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (idProveedorSeleccionado == 0) {
             mostrarAlerta("Advertencia", "Seleccione un proveedor de la tabla para editar", Alert.AlertType.WARNING);
             return;
@@ -143,8 +255,10 @@ public class RegistroProveedorController implements Initializable {
             ps.setInt(9, idProveedorSeleccionado);
             ps.executeUpdate();
             mostrarAlerta("Éxito", "Proveedor actualizado correctamente", Alert.AlertType.INFORMATION);
-            limpiarCampos();
-            cargarProveedores();
+            limpiarCamposInterno();
+            if (consultaPanel.isVisible()) {
+                cargarProveedores();
+            }
 
         } catch (SQLException e) {
             mostrarAlerta("Error", "Error al actualizar: " + e.getMessage(), Alert.AlertType.ERROR);
@@ -152,7 +266,13 @@ public class RegistroProveedorController implements Initializable {
     }
 
     @FXML
-    private void eliminarProveedor() {
+    private void eliminarProveedor(ActionEvent event) {
+        String rol = SesionUsuario.getInstancia().getCargoUsuario();
+        if (!rol.equals("Administrador")) {
+            mostrarAlerta("Permiso denegado", "Solo Administradores pueden eliminar proveedores", Alert.AlertType.ERROR);
+            return;
+        }
+
         if (idProveedorSeleccionado == 0) {
             mostrarAlerta("Advertencia", "Seleccione un proveedor de la tabla para eliminar", Alert.AlertType.WARNING);
             return;
@@ -164,13 +284,14 @@ public class RegistroProveedorController implements Initializable {
         conf.setContentText("¿Está seguro que desea eliminar este proveedor?\nEsta acción no se puede deshacer.");
         if (conf.showAndWait().get() != ButtonType.OK) return;
 
-        try (PreparedStatement ps = conexion.prepareStatement(
-                "DELETE FROM tbl_PROVEEDOR WHERE id_proveedor=?")) {
+        try (PreparedStatement ps = conexion.prepareStatement("DELETE FROM tbl_PROVEEDOR WHERE id_proveedor=?")) {
             ps.setInt(1, idProveedorSeleccionado);
             ps.executeUpdate();
             mostrarAlerta("Éxito", "Proveedor eliminado correctamente", Alert.AlertType.INFORMATION);
-            limpiarCampos();
-            cargarProveedores();
+            limpiarCamposInterno();
+            if (consultaPanel.isVisible()) {
+                cargarProveedores();
+            }
 
         } catch (SQLException e) {
             mostrarAlerta("Error", "No se puede eliminar: el proveedor tiene registros asociados", Alert.AlertType.ERROR);
@@ -178,7 +299,7 @@ public class RegistroProveedorController implements Initializable {
     }
 
     @FXML
-    private void buscarProveedor() {
+    private void buscarProveedor(ActionEvent event) {
         String filtro = txtBuscar.getText().trim();
         if (filtro.isEmpty()) { cargarProveedores(); return; }
 
@@ -207,16 +328,11 @@ public class RegistroProveedorController implements Initializable {
     }
 
     @FXML
-    private void mostrarTodos() {
+    private void mostrarTodos(ActionEvent event) {
         txtBuscar.clear();
         cargarProveedores();
     }
 
-    // ─────────────────────────────────────────────────────────
-    // UTILIDADES
-    // ─────────────────────────────────────────────────────────
-
-    /** Setea los 8 parámetros compartidos entre INSERT y UPDATE. */
     private void setearParametros(PreparedStatement ps) throws SQLException {
         ps.setString(1, txtRNC.getText().trim());
         ps.setString(2, txtNombre.getText().trim());
@@ -229,7 +345,11 @@ public class RegistroProveedorController implements Initializable {
     }
 
     @FXML
-    private void limpiarCampos() {
+    private void limpiarCampos(ActionEvent event) {
+        limpiarCamposInterno();
+    }
+
+    private void limpiarCamposInterno() {
         idProveedorSeleccionado = 0;
         txtNombre.clear();
         txtNombreComercial.clear();
@@ -238,23 +358,28 @@ public class RegistroProveedorController implements Initializable {
         txtEmail.clear();
         txtContacto.clear();
         txtDireccion.clear();
-        txtBuscar.clear();
         chkEstado.setSelected(true);
+        modoEdicion = false;
+        habilitarBotonesEdicion(false);
+        btnGuardar.setDisable(false);
         tblProveedores.getSelectionModel().clearSelection();
     }
 
     private boolean validarCampos() {
         if (txtNombre.getText().isBlank()) {
             mostrarAlerta("Validación", "La razón social es obligatoria", Alert.AlertType.WARNING);
-            txtNombre.requestFocus(); return false;
+            txtNombre.requestFocus();
+            return false;
         }
         if (txtRNC.getText().isBlank()) {
             mostrarAlerta("Validación", "El RNC es obligatorio", Alert.AlertType.WARNING);
-            txtRNC.requestFocus(); return false;
+            txtRNC.requestFocus();
+            return false;
         }
         if (txtTelefono.getText().isBlank()) {
             mostrarAlerta("Validación", "El teléfono es obligatorio", Alert.AlertType.WARNING);
-            txtTelefono.requestFocus(); return false;
+            txtTelefono.requestFocus();
+            return false;
         }
         return true;
     }

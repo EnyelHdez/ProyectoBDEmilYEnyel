@@ -10,6 +10,33 @@ public class Reclamacion {
     private LocalDateTime fecha;
     private String        descripcion;
     private String        estado;
+    private String nombreCliente;
+    private String nombreEmpleado;
+    private String nombreMotivo;
+
+    public String getNombreCliente() {
+        return nombreCliente;
+    }
+
+    public void setNombreCliente(String nombreCliente) {
+        this.nombreCliente = nombreCliente;
+    }
+
+    public String getNombreEmpleado() {
+        return nombreEmpleado;
+    }
+
+    public void setNombreEmpleado(String nombreEmpleado) {
+        this.nombreEmpleado = nombreEmpleado;
+    }
+
+    public String getNombreMotivo() {
+        return nombreMotivo;
+    }
+
+    public void setNombreMotivo(String nombreMotivo) {
+        this.nombreMotivo = nombreMotivo;
+    }
 
     public Reclamacion() {
 

@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane prefHeight="650.0" prefWidth="850.0" style="-fx-background-color: #EEF4FB;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.proyecto.Controladores.VentaConSeguroController">
+
+    <top>
+        <VBox style="-fx-background-color: white; -fx-padding: 15 20; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.08), 6, 0, 0, 2);">
+            <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1A6BAD;" text="🏥 Venta con Seguro Médico" />
+            <Label style="-fx-font-size: 12px; -fx-text-fill: #9BBDD6;" text="Complete la información - El seguro se aplicará automáticamente según el cliente seleccionado" />
+        </VBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
+            <VBox spacing="16" style="-fx-padding: 22 28 10 28;">
+
+                <!-- Información del Seguro del Cliente -->
+                <VBox spacing="10" style="-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 18 20 18 20; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Label style="-fx-font-size: 15px;" text="🏥" />
+                        <Label style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;" text="Información del Seguro del Cliente" />
+                    </HBox>
+
+                    <GridPane hgap="16" vgap="12">
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="30" />
+                            <ColumnConstraints percentWidth="70" />
+                        </columnConstraints>
+
+                        <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Seguro:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                        <Label fx:id="lblSeguroInfo" style="-fx-font-size: 13px; -fx-text-fill: #2E7D32; -fx-font-weight: bold;" text="Seleccione un cliente" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+
+                        <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Cobertura:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                        <Label fx:id="lblPorcentajeCobertura" style="-fx-font-size: 13px;" text="0%" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+
+                        <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Límite Anual:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                        <Label fx:id="lblLimiteAnual" style="-fx-font-size: 13px;" text="N/A" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+
+                        <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Acumulado Anual:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+                        <Label fx:id="lblAcumuladoAnual" style="-fx-font-size: 13px;" text="N/A" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                    </GridPane>
+                </VBox>
+
+                <!-- Datos de la Venta -->
+                <VBox spacing="10" style="-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 18 20 18 20; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Label style="-fx-font-size: 15px;" text="📝" />
+                        <Label style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;" text="Datos de la Venta" />
+                    </HBox>
+
+                    <GridPane hgap="16" vgap="12">
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="33.33" />
+                            <ColumnConstraints percentWidth="33.33" />
+                            <ColumnConstraints percentWidth="33.33" />
+                        </columnConstraints>
+
+                        <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                            <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Cliente *" />
+                            <ComboBox fx:id="cmbCliente" maxWidth="Infinity" prefHeight="34" promptText="Seleccione cliente" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                        </VBox>
+
+                        <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                            <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Empleado *" />
+                            <ComboBox fx:id="cmbEmpleado" maxWidth="Infinity" prefHeight="34" promptText="Seleccione empleado" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                        </VBox>
+
+                        <VBox spacing="5" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                            <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Producto" />
+                            <ComboBox fx:id="cmbProducto" maxWidth="Infinity" prefHeight="34" promptText="Seleccione producto" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                        </VBox>
+
+                        <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                            <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Fecha *" />
+                            <DatePicker fx:id="dateFecha" maxWidth="Infinity" prefHeight="34" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                        </VBox>
+
+                        <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                            <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Comprobante" />
+                            <ComboBox fx:id="cmbComprobante" maxWidth="Infinity" prefHeight="34" promptText="Seleccione comprobante" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                        </VBox>
+
+                        <VBox spacing="5" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                            <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Estado *" />
+                            <ComboBox fx:id="cmbEstado" maxWidth="Infinity" prefHeight="34" promptText="Seleccione estado" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                        </VBox>
+                    </GridPane>
+                </VBox>
+
+                <!-- Montos y Cálculos -->
+                <VBox spacing="10" style="-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 18 20 18 20; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Label style="-fx-font-size: 15px;" text="💰" />
+                        <Label style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;" text="Cálculo de Montos" />
+                    </HBox>
+
+                    <GridPane hgap="16" vgap="12">
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="33.33" />
+                            <ColumnConstraints percentWidth="33.33" />
+                            <ColumnConstraints percentWidth="33.33" />
+                        </columnConstraints>
+
+                        <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                            <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Subtotal (RD$)" />
+                            <TextField fx:id="txtSubtotal" promptText="0.00" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-padding: 7 10;" />
+                        </VBox>
+
+                        <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                            <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Descuento (RD$)" />
+                            <TextField fx:id="txtDescuento" promptText="0.00" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-padding: 7 10;" />
+                        </VBox>
+
+                        <VBox spacing="5" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                            <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="ITBIS (RD$)" />
+                            <TextField fx:id="txtItbis" promptText="0.00" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-padding: 7 10;" />
+                        </VBox>
+
+                        <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                            <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Total sin Seguro (RD$)" />
+                            <TextField fx:id="txtTotalSinSeguro" editable="false" prefHeight="40" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-padding: 7 10; -fx-text-fill: #1A6BAD; -fx-background-color: #F5F9FC;" />
+                        </VBox>
+
+                        <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                            <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Cobertura del Seguro (RD$)" />
+                            <TextField fx:id="txtMontoSeguro" editable="false" prefHeight="40" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-border-color: #4CAF50; -fx-border-radius: 8; -fx-padding: 7 10; -fx-text-fill: #2E7D32; -fx-background-color: #F1F8F4;" />
+                        </VBox>
+
+                        <VBox spacing="5" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                            <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="Monto a Pagar por el Paciente (RD$)" />
+                            <TextField fx:id="txtMontoPaciente" editable="false" prefHeight="40" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-border-color: #FF9800; -fx-border-radius: 8; -fx-padding: 7 10; -fx-text-fill: #E65100; -fx-background-color: #FFF3E0;" />
+                        </VBox>
+                    </GridPane>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+
+    <bottom>
+        <HBox alignment="CENTER_RIGHT" spacing="12" style="-fx-background-color: white; -fx-padding: 14 28 14 28; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.08), 6, 0, -2, 0);">
+            <Label style="-fx-font-size: 11px; -fx-text-fill: #9BBDD6;" text="* Campos obligatorios" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Button onAction="#cancelar" prefHeight="40" prefWidth="120" style="-fx-background-color: white; -fx-text-fill: #546E7A; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #B0BEC5; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="✖ Cancelar" />
+            <Button onAction="#guardarVentaConSeguro" prefHeight="40" prefWidth="220" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(26,107,173,0.35), 8, 0, 0, 3);" text="💾 Guardar Venta con Seguro" />
+        </HBox>
+    </bottom>
+</BorderPane>
