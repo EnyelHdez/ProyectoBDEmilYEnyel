@@ -13,6 +13,7 @@ import org.example.proyecto.Conexion.ConexionBD;
 import org.example.proyecto.Modelos.DetalleOrdenCompra;
 import org.example.proyecto.Modelos.OrdenCompra;
 import org.example.proyecto.Modelos.Usuarios.SesionUsuario;
+import org.example.proyecto.util.ReportUtil;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -41,6 +42,7 @@ public class OrdenCompraController implements Initializable {
     @FXML private Button btnEliminar;
     @FXML private Button btnEditar;
     @FXML private Button btnGuardar;
+    @FXML private Button btnGenerarReporte;
     @FXML private Button btnAgregarProducto;
     @FXML private Button btnEliminarProducto;
     @FXML private Button btnCambiarEstado;
@@ -54,6 +56,8 @@ public class OrdenCompraController implements Initializable {
     @FXML private TableColumn<OrdenCompra, String> colFechaEntrega;
     @FXML private TableColumn<OrdenCompra, BigDecimal> colTotal;
     @FXML private TableColumn<OrdenCompra, String> colEstado;
+    @FXML private TableColumn<OrdenCompra, Integer> colCantidadProductos;
+    @FXML private TableColumn<OrdenCompra, String> colProductosOrden;
 
     // Formulario principal
     @FXML private ComboBox<String> cmbProveedor;
@@ -63,6 +67,10 @@ public class OrdenCompraController implements Initializable {
     @FXML private DatePicker dateFechaOrden;
     @FXML private DatePicker dateFechaEntrega;
     @FXML private TextArea txtObservaciones;
+
+    // Campos de resumen (nuevos)
+    @FXML private TextField txtCantidadProductos;
+    @FXML private TextField txtProductosOrden;
 
     // Detalle de productos
     @FXML private ComboBox<String> cmbProducto;
@@ -101,6 +109,11 @@ public class OrdenCompraController implements Initializable {
             cargarProveedores();
             cargarEmpleados();
             cargarProductos();
+
+            // Configurar campos de resumen como no editables
+            txtCantidadProductos.setEditable(false);
+            txtProductosOrden.setEditable(false);
+            txtProductosOrden.setStyle("-fx-background-color: #F8FAFC; -fx-text-fill: #1A4F7A;");
 
             dateFechaOrden.setValue(LocalDate.now());
 
@@ -271,6 +284,10 @@ public class OrdenCompraController implements Initializable {
         colTotal.setCellValueFactory(new PropertyValueFactory<>("total"));
         colEstado.setCellValueFactory(new PropertyValueFactory<>("estado"));
 
+        // Configurar nuevas columnas
+        colCantidadProductos.setCellValueFactory(new PropertyValueFactory<>("cantidad_productos"));
+        colProductosOrden.setCellValueFactory(new PropertyValueFactory<>("productos_orden"));
+
         // Colorear filas según estado
         tblOrdenes.setRowFactory(tv -> new TableRow<OrdenCompra>() {
             @Override
@@ -325,7 +342,7 @@ public class OrdenCompraController implements Initializable {
                     btnEliminar.setOnAction(event -> {
                         DetalleOrdenCompra detalle = getTableView().getItems().get(getIndex());
                         listaDetalle.remove(detalle);
-                        actualizarTotales();
+                        actualizarTotalesYResumen();
                     });
                     setGraphic(btnEliminar);
                 }
@@ -359,6 +376,11 @@ public class OrdenCompraController implements Initializable {
                 o.setSubtotal(rs.getBigDecimal("subtotal"));
                 o.setTotal(rs.getBigDecimal("total"));
                 o.setEstado(rs.getString("estado"));
+
+                // Cargar los nuevos campos
+                o.setCantidad_productos(rs.getInt("cantidad_productos"));
+                o.setProductos_orden(rs.getString("productos_orden"));
+
                 listaOrdenes.add(o);
             }
         } catch (SQLException e) {
@@ -386,7 +408,7 @@ public class OrdenCompraController implements Initializable {
                 d.setSubtotal(rs.getBigDecimal("subtotal"));
                 listaDetalle.add(d);
             }
-            actualizarTotales();
+            actualizarTotalesYResumen();
         } catch (SQLException e) {
             mostrarError("Error al cargar detalle: " + e.getMessage());
         }
@@ -419,6 +441,10 @@ public class OrdenCompraController implements Initializable {
         cmbCondicionPago.setValue(o.getCondicionPago());
         txtObservaciones.setText(o.getObservaciones() != null ? o.getObservaciones() : "");
         cmbEstado.setValue(o.getEstado());
+
+        // Mostrar los nuevos campos en el formulario (aunque no sean editables aquí)
+        txtCantidadProductos.setText(String.valueOf(o.getCantidad_productos()));
+        txtProductosOrden.setText(o.getProductos_orden() != null ? o.getProductos_orden() : "");
     }
 
     @FXML
@@ -451,7 +477,7 @@ public class OrdenCompraController implements Initializable {
             DetalleOrdenCompra detalle = new DetalleOrdenCompra(idProducto, nombreProducto, cantidad, precio);
             listaDetalle.add(detalle);
 
-            actualizarTotales();
+            actualizarTotalesYResumen();
             limpiarCamposProducto();
 
         } catch (NumberFormatException e) {
@@ -464,21 +490,42 @@ public class OrdenCompraController implements Initializable {
         DetalleOrdenCompra seleccionado = tblDetalleProductos.getSelectionModel().getSelectedItem();
         if (seleccionado != null) {
             listaDetalle.remove(seleccionado);
-            actualizarTotales();
+            actualizarTotalesYResumen();
         } else {
             mostrarError("Seleccione un producto para eliminar");
         }
     }
 
-    private void actualizarTotales() {
+    private void actualizarTotalesYResumen() {
         BigDecimal subtotal = BigDecimal.ZERO;
+        int cantidadTotalProductos = 0;
+        StringBuilder productosResumen = new StringBuilder();
 
         for (DetalleOrdenCompra d : listaDetalle) {
             subtotal = subtotal.add(d.getSubtotal());
+            cantidadTotalProductos += d.getCantidad();
+
+            if (productosResumen.length() > 0) {
+                productosResumen.append(", ");
+            }
+            productosResumen.append(d.getNombreProducto())
+                    .append(" (")
+                    .append(d.getCantidad())
+                    .append(")");
         }
 
         txtSubtotal.setText(subtotal.setScale(2, RoundingMode.HALF_UP).toString());
         txtTotal.setText(subtotal.setScale(2, RoundingMode.HALF_UP).toString());
+
+        // Actualizar los nuevos campos
+        txtCantidadProductos.setText(String.valueOf(cantidadTotalProductos));
+
+        // Limitar la longitud del resumen si es muy largo
+        String resumenStr = productosResumen.toString();
+        if (resumenStr.length() > 200) {
+            resumenStr = resumenStr.substring(0, 197) + "...";
+        }
+        txtProductosOrden.setText(resumenStr);
     }
 
     private void limpiarCamposProducto() {
@@ -510,8 +557,8 @@ public class OrdenCompraController implements Initializable {
     private void nuevaOrden() {
         String sqlOrden = "INSERT INTO tbl_ORDEN_COMPRA " +
                 "(id_proveedor, id_empleado, fecha_orden, fecha_entrega, condicion_pago, " +
-                " observaciones, subtotal, total, estado) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                " observaciones, subtotal, total, estado, cantidad_productos, productos_orden) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try {
             conexion.setAutoCommit(false);
@@ -579,7 +626,8 @@ public class OrdenCompraController implements Initializable {
 
         String sqlOrden = "UPDATE tbl_ORDEN_COMPRA " +
                 "SET id_proveedor=?, id_empleado=?, fecha_orden=?, fecha_entrega=?, " +
-                "    condicion_pago=?, observaciones=?, subtotal=?, total=?, estado=? " +
+                "    condicion_pago=?, observaciones=?, subtotal=?, total=?, estado=?, " +
+                "    cantidad_productos=?, productos_orden=? " +
                 "WHERE id_orden=?";
 
         try {
@@ -593,7 +641,7 @@ public class OrdenCompraController implements Initializable {
 
             try (PreparedStatement psOrden = conexion.prepareStatement(sqlOrden)) {
                 setearParametrosOrden(psOrden);
-                psOrden.setInt(10, idOrdenSeleccionada);
+                psOrden.setInt(12, idOrdenSeleccionada);
                 psOrden.executeUpdate();
             }
 
@@ -777,6 +825,10 @@ public class OrdenCompraController implements Initializable {
         ps.setBigDecimal(7, new BigDecimal(txtSubtotal.getText().trim()));
         ps.setBigDecimal(8, new BigDecimal(txtTotal.getText().trim()));
         ps.setString(9, cmbEstado.getValue() != null ? cmbEstado.getValue() : "PENDIENTE");
+
+        // Setear los nuevos campos
+        ps.setInt(10, Integer.parseInt(txtCantidadProductos.getText().trim()));
+        ps.setString(11, txtProductosOrden.getText().trim());
     }
 
     @FXML
@@ -793,7 +845,8 @@ public class OrdenCompraController implements Initializable {
         for (OrdenCompra o : listaOrdenes) {
             if (String.valueOf(o.getIdOrden()).contains(busqueda) ||
                     (o.getNombreProveedor() != null && o.getNombreProveedor().toLowerCase().contains(busqueda)) ||
-                    (o.getEstado() != null && o.getEstado().toLowerCase().contains(busqueda))) {
+                    (o.getEstado() != null && o.getEstado().toLowerCase().contains(busqueda)) ||
+                    (o.getProductos_orden() != null && o.getProductos_orden().toLowerCase().contains(busqueda))) {
                 filtrados.add(o);
             }
         }
@@ -824,7 +877,12 @@ public class OrdenCompraController implements Initializable {
 
         listaDetalle.clear();
         limpiarCamposProducto();
-        actualizarTotales();
+
+        // Limpiar nuevos campos
+        txtCantidadProductos.clear();
+        txtProductosOrden.clear();
+
+        actualizarTotalesYResumen();
 
         idOrdenSeleccionada = 0;
         modoEdicion = false;
@@ -859,6 +917,18 @@ public class OrdenCompraController implements Initializable {
         } catch (NumberFormatException e) {
             return 0;
         }
+    }
+
+    @FXML
+    private void generarReporte() {
+        OrdenCompra seleccion = tblOrdenes.getSelectionModel().getSelectedItem();
+        if (seleccion == null) {
+            mostrarError("Debe seleccionar una orden de compra para generar el reporte.");
+            return;
+        }
+        Map<String, Object> params = new HashMap<>();
+        params.put("id_orden", seleccion.getIdOrden());
+        ReportUtil.generarReporte("OrdenCompra", "/reportes/ReporteOrdenCompra.jasper", params, conexion);
     }
 
     private void mostrarError(String mensaje) {

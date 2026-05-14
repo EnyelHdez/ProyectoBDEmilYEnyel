@@ -15,7 +15,42 @@ public class OrdenCompra {
     private String observaciones;
     private BigDecimal subtotal;
     private BigDecimal total;
-    private String estado; // PENDIENTE, APROBADA, ENVIADA, RECIBIDA, CANCELADA
+    private String estado;
+    private int cantidad_productos;
+    private String productos_orden;
+
+    public OrdenCompra(int idOrden, int idProveedor, String nombreProveedor, int idEmpleado, String nombreEmpleado, LocalDateTime fechaOrden, LocalDateTime fechaEntrega, String condicionPago, String observaciones, BigDecimal subtotal, BigDecimal total, String estado, int cantidad_productos, String productos_orden) {
+        this.idOrden = idOrden;
+        this.idProveedor = idProveedor;
+        this.nombreProveedor = nombreProveedor;
+        this.idEmpleado = idEmpleado;
+        this.nombreEmpleado = nombreEmpleado;
+        this.fechaOrden = fechaOrden;
+        this.fechaEntrega = fechaEntrega;
+        this.condicionPago = condicionPago;
+        this.observaciones = observaciones;
+        this.subtotal = subtotal;
+        this.total = total;
+        this.estado = estado;
+        this.cantidad_productos = cantidad_productos;
+        this.productos_orden = productos_orden;
+    }
+
+    public int getCantidad_productos() {
+        return cantidad_productos;
+    }
+
+    public void setCantidad_productos(int cantidad_productos) {
+        this.cantidad_productos = cantidad_productos;
+    }
+
+    public String getProductos_orden() {
+        return productos_orden;
+    }
+
+    public void setProductos_orden(String productos_orden) {
+        this.productos_orden = productos_orden;
+    }
 
     public OrdenCompra() {}
 

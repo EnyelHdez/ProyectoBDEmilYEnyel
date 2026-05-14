@@ -11,6 +11,7 @@ import org.example.proyecto.Conexion.ConexionBD;
 import org.example.proyecto.Modelos.Devolucion;
 import org.example.proyecto.Modelos.Motivo;
 import org.example.proyecto.Modelos.Usuarios.SesionUsuario;
+import org.example.proyecto.util.ReportUtil;
 
 import java.math.BigDecimal;
 import java.net.URL;
@@ -18,6 +19,8 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 public class RegistroDevolucionController implements Initializable {
@@ -35,6 +38,7 @@ public class RegistroDevolucionController implements Initializable {
     @FXML private Button btnEliminar;
     @FXML private Button btnEditar;
     @FXML private Button btnGuardar;
+    @FXML private Button btnGenerarReporte;
 
     // Tabla historial
     @FXML private TableView<Devolucion> tblDevoluciones;
@@ -727,6 +731,18 @@ public class RegistroDevolucionController implements Initializable {
             }
         }
         return true;
+    }
+
+    @FXML
+    private void generarReporte() {
+        Devolucion seleccion = tblDevoluciones.getSelectionModel().getSelectedItem();
+        if (seleccion == null) {
+            mostrarAlerta("Seleccionar Devolución", "Debe seleccionar una devolución para generar el reporte.", Alert.AlertType.WARNING);
+            return;
+        }
+        Map<String, Object> params = new HashMap<>();
+        params.put("id_devolucion", seleccion.getIdDevolucion());
+        ReportUtil.generarReporte("Devoluciones", "/reportes/ReporteDevoluciones.jasper", params, conexion);
     }
 
     private void mostrarAlerta(String titulo, String mensaje, Alert.AlertType tipo) {

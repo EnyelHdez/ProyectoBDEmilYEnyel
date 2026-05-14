@@ -24,12 +24,7 @@ public class PantallaPrincipalController implements Initializable {
     @FXML private Label lblNombreUsuario;
     @FXML private Label lblBadgeEstado;
 
-    // Botones del menú
-    @FXML private Button btnMedicamentos;
-    @FXML private Button btnRecetas;
-    @FXML private Button btnPerdidas;
-    @FXML private Button btnCuentasPago;
-    @FXML private Button btnHistorialReclamaciones;
+    // Botones del menú - TODOS
     @FXML private Button btnClientes;
     @FXML private Button btnVentas;
     @FXML private Button btnProductos;
@@ -45,6 +40,13 @@ public class PantallaPrincipalController implements Initializable {
     @FXML private Button btnReclamaciones;
     @FXML private Button btnOrdenCompra;
     @FXML private Button btnConvenios;
+    @FXML private Button btnMedicamentos;
+    @FXML private Button btnRecetas;
+    @FXML private Button btnPerdidas;
+    @FXML private Button btnCuentasPago;
+    @FXML private Button btnCatalogo;
+    @FXML private Button btnHistorialReclamaciones;
+    @FXML private Button btnNominas;
     @FXML private Button btnInicio;
     @FXML private Button btnCerrarSesion;
 
@@ -65,113 +67,89 @@ public class PantallaPrincipalController implements Initializable {
     }
 
     private void configurarPermisos() {
-        // Administrador: ACCESO TOTAL
-        permisosPorCargo.put("Administrador", Arrays.asList(
-                "Usuarios", "Clientes", "Ventas", "Productos", "Compras", "Empleados",
-                "Proveedores", "Pedidos", "Pagos", "Envios", "Devoluciones",
-                "Fidelizacion", "Reclamaciones", "OrdenCompra", "Convenios",
-                "Medicamentos", "Recetas", "Perdidas", "CuentasPago", "HistorialReclamaciones"  // ← NUEVOS
-        ));
+            // ADMINISTRADOR - Acceso Total
+            permisosPorCargo.put("Administrador", Arrays.asList(
+                    "Usuarios", "Clientes", "Ventas", "Productos", "Compras", "Empleados",
+                    "Proveedores", "Pedidos", "Pagos", "Envios", "Devoluciones",
+                    "Fidelizacion", "Reclamaciones", "OrdenCompra", "Convenios",
+                    "Medicamentos", "Recetas", "Perdidas", "CuentasPago", "HistorialReclamaciones",
+                    "Nominas"
+            ));
 
-// Farmacéutico
-        permisosPorCargo.put("Farmacéutico", Arrays.asList(
-                "Clientes", "Ventas", "Productos", "Pedidos", "Convenios", "Medicamentos", "Recetas"  // ← NUEVOS
-        ));
+            // FARMACÉUTICO (1 persona) - Enfoque clínico y ventas
+            permisosPorCargo.put("Farmaceutico", Arrays.asList(
+                    "Clientes",        // Para fidelización
+                    "Ventas",          // Registrar ventas de medicamentos
+                    "Productos",       // Ver stock de medicamentos
+                    "Pedidos",         // Solicitar medicamentos faltantes
+                    "Medicamentos",    // Gestionar inventario de medicamentos
+                    "Recetas",         // Validar recetas médicas
+                    "Fidelizacion",    // Programa de puntos/fidelidad
+                    "Reclamaciones"    // Atención a quejas de clientes
+            ));
 
-// Cajero
-        permisosPorCargo.put("Cajero", Arrays.asList(
-                "Clientes", "Ventas", "CuentasPago"  // ← NUEVO
-        ));
+            // AUXILIAR (1-2 personas) - Apoyo en mostrador
+            permisosPorCargo.put("Auxiliar", Arrays.asList(
+                    "Clientes",        // Crear/buscar clientes
+                    "Ventas",          // Registrar ventas
+                    "Productos",       // Consultar precios y stock
+                    "Medicamentos",    // Consultar medicamentos
+                    "Pedidos",         // Ver pedidos pendientes
+                    "Catalogo"         // Ver catálogo de productos
+            ));
 
-// Almacenista
-        permisosPorCargo.put("Almacenista", Arrays.asList(
-                "Productos", "Compras", "Proveedores", "OrdenCompra", "Perdidas"  // ← NUEVO
-        ));
+            // CAJERO (1 persona - puede ser compartido con Auxiliar)
+            permisosPorCargo.put("Cajero", Arrays.asList(
+                    "Clientes",        // Buscar cliente para factura
+                    "Ventas",          // Registrar venta y cobrar
+                    "CuentasPago",     // Procesar pagos (efectivo/tarjeta)
+                    "Pagos",           // Historial de pagos
+                    "Devoluciones"     // Procesar devoluciones con ticket
+            ));
 
-// Auxiliar
-        permisosPorCargo.put("Auxiliar", Arrays.asList(
-                "Clientes", "Ventas", "Productos", "Medicamentos"  // ← NUEVO
-        ));
+            // DELIVERY (1 persona)
+            permisosPorCargo.put("Delivery", Arrays.asList(
+                    "Clientes",        // Ver dirección del cliente
+                    "Pedidos",         // Ver pedidos asignados
+                    "Envios",          // Gestionar entregas
+                    "Ventas"           // Solo consulta de ventas
+            ));
     }
 
     private void aplicarControlDeAcceso() {
         String cargoUsuario = SesionUsuario.getInstancia().getCargoUsuario();
         List<String> permisos = permisosPorCargo.getOrDefault(cargoUsuario, new ArrayList<>());
 
-        // Aplicar visibilidad según permisos
-        if (btnUsuarios != null) {
-            btnUsuarios.setVisible(permisos.contains("Usuarios"));
-            btnUsuarios.setManaged(permisos.contains("Usuarios"));
-        }
+        // Aplicar visibilidad según permisos para TODOS los botones
+        setButtonVisibility(btnUsuarios, permisos.contains("Usuarios"));
+        setButtonVisibility(btnCatalogo, true); // Todos pueden ver catálogo
+        setButtonVisibility(btnCatalogo, true);
+        setButtonVisibility(btnClientes, permisos.contains("Clientes"));
+        setButtonVisibility(btnVentas, permisos.contains("Ventas"));
+        setButtonVisibility(btnProductos, permisos.contains("Productos"));
+        setButtonVisibility(btnCompras, permisos.contains("Compras"));
+        setButtonVisibility(btnEmpleados, permisos.contains("Empleados"));
+        setButtonVisibility(btnProveedores, permisos.contains("Proveedores"));
+        setButtonVisibility(btnPedidos, permisos.contains("Pedidos"));
+        setButtonVisibility(btnPagos, permisos.contains("Pagos"));
+        setButtonVisibility(btnEnvios, permisos.contains("Envios"));
+        setButtonVisibility(btnDevoluciones, permisos.contains("Devoluciones"));
+        setButtonVisibility(btnFidelizacion, permisos.contains("Fidelizacion"));
+        setButtonVisibility(btnReclamaciones, permisos.contains("Reclamaciones"));
+        setButtonVisibility(btnOrdenCompra, permisos.contains("OrdenCompra"));
+        setButtonVisibility(btnConvenios, permisos.contains("Convenios"));
+        setButtonVisibility(btnMedicamentos, permisos.contains("Medicamentos"));
+        setButtonVisibility(btnRecetas, permisos.contains("Recetas"));
+        setButtonVisibility(btnPerdidas, permisos.contains("Perdidas"));
+        setButtonVisibility(btnCuentasPago, permisos.contains("CuentasPago"));
+        setButtonVisibility(btnHistorialReclamaciones, permisos.contains("HistorialReclamaciones"));
+        setButtonVisibility(btnNominas, permisos.contains("Nominas"));
+    }
 
-        if (btnClientes != null) {
-            btnClientes.setVisible(permisos.contains("Clientes"));
-            btnClientes.setManaged(permisos.contains("Clientes"));
-        }
-
-        if (btnVentas != null) {
-            btnVentas.setVisible(permisos.contains("Ventas"));
-            btnVentas.setManaged(permisos.contains("Ventas"));
-        }
-
-        if (btnProductos != null) {
-            btnProductos.setVisible(permisos.contains("Productos"));
-            btnProductos.setManaged(permisos.contains("Productos"));
-        }
-
-        if (btnCompras != null) {
-            btnCompras.setVisible(permisos.contains("Compras"));
-            btnCompras.setManaged(permisos.contains("Compras"));
-        }
-
-        if (btnEmpleados != null) {
-            btnEmpleados.setVisible(permisos.contains("Empleados"));
-            btnEmpleados.setManaged(permisos.contains("Empleados"));
-        }
-
-        if (btnProveedores != null) {
-            btnProveedores.setVisible(permisos.contains("Proveedores"));
-            btnProveedores.setManaged(permisos.contains("Proveedores"));
-        }
-
-        if (btnPedidos != null) {
-            btnPedidos.setVisible(permisos.contains("Pedidos"));
-            btnPedidos.setManaged(permisos.contains("Pedidos"));
-        }
-
-        if (btnPagos != null) {
-            btnPagos.setVisible(permisos.contains("Pagos"));
-            btnPagos.setManaged(permisos.contains("Pagos"));
-        }
-
-        if (btnEnvios != null) {
-            btnEnvios.setVisible(permisos.contains("Envios"));
-            btnEnvios.setManaged(permisos.contains("Envios"));
-        }
-
-        if (btnDevoluciones != null) {
-            btnDevoluciones.setVisible(permisos.contains("Devoluciones"));
-            btnDevoluciones.setManaged(permisos.contains("Devoluciones"));
-        }
-
-        if (btnFidelizacion != null) {
-            btnFidelizacion.setVisible(permisos.contains("Fidelizacion"));
-            btnFidelizacion.setManaged(permisos.contains("Fidelizacion"));
-        }
-
-        if (btnReclamaciones != null) {
-            btnReclamaciones.setVisible(permisos.contains("Reclamaciones"));
-            btnReclamaciones.setManaged(permisos.contains("Reclamaciones"));
-        }
-
-        if (btnOrdenCompra != null) {
-            btnOrdenCompra.setVisible(permisos.contains("OrdenCompra"));
-            btnOrdenCompra.setManaged(permisos.contains("OrdenCompra"));
-        }
-
-        if (btnConvenios != null) {
-            btnConvenios.setVisible(permisos.contains("Convenios"));
-            btnConvenios.setManaged(permisos.contains("Convenios"));
+    private void setButtonVisibility(Button btn, boolean visible) {
+        if (btn != null) {
+            btn.setVisible(visible);
+            btn.setManaged(visible);
         }
     }
 
@@ -195,15 +173,19 @@ public class PantallaPrincipalController implements Initializable {
             switch (rol) {
                 case "Administrador":
                     lblBadgeEstado.setText("🔒 Administrador");
-                    lblBadgeEstado.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #1A4F6E; -fx-background-color: #E3F2FD; -fx-padding: 6 16; -fx-background-radius: 30;");
+                    lblBadgeEstado.setStyle("-fx-font-weight: bold; -fx-font-size: 10px; -fx-text-fill: #1A4F6E; -fx-background-color: #E3F2FD; -fx-padding: 5 14; -fx-background-radius: 20;");
                     break;
                 case "Cajero":
                     lblBadgeEstado.setText("💰 Cajero");
-                    lblBadgeEstado.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #E65100; -fx-background-color: #FFF3E0; -fx-padding: 6 16; -fx-background-radius: 30;");
+                    lblBadgeEstado.setStyle("-fx-font-weight: bold; -fx-font-size: 10px; -fx-text-fill: #E65100; -fx-background-color: #FFF3E0; -fx-padding: 5 14; -fx-background-radius: 20;");
                     break;
                 case "Farmacéutico":
                     lblBadgeEstado.setText("💊 Farmacéutico");
-                    lblBadgeEstado.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #2E7D32; -fx-background-color: #E8F5E9; -fx-padding: 6 16; -fx-background-radius: 30;");
+                    lblBadgeEstado.setStyle("-fx-font-weight: bold; -fx-font-size: 10px; -fx-text-fill: #2E7D32; -fx-background-color: #E8F5E9; -fx-padding: 5 14; -fx-background-radius: 20;");
+                    break;
+                case "Almacenista":
+                    lblBadgeEstado.setText("📦 Almacenista");
+                    lblBadgeEstado.setStyle("-fx-font-weight: bold; -fx-font-size: 10px; -fx-text-fill: #1565C0; -fx-background-color: #E3F2FD; -fx-padding: 5 14; -fx-background-radius: 20;");
                     break;
                 default:
                     lblBadgeEstado.setText("👤 " + rol);
@@ -247,14 +229,17 @@ public class PantallaPrincipalController implements Initializable {
         mapaPantallas.put(btnEnvios, new String[]{"Gestión de Envíos", "/RegistroEnvio.fxml"});
         mapaPantallas.put(btnDevoluciones, new String[]{"Gestión de Devoluciones", "/RegistroDevolucion.fxml"});
         mapaPantallas.put(btnFidelizacion, new String[]{"Gestión de Fidelización", "/RegistroFidelizacion.fxml"});
-        mapaPantallas.put(btnReclamaciones, new String[]{"Gestión de Reclamaciones", "/RegistroReclamacion.fxml"});  // ← NUEVO
+        mapaPantallas.put(btnReclamaciones, new String[]{"Gestión de Reclamaciones", "/RegistroReclamacion.fxml"});
         mapaPantallas.put(btnOrdenCompra, new String[]{"Orden de Compra", "/OrdenCompra.fxml"});
+        mapaPantallas.put(btnConvenios, new String[]{"Gestión de Convenios", "/RegistroConvenio.fxml"});
         mapaPantallas.put(btnMedicamentos, new String[]{"Gestión de Medicamentos", "/RegistroMedicamento.fxml"});
         mapaPantallas.put(btnRecetas, new String[]{"Gestión de Recetas Médicas", "/RecetaMedica.fxml"});
         mapaPantallas.put(btnPerdidas, new String[]{"Registro de Pérdidas", "/RegistroPerdida.fxml"});
         mapaPantallas.put(btnCuentasPago, new String[]{"Cuentas de Pago", "/CuentaPago.fxml"});
         mapaPantallas.put(btnHistorialReclamaciones, new String[]{"Historial de Reclamaciones", "/HistorialReclamacion.fxml"});
-        mapaPantallas.put(btnConvenios, new String[]{"Gestión de Convenios", "/RegistroConvenio.fxml"});
+        mapaPantallas.put(btnCatalogo, new String[]{"Catálogo de Productos", "/CatalogoProductos.fxml"});
+        mapaPantallas.put(btnNominas, new String[]{"Registro de Nómina", "/RegistroNomina.fxml"});
+
     }
 
     private void aplicarEstilosBotones() {
@@ -263,12 +248,12 @@ public class PantallaPrincipalController implements Initializable {
                 btn.getStyleClass().add("menu-button");
                 btn.setOnMouseEntered(e -> {
                     if (botonActivo != btn) {
-                        btn.setStyle("-fx-background-color: rgba(255,255,255,0.15); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 12; -fx-cursor: hand; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;");
+                        btn.setStyle("-fx-background-color: rgba(255,255,255,0.12); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;");
                     }
                 });
                 btn.setOnMouseExited(e -> {
                     if (botonActivo != btn) {
-                        btn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: normal; -fx-background-radius: 12; -fx-cursor: hand; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;");
+                        btn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: normal; -fx-background-radius: 8; -fx-cursor: hand; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;");
                     }
                 });
             }
@@ -277,11 +262,11 @@ public class PantallaPrincipalController implements Initializable {
 
     private void marcarBotonActivo(Button btnActivo) {
         if (botonActivo != null) {
-            botonActivo.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: normal; -fx-background-radius: 12; -fx-cursor: hand; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;");
+            botonActivo.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: normal; -fx-background-radius: 8; -fx-cursor: hand; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;");
         }
         botonActivo = btnActivo;
         if (botonActivo != null) {
-            botonActivo.setStyle("-fx-background-color: rgba(255,255,255,0.15); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 12; -fx-cursor: hand; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;");
+            botonActivo.setStyle("-fx-background-color: rgba(255,255,255,0.15); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16;");
         }
     }
 
@@ -289,7 +274,6 @@ public class PantallaPrincipalController implements Initializable {
         try {
             lblTituloPantalla.setText(titulo);
 
-            // Usar caché de vistas para mejorar rendimiento
             Parent nuevaPantalla = vistasCache.get(rutaFXML);
             if (nuevaPantalla == null) {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource(rutaFXML));
@@ -317,13 +301,13 @@ public class PantallaPrincipalController implements Initializable {
         bienvenida.setStyle("-fx-alignment: CENTER; -fx-background-color: #F4F7FC; -fx-padding: 50;");
 
         Label lblIcono = new Label("🏥");
-        lblIcono.setStyle("-fx-font-size: 80px;");
+        lblIcono.setStyle("-fx-font-size: 70px;");
 
         Label lblTitulo = new Label("¡Bienvenido, " + nombreUsuario + "!");
-        lblTitulo.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1A4F6E;");
+        lblTitulo.setStyle("-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #1A4F6E;");
 
         Label lblSubtitulo = new Label("Seleccione una opción del menú lateral para comenzar");
-        lblSubtitulo.setStyle("-fx-font-size: 14px; -fx-text-fill: #7A9FBB;");
+        lblSubtitulo.setStyle("-fx-font-size: 13px; -fx-text-fill: #7A9FBB;");
 
         bienvenida.getChildren().addAll(lblIcono, lblTitulo, lblSubtitulo);
         contenedorPrincipal.getChildren().clear();
@@ -357,71 +341,30 @@ public class PantallaPrincipalController implements Initializable {
     }
 
     // Métodos para abrir cada módulo
-    @FXML private void abrirClientes() {
-        abrirPantalla("Clientes");
-    }
-
-    @FXML private void abrirUsuarios() {
-        abrirPantalla("Usuarios");
-    }
-
-    @FXML private void abrirVentas() {
-        abrirPantalla("Ventas");
-    }
-
-    @FXML private void abrirProductos() {
-        abrirPantalla("Productos");
-    }
-
-    @FXML private void abrirCompras() {
-        abrirPantalla("Compras");
-    }
-
-    @FXML private void abrirEmpleados() {
-        abrirPantalla("Empleados");
-    }
-
-
-    @FXML private void abrirProveedores() {
-        abrirPantalla("Proveedores");
-    }
-
-    @FXML private void abrirPedidos() {
-        abrirPantalla("Pedidos");
-    }
-
-    @FXML private void abrirPagos() {
-        abrirPantalla("Pagos");
-    }
-
-    @FXML private void abrirEnvios() {
-        abrirPantalla("Envios");
-    }
-
-    @FXML private void abrirDevoluciones() {
-        abrirPantalla("Devoluciones");
-    }
-
-    @FXML private void abrirFidelizacion() {
-        abrirPantalla("Fidelizacion");
-    }
-
-    @FXML private void abrirReclamaciones() {
-        abrirPantalla("Reclamaciones");
-    }
-
-    @FXML private void abrirOrdenCompra() {
-        abrirPantalla("OrdenCompra");
-    }
-
-    @FXML private void abrirConvenios() {
-        abrirPantalla("Convenios");
-    }
+    @FXML private void abrirClientes() { abrirPantalla("Clientes"); }
+    @FXML private void abrirCatalogo() { abrirPantalla("Catalogo"); }
+    @FXML private void abrirUsuarios() { abrirPantalla("Usuarios"); }
+    @FXML private void abrirVentas() { abrirPantalla("Ventas"); }
+    @FXML private void abrirProductos() { abrirPantalla("Productos"); }
+    @FXML private void abrirCompras() { abrirPantalla("Compras"); }
+    @FXML private void abrirEmpleados() { abrirPantalla("Empleados"); }
+    @FXML private void abrirProveedores() { abrirPantalla("Proveedores"); }
+    @FXML private void abrirPedidos() { abrirPantalla("Pedidos"); }
+    @FXML private void abrirPagos() { abrirPantalla("Pagos"); }
+    @FXML private void abrirEnvios() { abrirPantalla("Envios"); }
+    @FXML private void abrirDevoluciones() { abrirPantalla("Devoluciones"); }
+    @FXML private void abrirFidelizacion() { abrirPantalla("Fidelizacion"); }
+    @FXML private void abrirReclamaciones() { abrirPantalla("Reclamaciones"); }
+    @FXML private void abrirOrdenCompra() { abrirPantalla("OrdenCompra"); }
+    @FXML private void abrirConvenios() { abrirPantalla("Convenios"); }
     @FXML private void abrirMedicamentos() { abrirPantalla("Medicamentos"); }
     @FXML private void abrirRecetas() { abrirPantalla("Recetas"); }
     @FXML private void abrirPerdidas() { abrirPantalla("Perdidas"); }
     @FXML private void abrirCuentasPago() { abrirPantalla("CuentasPago"); }
     @FXML private void abrirHistorialReclamaciones() { abrirPantalla("HistorialReclamaciones"); }
+    @FXML private void abrirNominas() { abrirPantalla("Nominas"); }
+
+
 
     @FXML
     private void irAInicio() {
@@ -441,10 +384,11 @@ public class PantallaPrincipalController implements Initializable {
             case "Proveedores": btn = btnProveedores; break;
             case "Pedidos": btn = btnPedidos; break;
             case "Pagos": btn = btnPagos; break;
+            case "Catalogo": btn = btnCatalogo; break;
             case "Envios": btn = btnEnvios; break;
             case "Devoluciones": btn = btnDevoluciones; break;
             case "Fidelizacion": btn = btnFidelizacion; break;
-            case "Reclamaciones": btn = btnReclamaciones; break;  // ← NUEVO
+            case "Reclamaciones": btn = btnReclamaciones; break;
             case "OrdenCompra": btn = btnOrdenCompra; break;
             case "Convenios": btn = btnConvenios; break;
             case "Medicamentos": btn = btnMedicamentos; break;
@@ -452,6 +396,8 @@ public class PantallaPrincipalController implements Initializable {
             case "Perdidas": btn = btnPerdidas; break;
             case "CuentasPago": btn = btnCuentasPago; break;
             case "HistorialReclamaciones": btn = btnHistorialReclamaciones; break;
+            case "Nominas": btn = btnNominas; break;
+            default: break;
         }
 
         if (btn != null && mapaPantallas.containsKey(btn)) {

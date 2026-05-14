@@ -1,5 +1,6 @@
 package org.example.proyecto.Controladores;
 
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -15,8 +16,10 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.example.proyecto.Conexion.ConexionBD;
+import org.example.proyecto.Modelos.DetalleVenta;
 import org.example.proyecto.Modelos.Venta;
 import org.example.proyecto.Modelos.Usuarios.SesionUsuario;
+import org.example.proyecto.util.ReportUtil;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -25,7 +28,8 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 public class RegistroVentaController implements Initializable {
@@ -44,19 +48,34 @@ public class RegistroVentaController implements Initializable {
     @FXML private TableColumn<Venta, BigDecimal> colItbis;
     @FXML private TableColumn<Venta, BigDecimal> colTotal;
     @FXML private TableColumn<Venta, String> colEstado;
-    @FXML private TableColumn<Venta, String> colProducto;
 
     // Formulario
     @FXML private ComboBox<String> cmbCliente;
     @FXML private ComboBox<String> cmbEmpleado;
     @FXML private ComboBox<String> cmbComprobante;
     @FXML private ComboBox<String> cmbEstado;
-    @FXML private ComboBox<String> cmbProducto;
     @FXML private DatePicker dateFecha;
     @FXML private TextField txtSubtotal;
     @FXML private TextField txtDescuento;
     @FXML private TextField txtItbis;
     @FXML private TextField txtTotal;
+
+    // Campos para detalles de venta
+    @FXML private ComboBox<String> cmbDetalleProducto;
+    @FXML private TextField txtCantidad;
+    @FXML private TextField txtPrecioUnitario;
+    @FXML private TextField txtDetalleDescuento;
+    @FXML private TextField txtLote;
+    @FXML private DatePicker dateFechaVencimiento;
+    @FXML private TableView<DetalleVenta> tblDetalles;
+    @FXML private TableColumn<DetalleVenta, String> colProdNombre;
+    @FXML private TableColumn<DetalleVenta, Integer> colCantidad;
+    @FXML private TableColumn<DetalleVenta, BigDecimal> colPrecioUnit;
+    @FXML private TableColumn<DetalleVenta, BigDecimal> colDetalleDescuento;
+    @FXML private TableColumn<DetalleVenta, BigDecimal> colSubtotalDetalle;
+    @FXML private TableColumn<DetalleVenta, BigDecimal> colItbisDetalle;
+    @FXML private TableColumn<DetalleVenta, String> colLoteDetalle;
+    @FXML private TableColumn<DetalleVenta, LocalDate> colFechaVencDetalle;
 
     // Botones
     @FXML private Button btnConsultar;
@@ -64,14 +83,18 @@ public class RegistroVentaController implements Initializable {
     @FXML private Button btnEliminar;
     @FXML private Button btnEditar;
     @FXML private Button btnGuardar;
+    @FXML private Button btnGenerarReporte;
     @FXML private Button btnBuscar;
     @FXML private Button btnVerTodos;
     @FXML private Button btnCerrarConsulta;
     @FXML private Button btnVentaConSeguro;
+    @FXML private Button btnAgregarDetalle;
+    @FXML private Button btnQuitarDetalle;
 
     private Connection conexion;
     private int idVentaSeleccionada = 0;
     private final ObservableList<Venta> listaVentas = FXCollections.observableArrayList();
+    private final ObservableList<DetalleVenta> listaDetalles = FXCollections.observableArrayList();
     private boolean modoEdicion = false;
 
     @Override
@@ -82,7 +105,7 @@ public class RegistroVentaController implements Initializable {
             cargarClientes();
             cargarEmpleados();
             cargarComprobantes();
-            cargarProductos();
+            cargarProductosDetalle();
 
             cmbEstado.setItems(FXCollections.observableArrayList(
                     "COMPLETADA", "PENDIENTE", "ANULADA"));
@@ -91,14 +114,14 @@ public class RegistroVentaController implements Initializable {
             dateFecha.setValue(LocalDate.now());
 
             configurarTabla();
+            configurarTablaDetalles();
             configurarSeleccionTabla();
             configurarBotonesPorRol();
+            configurarSeleccionProductoDetalle();
 
-            // Inicialmente el panel de consulta está oculto
             consultaPanel.setVisible(false);
             consultaPanel.setManaged(false);
 
-            // Botones de edición deshabilitados al inicio
             habilitarBotonesEdicion(false);
             btnGuardar.setDisable(false);
 
@@ -108,26 +131,40 @@ public class RegistroVentaController implements Initializable {
         }
     }
 
+    private void configurarSeleccionProductoDetalle() {
+        cmbDetalleProducto.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals("NINGUNO")) {
+                cargarDatosProductoDetalle(newVal);
+            } else {
+                txtPrecioUnitario.clear();
+                txtLote.clear();
+                dateFechaVencimiento.setValue(null);
+            }
+        });
+    }
+
+    private void cargarDatosProductoDetalle(String productoSeleccionado) {
+        try {
+            int idProducto = Integer.parseInt(productoSeleccionado.split(" - ")[0]);
+            String sql = "SELECT precio_venta FROM tbl_PRODUCTO WHERE id_producto = ?";
+            PreparedStatement ps = conexion.prepareStatement(sql);
+            ps.setInt(1, idProducto);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                txtPrecioUnitario.setText(rs.getBigDecimal("precio_venta").toPlainString());
+            }
+            rs.close();
+            ps.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private void configurarBotonesPorRol() {
         String rol = SesionUsuario.getInstancia().getCargoUsuario();
-
-        boolean puedeEditar = false;
-        boolean puedeEliminar = false;
-
-        switch (rol) {
-            case "Administrador":
-                puedeEditar = true;
-                puedeEliminar = true;
-                break;
-            case "Cajero":
-                puedeEditar = false;
-                puedeEliminar = false;
-                break;
-            default:
-                puedeEditar = false;
-                puedeEliminar = false;
-                break;
-        }
+        boolean puedeEditar = rol.equals("Administrador");
+        boolean puedeEliminar = rol.equals("Administrador");
 
         btnEditar.setVisible(puedeEditar);
         btnEditar.setManaged(puedeEditar);
@@ -137,13 +174,11 @@ public class RegistroVentaController implements Initializable {
 
     private void habilitarBotonesEdicion(boolean habilitar) {
         String rol = SesionUsuario.getInstancia().getCargoUsuario();
-
         if (!"Administrador".equals(rol)) {
             btnEditar.setDisable(true);
             btnEliminar.setDisable(true);
             return;
         }
-
         btnEditar.setDisable(!habilitar);
         btnEliminar.setDisable(!habilitar);
     }
@@ -159,8 +194,37 @@ public class RegistroVentaController implements Initializable {
         colItbis.setCellValueFactory(new PropertyValueFactory<>("itbis"));
         colTotal.setCellValueFactory(new PropertyValueFactory<>("total"));
         colEstado.setCellValueFactory(new PropertyValueFactory<>("estado"));
-        colProducto.setCellValueFactory(new PropertyValueFactory<>("nombreProducto"));
         tblVentas.setItems(listaVentas);
+    }
+
+    private void configurarTablaDetalles() {
+        colProdNombre.setCellValueFactory(cellData ->
+                new SimpleStringProperty(obtenerNombreProducto(cellData.getValue().getIdProducto())));
+        colCantidad.setCellValueFactory(new PropertyValueFactory<>("cantidad"));
+        colPrecioUnit.setCellValueFactory(new PropertyValueFactory<>("precioUnitario"));
+        colDetalleDescuento.setCellValueFactory(new PropertyValueFactory<>("descuento"));
+        colSubtotalDetalle.setCellValueFactory(new PropertyValueFactory<>("subtotal"));
+        colItbisDetalle.setCellValueFactory(new PropertyValueFactory<>("itbis"));
+        colLoteDetalle.setCellValueFactory(new PropertyValueFactory<>("lote"));
+        // colFechaVencDetalle.setCellValueFactory(new PropertyValueFactory<>("fechaVencimiento")); // COMENTA ESTA LÍNEA
+        tblDetalles.setItems(listaDetalles);
+    }
+
+    private String obtenerNombreProducto(int idProducto) {
+        try {
+            String sql = "SELECT nombre FROM tbl_PRODUCTO WHERE id_producto = ?";
+            PreparedStatement ps = conexion.prepareStatement(sql);
+            ps.setInt(1, idProducto);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getString("nombre");
+            }
+            rs.close();
+            ps.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return "Desconocido";
     }
 
     private void configurarSeleccionTabla() {
@@ -168,6 +232,7 @@ public class RegistroVentaController implements Initializable {
                 .addListener((obs, oldVal, newVal) -> {
                     if (newVal != null) {
                         cargarDatosEnFormulario(newVal);
+                        cargarDetallesVenta(newVal.getIdVenta());
                         habilitarBotonesEdicion(true);
                         modoEdicion = true;
                         btnGuardar.setDisable(true);
@@ -178,7 +243,6 @@ public class RegistroVentaController implements Initializable {
     private void cargarDatosEnFormulario(Venta v) {
         idVentaSeleccionada = v.getIdVenta();
 
-        // Cliente
         if (v.getIdCliente() != null) {
             cmbCliente.getItems().stream()
                     .filter(s -> s.startsWith(v.getIdCliente() + " - "))
@@ -187,27 +251,16 @@ public class RegistroVentaController implements Initializable {
             cmbCliente.setValue(null);
         }
 
-        // Empleado
         cmbEmpleado.getItems().stream()
                 .filter(s -> s.startsWith(v.getIdEmpleado() + " - "))
                 .findFirst().ifPresent(cmbEmpleado::setValue);
 
-        // Comprobante
         if (v.getIdComprobante() != null && v.getIdComprobante() > 0) {
             cmbComprobante.getItems().stream()
                     .filter(s -> s.startsWith(v.getIdComprobante() + " - "))
                     .findFirst().ifPresent(cmbComprobante::setValue);
         } else {
             cmbComprobante.setValue("NINGUNO");
-        }
-
-        // Producto
-        if (v.getIdProducto() != null && v.getIdProducto() > 0) {
-            cmbProducto.getItems().stream()
-                    .filter(s -> s.startsWith(v.getIdProducto() + " - "))
-                    .findFirst().ifPresent(cmbProducto::setValue);
-        } else {
-            cmbProducto.setValue("NINGUNO");
         }
 
         dateFecha.setValue(v.getFecha() != null ? v.getFecha().toLocalDate() : LocalDate.now());
@@ -218,7 +271,31 @@ public class RegistroVentaController implements Initializable {
         cmbEstado.setValue(v.getEstado() != null ? v.getEstado() : "PENDIENTE");
     }
 
-    // ── Carga de combos ──────────────────────────────────────────
+    private void cargarDetallesVenta(int idVenta) {
+        listaDetalles.clear();
+        String sql = "SELECT * FROM tbl_DETALLE_VENTA WHERE id_venta = ?";
+        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+            ps.setInt(1, idVenta);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                DetalleVenta detalle = new DetalleVenta();
+                detalle.setIdDetVenta(rs.getInt("id_det_venta"));
+                detalle.setIdVenta(rs.getInt("id_venta"));
+                detalle.setIdProducto(rs.getInt("id_producto"));
+                detalle.setCantidad(rs.getInt("cantidad"));
+                detalle.setPrecioUnitario(rs.getBigDecimal("precio_unitario"));
+                detalle.setDescuento(rs.getBigDecimal("descuento"));
+                detalle.setItbis(rs.getBigDecimal("itbis"));
+                detalle.setSubtotal(rs.getBigDecimal("subtotal"));
+                detalle.setLote(rs.getString("lote"));
+                detalle.setFechaVencimiento(rs.getDate("fecha_vencimiento") != null ?
+                        rs.getDate("fecha_vencimiento").toLocalDate() : null);
+                listaDetalles.add(detalle);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
     private void cargarClientes() {
         ObservableList<String> lista = FXCollections.observableArrayList();
@@ -258,9 +335,8 @@ public class RegistroVentaController implements Initializable {
         cmbComprobante.setValue("NINGUNO");
     }
 
-    private void cargarProductos() {
+    private void cargarProductosDetalle() {
         ObservableList<String> lista = FXCollections.observableArrayList();
-        lista.add("NINGUNO");
         String sql = "SELECT id_producto, nombre FROM tbl_PRODUCTO ORDER BY nombre";
         try (Statement st = conexion.createStatement(); ResultSet rs = st.executeQuery(sql)) {
             while (rs.next())
@@ -268,11 +344,9 @@ public class RegistroVentaController implements Initializable {
         } catch (SQLException e) {
             mostrarAlerta("Error", "Error al cargar productos: " + e.getMessage(), Alert.AlertType.ERROR);
         }
-        cmbProducto.setItems(lista);
-        cmbProducto.setValue("NINGUNO");
+        cmbDetalleProducto.setItems(lista);
+        cmbDetalleProducto.setValue(null);
     }
-
-    // ── Consulta ─────────────────────────────────────────────────
 
     @FXML
     private void abrirConsulta() {
@@ -289,10 +363,7 @@ public class RegistroVentaController implements Initializable {
 
     private void cargarVentas() {
         listaVentas.clear();
-        String sql = "SELECT v.*, p.nombre AS nombre_producto " +
-                "FROM tbl_VENTA v " +
-                "LEFT JOIN tbl_PRODUCTO p ON v.id_producto = p.id_producto " +
-                "ORDER BY v.id_venta DESC";
+        String sql = "SELECT * FROM tbl_VENTA ORDER BY id_venta DESC";
         try (Statement st = conexion.createStatement(); ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) listaVentas.add(mapear(rs));
         } catch (SQLException e) {
@@ -306,12 +377,11 @@ public class RegistroVentaController implements Initializable {
         if (filtro.isEmpty()) { cargarVentas(); return; }
 
         listaVentas.clear();
-        String sql = "SELECT v.*, p.nombre AS nombre_producto " +
-                "FROM tbl_VENTA v " +
-                "LEFT JOIN tbl_PRODUCTO p ON v.id_producto = p.id_producto " +
+        String sql = "SELECT v.* FROM tbl_VENTA v " +
+                "LEFT JOIN tbl_CLIENTE c ON v.id_cliente = c.id_cliente " +
                 "WHERE CAST(v.id_venta AS CHAR) LIKE ? " +
                 "   OR CAST(v.id_cliente AS CHAR) LIKE ? " +
-                "   OR p.nombre LIKE ? " +
+                "   OR c.nombres LIKE ? " +
                 "   OR v.estado LIKE ? " +
                 "ORDER BY v.id_venta DESC";
         try (PreparedStatement ps = conexion.prepareStatement(sql)) {
@@ -340,8 +410,6 @@ public class RegistroVentaController implements Initializable {
         v.setIdCliente(rs.getObject("id_cliente") != null ? rs.getInt("id_cliente") : null);
         v.setIdEmpleado(rs.getInt("id_empleado"));
         v.setIdComprobante(rs.getObject("id_comprobante") != null ? rs.getInt("id_comprobante") : null);
-        v.setIdProducto(rs.getObject("id_producto") != null ? rs.getInt("id_producto") : null);
-        v.setNombreProducto(rs.getString("nombre_producto"));
         Timestamp ts = rs.getTimestamp("fecha");
         if (ts != null) v.setFecha(ts.toLocalDateTime());
         v.setSubtotal(rs.getBigDecimal("subtotal"));
@@ -352,7 +420,84 @@ public class RegistroVentaController implements Initializable {
         return v;
     }
 
-    // ── CRUD ─────────────────────────────────────────────────────
+    @FXML
+    private void agregarDetalle() {
+        if (cmbDetalleProducto.getValue() == null) {
+            mostrarAlerta("Error", "Debe seleccionar un producto", Alert.AlertType.WARNING);
+            return;
+        }
+
+        if (txtCantidad.getText().trim().isEmpty()) {
+            mostrarAlerta("Error", "Debe ingresar una cantidad", Alert.AlertType.WARNING);
+            return;
+        }
+
+        try {
+            int idProducto = Integer.parseInt(cmbDetalleProducto.getValue().split(" - ")[0]);
+            int cantidad = Integer.parseInt(txtCantidad.getText().trim());
+            BigDecimal precioUnitario = new BigDecimal(txtPrecioUnitario.getText().trim());
+            BigDecimal descuento = txtDetalleDescuento.getText().trim().isEmpty() ?
+                    BigDecimal.ZERO : new BigDecimal(txtDetalleDescuento.getText().trim());
+            String lote = txtLote.getText().trim();
+
+
+            BigDecimal subtotal = precioUnitario.multiply(new BigDecimal(cantidad));
+            BigDecimal itbis = subtotal.multiply(new BigDecimal("0.18"));
+
+            DetalleVenta detalle = new DetalleVenta();
+            detalle.setIdProducto(idProducto);
+            detalle.setCantidad(cantidad);
+            detalle.setPrecioUnitario(precioUnitario);
+            detalle.setDescuento(descuento);
+            detalle.setSubtotal(subtotal);
+            detalle.setItbis(itbis);
+            detalle.setLote(lote);
+
+
+            listaDetalles.add(detalle);
+            recalcularTotales();
+
+            cmbDetalleProducto.setValue(null);
+            txtCantidad.clear();
+            txtPrecioUnitario.clear();
+            txtDetalleDescuento.clear();
+            txtLote.clear();
+            dateFechaVencimiento.setValue(null);
+
+        } catch (NumberFormatException e) {
+            mostrarAlerta("Error", "Cantidad inválida", Alert.AlertType.WARNING);
+        }
+    }
+
+    @FXML
+    private void quitarDetalle() {
+        DetalleVenta seleccionado = tblDetalles.getSelectionModel().getSelectedItem();
+        if (seleccionado != null) {
+            listaDetalles.remove(seleccionado);
+            recalcularTotales();
+        } else {
+            mostrarAlerta("Advertencia", "Seleccione un detalle para eliminar", Alert.AlertType.WARNING);
+        }
+    }
+
+    private void recalcularTotales() {
+        BigDecimal subtotalTotal = BigDecimal.ZERO;
+        BigDecimal descuentoTotal = BigDecimal.ZERO;
+        BigDecimal itbisTotal = BigDecimal.ZERO;
+
+        for (DetalleVenta detalle : listaDetalles) {
+            subtotalTotal = subtotalTotal.add(detalle.getSubtotal());
+            descuentoTotal = descuentoTotal.add(detalle.getDescuento());
+            itbisTotal = itbisTotal.add(detalle.getItbis());
+        }
+
+        BigDecimal total = subtotalTotal.subtract(descuentoTotal).add(itbisTotal);
+
+        txtSubtotal.setText(subtotalTotal.toPlainString());
+        txtDescuento.setText(descuentoTotal.toPlainString());
+        txtItbis.setText(itbisTotal.toPlainString());
+        txtTotal.setText(total.toPlainString());
+    }
 
     @FXML
     private void guardarVenta() {
@@ -362,21 +507,58 @@ public class RegistroVentaController implements Initializable {
             return;
         }
 
+        if (listaDetalles.isEmpty()) {
+            mostrarAlerta("Error", "Debe agregar al menos un producto a la venta", Alert.AlertType.WARNING);
+            return;
+        }
+
         if (!validarCampos()) return;
 
-        String sql = "INSERT INTO tbl_VENTA " +
-                "(id_cliente, id_empleado, id_comprobante, id_producto, " +
-                " fecha, subtotal, descuento, itbis, total, estado) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
-            setearParametros(ps);
+        String sqlVenta = "INSERT INTO tbl_VENTA " +
+                "(id_cliente, id_empleado, id_comprobante, fecha, " +
+                " subtotal, descuento, itbis, total, estado) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement ps = conexion.prepareStatement(sqlVenta, Statement.RETURN_GENERATED_KEYS)) {
+            setearParametrosVenta(ps);
             ps.executeUpdate();
+
+            ResultSet generatedKeys = ps.getGeneratedKeys();
+            int idVentaGenerada = 0;
+            if (generatedKeys.next()) {
+                idVentaGenerada = generatedKeys.getInt(1);
+            }
+
+            String sqlDetalle = "INSERT INTO tbl_DETALLE_VENTA " +
+                    "(id_venta, id_producto, cantidad, precio_unitario, " +
+                    " descuento, itbis, subtotal, lote, fecha_vencimiento) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+            for (DetalleVenta detalle : listaDetalles) {
+                try (PreparedStatement psDetalle = conexion.prepareStatement(sqlDetalle)) {
+                    psDetalle.setInt(1, idVentaGenerada);
+                    psDetalle.setInt(2, detalle.getIdProducto());
+                    psDetalle.setInt(3, detalle.getCantidad());
+                    psDetalle.setBigDecimal(4, detalle.getPrecioUnitario());
+                    psDetalle.setBigDecimal(5, detalle.getDescuento());
+                    psDetalle.setBigDecimal(6, detalle.getItbis());
+                    psDetalle.setBigDecimal(7, detalle.getSubtotal());
+                    psDetalle.setString(8, detalle.getLote());
+                    if (detalle.getFechaVencimiento() != null)
+                        psDetalle.setDate(9, Date.valueOf(detalle.getFechaVencimiento()));
+                    else
+                        psDetalle.setNull(9, Types.DATE);
+                    psDetalle.executeUpdate();
+                }
+            }
+
             mostrarAlerta("Éxito", "Venta registrada correctamente.", Alert.AlertType.INFORMATION);
             limpiarCamposInterno();
             if (consultaPanel.isVisible()) {
                 cargarVentas();
             }
         } catch (SQLException e) {
+            e.printStackTrace();
             mostrarAlerta("Error", "Error al guardar: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
@@ -402,14 +584,46 @@ public class RegistroVentaController implements Initializable {
         conf.setContentText("¿Desea guardar los cambios en esta venta?");
         if (conf.showAndWait().get() != ButtonType.OK) return;
 
-        String sql = "UPDATE tbl_VENTA " +
-                "SET id_cliente=?, id_empleado=?, id_comprobante=?, id_producto=?, " +
+        String sqlDeleteDetalles = "DELETE FROM tbl_DETALLE_VENTA WHERE id_venta = ?";
+        try (PreparedStatement psDelete = conexion.prepareStatement(sqlDeleteDetalles)) {
+            psDelete.setInt(1, idVentaSeleccionada);
+            psDelete.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        String sqlVenta = "UPDATE tbl_VENTA " +
+                "SET id_cliente=?, id_empleado=?, id_comprobante=?, " +
                 "    fecha=?, subtotal=?, descuento=?, itbis=?, total=?, estado=? " +
                 "WHERE id_venta=?";
-        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
-            setearParametros(ps);
-            ps.setInt(11, idVentaSeleccionada);
+        try (PreparedStatement ps = conexion.prepareStatement(sqlVenta)) {
+            setearParametrosVenta(ps);
+            ps.setInt(10, idVentaSeleccionada);
             ps.executeUpdate();
+
+            String sqlDetalle = "INSERT INTO tbl_DETALLE_VENTA " +
+                    "(id_venta, id_producto, cantidad, precio_unitario, " +
+                    " descuento, itbis, subtotal, lote, fecha_vencimiento) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+            for (DetalleVenta detalle : listaDetalles) {
+                try (PreparedStatement psDetalle = conexion.prepareStatement(sqlDetalle)) {
+                    psDetalle.setInt(1, idVentaSeleccionada);
+                    psDetalle.setInt(2, detalle.getIdProducto());
+                    psDetalle.setInt(3, detalle.getCantidad());
+                    psDetalle.setBigDecimal(4, detalle.getPrecioUnitario());
+                    psDetalle.setBigDecimal(5, detalle.getDescuento());
+                    psDetalle.setBigDecimal(6, detalle.getItbis());
+                    psDetalle.setBigDecimal(7, detalle.getSubtotal());
+                    psDetalle.setString(8, detalle.getLote());
+                    if (detalle.getFechaVencimiento() != null)
+                        psDetalle.setDate(9, Date.valueOf(detalle.getFechaVencimiento()));
+                    else
+                        psDetalle.setNull(9, Types.DATE);
+                    psDetalle.executeUpdate();
+                }
+            }
+
             mostrarAlerta("Éxito", "Venta actualizada correctamente.", Alert.AlertType.INFORMATION);
             limpiarCamposInterno();
             if (consultaPanel.isVisible()) {
@@ -455,50 +669,34 @@ public class RegistroVentaController implements Initializable {
         }
     }
 
-    private void setearParametros(PreparedStatement ps) throws SQLException {
-        // 1 id_cliente
+    private void setearParametrosVenta(PreparedStatement ps) throws SQLException {
         if (cmbCliente.getValue() != null)
             ps.setInt(1, Integer.parseInt(cmbCliente.getValue().split(" - ")[0]));
         else
             ps.setNull(1, Types.INTEGER);
 
-        // 2 id_empleado
         ps.setInt(2, Integer.parseInt(cmbEmpleado.getValue().split(" - ")[0]));
 
-        // 3 id_comprobante
         String compVal = cmbComprobante.getValue();
         if (compVal != null && !compVal.equals("NINGUNO"))
             ps.setInt(3, Integer.parseInt(compVal.split(" - ")[0]));
         else
             ps.setNull(3, Types.INTEGER);
 
-        // 4 id_producto
-        String prodVal = cmbProducto.getValue();
-        if (prodVal != null && !prodVal.equals("NINGUNO"))
-            ps.setInt(4, Integer.parseInt(prodVal.split(" - ")[0]));
-        else
-            ps.setNull(4, Types.INTEGER);
-
-        // 5 fecha
-        ps.setTimestamp(5, Timestamp.valueOf(
+        ps.setTimestamp(4, Timestamp.valueOf(
                 LocalDateTime.of(dateFecha.getValue(), LocalTime.now())));
 
-        // 6 subtotal
-        ps.setBigDecimal(6, new BigDecimal(txtSubtotal.getText().trim()));
+        ps.setBigDecimal(5, new BigDecimal(txtSubtotal.getText().trim()));
 
-        // 7 descuento
         String desc = txtDescuento.getText().trim();
-        ps.setBigDecimal(7, desc.isEmpty() ? BigDecimal.ZERO : new BigDecimal(desc));
+        ps.setBigDecimal(6, desc.isEmpty() ? BigDecimal.ZERO : new BigDecimal(desc));
 
-        // 8 itbis
         String itbis = txtItbis.getText().trim();
-        ps.setBigDecimal(8, itbis.isEmpty() ? BigDecimal.ZERO : new BigDecimal(itbis));
+        ps.setBigDecimal(7, itbis.isEmpty() ? BigDecimal.ZERO : new BigDecimal(itbis));
 
-        // 9 total
-        ps.setBigDecimal(9, new BigDecimal(txtTotal.getText().trim()));
+        ps.setBigDecimal(8, new BigDecimal(txtTotal.getText().trim()));
 
-        // 10 estado
-        ps.setString(10, cmbEstado.getValue());
+        ps.setString(9, cmbEstado.getValue());
     }
 
     @FXML
@@ -511,13 +709,13 @@ public class RegistroVentaController implements Initializable {
         cmbCliente.setValue(null);
         cmbEmpleado.setValue(null);
         cmbComprobante.setValue("NINGUNO");
-        cmbProducto.setValue("NINGUNO");
         cmbEstado.setValue("PENDIENTE");
         dateFecha.setValue(LocalDate.now());
         txtSubtotal.clear();
         txtDescuento.clear();
         txtItbis.clear();
         txtTotal.clear();
+        listaDetalles.clear();
         modoEdicion = false;
 
         habilitarBotonesEdicion(false);
@@ -525,7 +723,6 @@ public class RegistroVentaController implements Initializable {
 
         tblVentas.getSelectionModel().clearSelection();
     }
-
 
     private boolean validarCampos() {
         if (cmbEmpleado.getValue() == null) {
@@ -537,13 +734,11 @@ public class RegistroVentaController implements Initializable {
             return false;
         }
         if (!esDecimalPositivo(txtSubtotal.getText())) {
-            mostrarAlerta("Validación", "Ingrese un subtotal válido (mayor a 0).", Alert.AlertType.WARNING);
-            txtSubtotal.requestFocus();
+            mostrarAlerta("Validación", "Ingrese un subtotal válido.", Alert.AlertType.WARNING);
             return false;
         }
         if (!esDecimalNoNegativo(txtTotal.getText())) {
             mostrarAlerta("Validación", "Ingrese un total válido.", Alert.AlertType.WARNING);
-            txtTotal.requestFocus();
             return false;
         }
         if (cmbEstado.getValue() == null) {
@@ -591,6 +786,18 @@ public class RegistroVentaController implements Initializable {
             e.printStackTrace();
             mostrarAlerta("Error", "No se pudo abrir la ventana de venta con seguro", Alert.AlertType.ERROR);
         }
+    }
+
+    @FXML
+    private void generarReporte() {
+        Venta seleccion = tblVentas.getSelectionModel().getSelectedItem();
+        if (seleccion == null) {
+            mostrarAlerta("Seleccionar Venta", "Debe seleccionar una venta para generar el reporte.", Alert.AlertType.WARNING);
+            return;
+        }
+        Map<String, Object> params = new HashMap<>();
+        params.put("id_venta", seleccion.getIdVenta());
+        ReportUtil.generarReporte("Ventas", "/reportes/ReporteVentas.jasper", params, conexion);
     }
 
     private void mostrarAlerta(String titulo, String mensaje, Alert.AlertType tipo) {

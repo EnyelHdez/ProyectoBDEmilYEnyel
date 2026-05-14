@@ -180,7 +180,8 @@ public class GestionUsuarioController {
                 "Farmacéutico",
                 "Cajero",
                 "Almacenista",
-                "Auxiliar"
+                "Auxiliar",
+                "Delivery"
         );
         cmbEstado.getItems().addAll("Activo", "Inactivo");
         cmbEstado.setValue("Activo");

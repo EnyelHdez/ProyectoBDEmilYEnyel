@@ -17,9 +17,7 @@ public class Producto {
     private double  porcentajeItbis;    // decimal(5,2)
     private boolean estado;             // bit
 
-    // Campo auxiliar (JOIN con proveedor, no viene directo de PRODUCTO)
     private String nombreProveedor;
-    // Campo auxiliar (JOIN con categoria)
     private String nombreCategoria;
 
 
