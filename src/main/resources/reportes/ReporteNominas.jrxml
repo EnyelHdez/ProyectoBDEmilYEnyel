@@ -1,0 +1,285 @@
+<!-- Created with Jaspersoft Studio version 7.0.6.final using JasperReports Library version 7.0.6-5d2a603fdc6b3db8f842a83383e594f41891534d  -->
+<jasperReport name="ReporteNominas" language="java" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="5901d041-5848-4c79-b869-5b534edaf949">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="SQLServer"/>
+	<parameter name="id_nomina" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[1]]></defaultValueExpression>
+	</parameter>
+	<query language="SQL"><![CDATA[SELECT 
+    n.id_nomina,
+    n.periodo_inicio,
+    n.periodo_fin,
+    n.salario_bruto,
+    n.bonificaciones,
+    n.comisiones,
+    n.deducciones_sfs,
+    n.deducciones_afp,
+    n.otras_deducciones,
+    n.salario_neto,
+    n.fecha_pago,
+    n.estado,
+    
+    e.id_empleado,
+    e.cedula,
+    e.nombres,
+    e.apellidos,
+    e.fecha_nacimiento,
+    e.sexo,
+    e.telefono,
+    e.email,
+    e.fecha_ingreso,
+    e.salario_base,
+    
+    c.id_cargo,
+    c.nombre AS cargo_nombre,
+    c.descripcion AS cargo_descripcion,
+    
+    d.id_direccion,
+    d.numero AS direccion_numero,
+    d.referencia AS direccion_referencia,
+    
+    CASE 
+        WHEN n.estado = 'PENDIENTE' THEN 'Pendiente'
+        WHEN n.estado = 'PAGADA' THEN 'Pagada'
+        WHEN n.estado = 'ANULADA' THEN 'Anulada'
+        ELSE n.estado
+    END AS estado_descripcion,
+    
+    (n.salario_bruto + ISNULL(n.bonificaciones,0) + ISNULL(n.comisiones,0)) AS total_ingresos,
+    (ISNULL(n.deducciones_sfs,0) + ISNULL(n.deducciones_afp,0) + ISNULL(n.otras_deducciones,0)) AS total_deducciones
+
+FROM dbo.tbl_NOMINA n
+INNER JOIN dbo.tbl_EMPLEADO e ON e.id_empleado = n.id_empleado
+INNER JOIN dbo.tbl_CARGO c ON c.id_cargo = e.id_cargo
+LEFT JOIN dbo.tbl_DIRECCION d ON d.id_direccion = e.id_direccion
+WHERE n.id_nomina = $P{id_nomina}]]></query>
+	<field name="id_nomina" class="java.lang.Integer"/>
+	<field name="periodo_inicio" class="java.sql.Date"/>
+	<field name="periodo_fin" class="java.sql.Date"/>
+	<field name="salario_bruto" class="java.math.BigDecimal"/>
+	<field name="bonificaciones" class="java.math.BigDecimal"/>
+	<field name="comisiones" class="java.math.BigDecimal"/>
+	<field name="deducciones_sfs" class="java.math.BigDecimal"/>
+	<field name="deducciones_afp" class="java.math.BigDecimal"/>
+	<field name="otras_deducciones" class="java.math.BigDecimal"/>
+	<field name="salario_neto" class="java.math.BigDecimal"/>
+	<field name="fecha_pago" class="java.sql.Date"/>
+	<field name="estado" class="java.lang.String"/>
+	<field name="id_empleado" class="java.lang.Integer"/>
+	<field name="cedula" class="java.lang.String"/>
+	<field name="nombres" class="java.lang.String"/>
+	<field name="apellidos" class="java.lang.String"/>
+	<field name="fecha_nacimiento" class="java.sql.Date"/>
+	<field name="sexo" class="java.lang.String"/>
+	<field name="telefono" class="java.lang.String"/>
+	<field name="email" class="java.lang.String"/>
+	<field name="fecha_ingreso" class="java.sql.Date"/>
+	<field name="salario_base" class="java.math.BigDecimal"/>
+	<field name="id_cargo" class="java.lang.Integer"/>
+	<field name="cargo_nombre" class="java.lang.String"/>
+	<field name="cargo_descripcion" class="java.lang.String"/>
+	<field name="id_direccion" class="java.lang.Integer"/>
+	<field name="direccion_numero" class="java.lang.String"/>
+	<field name="direccion_referencia" class="java.lang.String"/>
+	<field name="estado_descripcion" class="java.lang.String"/>
+	<field name="total_ingresos" class="java.math.BigDecimal"/>
+	<field name="total_deducciones" class="java.math.BigDecimal"/>
+	<title height="100">
+		<element kind="rectangle" uuid="56063c9c-b5ea-4421-841a-5d8bcc78ca2e" x="0" y="0" width="535" height="50" backcolor="#0D47A1">
+			<pen lineWidth="0.0"/>
+		</element>
+		<element kind="staticText" uuid="d440769e-4838-422c-94d6-2267f905fa26" x="10" y="8" width="300" height="22" forecolor="#FFFFFF" fontSize="16.0" bold="true">
+			<text><![CDATA[FARMACIA CARMEN]]></text>
+		</element>
+		<element kind="staticText" uuid="7b5af1ab-1e41-49f9-92ef-c90506e3350c" x="10" y="30" width="300" height="14" forecolor="#90CAF9" fontSize="9.0">
+			<text><![CDATA[Sistema de Gestión de Nómina]]></text>
+		</element>
+		<element kind="rectangle" uuid="d56b6d0b-41f1-4579-a81c-3779d8112b0d" x="380" y="12" width="145" height="30" backcolor="#FFFFFF">
+			<pen lineWidth="1.0" lineColor="#0D47A1"/>
+		</element>
+		<element kind="staticText" uuid="59b0d330-b12d-4481-99fd-2c3ac3763bfc" x="380" y="18" width="145" height="20" forecolor="#0D47A1" fontSize="11.0" bold="true" hTextAlign="Center">
+			<text><![CDATA[COMPROBANTE DE NÓMINA]]></text>
+		</element>
+		<element kind="line" uuid="3c60352a-bbc5-4a69-b954-870e5dc2c63f" x="0" y="55" width="535" height="1" forecolor="#0D47A1">
+			<pen lineWidth="1.5"/>
+		</element>
+		<element kind="staticText" uuid="3e920f7d-e144-455e-8ec7-615ea2a254d5" x="10" y="65" width="80" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+			<text><![CDATA[NÓMINA #:]]></text>
+		</element>
+		<element kind="textField" uuid="57a457ef-01f5-4a8a-a573-f270e9207bd0" x="95" y="63" width="80" height="14" forecolor="#0D47A1" fontSize="9.0" bold="true">
+			<expression><![CDATA[$F{id_nomina}]]></expression>
+		</element>
+		<element kind="staticText" uuid="62666160-2f14-4477-b56f-23ff39125143" x="190" y="65" width="50" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+			<text><![CDATA[ESTADO:]]></text>
+		</element>
+		<element kind="textField" uuid="da777eef-1741-4ac9-8088-7f9f45707941" x="245" y="63" width="80" height="14" forecolor="#0D47A1" fontSize="8.0" bold="true">
+			<expression><![CDATA[$F{estado_descripcion}]]></expression>
+		</element>
+		<element kind="staticText" uuid="2a278ef8-a67b-4a98-997a-f5d2ce15120d" x="340" y="65" width="50" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+			<text><![CDATA[F. PAGO:]]></text>
+		</element>
+		<element kind="textField" uuid="d245e54d-98e0-476c-b740-95ebd2f82dca" x="395" y="63" width="100" height="14" forecolor="#333333" fontSize="8.0" pattern="dd/MM/yyyy">
+			<expression><![CDATA[$F{fecha_pago}]]></expression>
+		</element>
+		<element kind="staticText" uuid="c07bbab1-6826-4828-920a-412f59824481" x="10" y="82" width="80" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+			<text><![CDATA[PERIODO:]]></text>
+		</element>
+		<element kind="textField" uuid="a94c6441-dbe9-49e0-9e8f-67201aa191d0" x="95" y="80" width="80" height="14" forecolor="#333333" fontSize="8.0" pattern="dd/MM/yyyy">
+			<expression><![CDATA[$F{periodo_inicio}]]></expression>
+		</element>
+		<element kind="staticText" uuid="f14bd391-0731-4b3b-a709-7aaa87621888" x="180" y="82" width="20" height="14" forecolor="#555555" fontSize="8.0">
+			<text><![CDATA[al]]></text>
+		</element>
+		<element kind="textField" uuid="8a412420-f620-4462-b4c6-4d0ffdda373b" x="205" y="80" width="80" height="14" forecolor="#333333" fontSize="8.0" pattern="dd/MM/yyyy">
+			<expression><![CDATA[$F{periodo_fin}]]></expression>
+		</element>
+	</title>
+	<pageHeader height="90">
+		<element kind="staticText" uuid="722b9705-47ee-4d1f-a712-a4dfc06be102" x="0" y="5" width="200" height="18" forecolor="#0D47A1" fontSize="10.0" bold="true">
+			<text><![CDATA[DATOS DEL EMPLEADO]]></text>
+		</element>
+		<element kind="rectangle" uuid="5e01ba09-addb-4d4f-a756-46f81e0a4b98" x="0" y="25" width="535" height="60" backcolor="#F5F5F5">
+			<pen lineWidth="0.5" lineColor="#CCCCCC"/>
+		</element>
+		<element kind="staticText" uuid="b3da56a9-3e59-4288-abed-4aaea7f94f8a" x="5" y="32" width="50" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+			<text><![CDATA[NOMBRE:]]></text>
+		</element>
+		<element kind="textField" uuid="0ce50bb3-7275-48df-8c93-cf71afc08893" x="60" y="32" width="250" height="14" forecolor="#333333" fontSize="8.0">
+			<expression><![CDATA[$F{nombres} + " " + $F{apellidos}]]></expression>
+		</element>
+		<element kind="staticText" uuid="79f13a60-0b90-4695-8e8f-3b5c98be9b03" x="320" y="32" width="50" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+			<text><![CDATA[CÉDULA:]]></text>
+		</element>
+		<element kind="textField" uuid="30651d94-e4db-4c8b-8486-e5f733ee1eb9" x="375" y="32" width="150" height="14" forecolor="#333333" fontSize="8.0">
+			<expression><![CDATA[$F{cedula}]]></expression>
+		</element>
+		<element kind="staticText" uuid="eaf7b54d-728f-44bd-953a-089d5154c04d" x="5" y="50" width="50" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+			<text><![CDATA[CARGO:]]></text>
+		</element>
+		<element kind="textField" uuid="f00ada50-7a42-42f0-afa0-57c9b050a2cb" x="60" y="50" width="200" height="14" forecolor="#333333" fontSize="8.0">
+			<expression><![CDATA[$F{cargo_nombre}]]></expression>
+		</element>
+		<element kind="staticText" uuid="a700f92f-c52a-4f54-a759-194429639a47" x="270" y="50" width="60" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+			<text><![CDATA[TELÉFONO:]]></text>
+		</element>
+		<element kind="textField" uuid="ff9c894a-066b-484c-a738-b6b287f76d45" x="335" y="50" width="100" height="14" forecolor="#333333" fontSize="8.0">
+			<expression><![CDATA[$F{telefono}]]></expression>
+		</element>
+		<element kind="staticText" uuid="41fe31da-7bfb-494a-9f7f-d6962fb9673d" x="5" y="68" width="50" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+			<text><![CDATA[EMAIL:]]></text>
+		</element>
+		<element kind="textField" uuid="41411f56-5138-440e-82e0-bc40f4686f99" x="60" y="68" width="250" height="14" forecolor="#333333" fontSize="8.0">
+			<expression><![CDATA[$F{email}]]></expression>
+		</element>
+		<element kind="staticText" uuid="ab228f21-f1c1-4b61-8a1b-ae0a35bcf3cd" x="320" y="68" width="60" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+			<text><![CDATA[F. INGRESO:]]></text>
+		</element>
+		<element kind="textField" uuid="fe43d380-29f9-417e-a4b1-c272172fa4a5" x="385" y="68" width="140" height="14" forecolor="#333333" fontSize="8.0" pattern="dd/MM/yyyy">
+			<expression><![CDATA[$F{fecha_ingreso}]]></expression>
+		</element>
+	</pageHeader>
+	<columnHeader height="25">
+		<element kind="rectangle" uuid="50116805-1ad3-4d99-9498-1a6996f4c2d8" x="0" y="0" width="535" height="25" backcolor="#1565C0">
+			<pen lineWidth="0.0"/>
+		</element>
+		<element kind="staticText" uuid="ec66bd21-c8ac-48bf-ac60-833f801ed637" x="5" y="6" width="525" height="14" forecolor="#FFFFFF" fontSize="9.0" bold="true" hTextAlign="Center">
+			<text><![CDATA[DETALLE DE LA NÓMINA]]></text>
+		</element>
+	</columnHeader>
+	<detail>
+		<band height="100">
+			<element kind="rectangle" uuid="706b8aec-9490-4868-91a1-b9ccd46f9a4d" x="0" y="5" width="260" height="90" backcolor="#E8F5E9">
+				<pen lineWidth="0.5" lineColor="#2E7D32"/>
+			</element>
+			<element kind="staticText" uuid="e2ce6bab-b787-4818-ba2e-3108aead6716" x="5" y="12" width="250" height="16" forecolor="#2E7D32" fontSize="9.0" bold="true" hTextAlign="Center">
+				<text><![CDATA[INGRESOS]]></text>
+			</element>
+			<element kind="line" uuid="467e6191-d4c5-4157-bf45-27c45705fcfe" x="5" y="30" width="250" height="1" forecolor="#2E7D32">
+				<pen lineWidth="0.5"/>
+			</element>
+			<element kind="staticText" uuid="77791a8c-ee25-4e80-b843-37f4384195e0" x="10" y="38" width="100" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+				<text><![CDATA[SALARIO BRUTO:]]></text>
+			</element>
+			<element kind="textField" uuid="e8e4f8f9-3aee-4293-bcb8-346a6876992e" x="115" y="38" width="135" height="14" forecolor="#333333" fontSize="8.0" pattern="#,##0.00" hTextAlign="Right">
+				<expression><![CDATA[$F{salario_bruto}]]></expression>
+			</element>
+			<element kind="staticText" uuid="ec039a3a-3fcd-4460-b6c3-0b563601a565" x="10" y="55" width="100" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+				<text><![CDATA[BONIFICACIONES:]]></text>
+			</element>
+			<element kind="textField" uuid="c5e50e92-61fc-4eb1-bdbd-c6bbaab67819" x="115" y="55" width="135" height="14" forecolor="#2E7D32" fontSize="8.0" pattern="#,##0.00" hTextAlign="Right">
+				<expression><![CDATA[$F{bonificaciones}]]></expression>
+			</element>
+			<element kind="staticText" uuid="2d21ada4-4271-4fd7-8dd8-cb47d116881f" x="10" y="72" width="100" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+				<text><![CDATA[COMISIONES:]]></text>
+			</element>
+			<element kind="textField" uuid="885b1151-e1dc-4b07-bbbd-7a8c30a4459f" x="115" y="72" width="135" height="14" forecolor="#2E7D32" fontSize="8.0" pattern="#,##0.00" hTextAlign="Right">
+				<expression><![CDATA[$F{comisiones}]]></expression>
+			</element>
+			<element kind="rectangle" uuid="a74e0404-df8d-4e74-bb23-eeb50bd5aeef" x="270" y="5" width="265" height="90" backcolor="#FFEBEE">
+				<pen lineWidth="0.5" lineColor="#C62828"/>
+			</element>
+			<element kind="staticText" uuid="e3aa6c5c-9093-4d74-81f9-91dd243af512" x="275" y="12" width="255" height="16" forecolor="#C62828" fontSize="9.0" bold="true" hTextAlign="Center">
+				<text><![CDATA[DEDUCCIONES]]></text>
+			</element>
+			<element kind="line" uuid="0934ed3f-8304-4864-95b2-759a6486d71b" x="275" y="30" width="255" height="1" forecolor="#C62828">
+				<pen lineWidth="0.5"/>
+			</element>
+			<element kind="staticText" uuid="ce21af54-cb3b-455d-b33f-a6dd17840580" x="280" y="38" width="100" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+				<text><![CDATA[SFS (3.04%):]]></text>
+			</element>
+			<element kind="textField" uuid="1cb01e26-bbbb-4823-938b-fec51ead7bff" x="385" y="38" width="145" height="14" forecolor="#333333" fontSize="8.0" pattern="#,##0.00" hTextAlign="Right">
+				<expression><![CDATA[$F{deducciones_sfs}]]></expression>
+			</element>
+			<element kind="staticText" uuid="eea4fd19-6624-47a9-9d82-1270675fbc43" x="280" y="55" width="100" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+				<text><![CDATA[AFP (2.87%):]]></text>
+			</element>
+			<element kind="textField" uuid="70f4f103-b58a-40a4-af6f-3e3995925e2a" x="385" y="55" width="145" height="14" forecolor="#333333" fontSize="8.0" pattern="#,##0.00" hTextAlign="Right">
+				<expression><![CDATA[$F{deducciones_afp}]]></expression>
+			</element>
+			<element kind="staticText" uuid="3bc046bd-7e1b-4b1a-8c7c-1495fbf34af1" x="280" y="72" width="100" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+				<text><![CDATA[OTRAS DEDUCCIONES:]]></text>
+			</element>
+			<element kind="textField" uuid="d1e8fd98-e66c-4785-8d10-6a853c77fc14" x="385" y="72" width="145" height="14" forecolor="#C62828" fontSize="8.0" pattern="#,##0.00" hTextAlign="Right">
+				<expression><![CDATA[$F{otras_deducciones}]]></expression>
+			</element>
+		</band>
+	</detail>
+	<columnFooter height="10"/>
+	<pageFooter height="80">
+		<element kind="line" uuid="ce1ae83d-e1a9-442e-9b86-e5b862aab65c" x="0" y="5" width="535" height="1" forecolor="#1565C0">
+			<pen lineWidth="0.5"/>
+		</element>
+		<element kind="rectangle" uuid="9d1fc25e-8e6c-4077-b7db-946f05f2e2ba" x="250" y="15" width="285" height="40" backcolor="#F5F5F5">
+			<pen lineWidth="0.5" lineColor="#CCCCCC"/>
+		</element>
+		<element kind="staticText" uuid="321bfa2b-2163-4907-93a5-9b42e764767f" x="260" y="22" width="100" height="14" forecolor="#555555" fontSize="8.0" bold="true" hTextAlign="Right">
+			<text><![CDATA[TOTAL INGRESOS:]]></text>
+		</element>
+		<element kind="textField" uuid="cf0f0eeb-3e00-48fb-bd43-ce3d091791ad" x="365" y="22" width="160" height="14" forecolor="#2E7D32" fontSize="8.0" pattern="#,##0.00" bold="true" hTextAlign="Right">
+			<expression><![CDATA[$F{total_ingresos}]]></expression>
+		</element>
+		<element kind="staticText" uuid="f20d2677-50ce-4b88-932b-136848481013" x="260" y="38" width="100" height="14" forecolor="#555555" fontSize="8.0" bold="true" hTextAlign="Right">
+			<text><![CDATA[TOTAL DEDUCCIONES:]]></text>
+		</element>
+		<element kind="textField" uuid="b570f077-59d9-49b0-800e-0b8bf28981d2" x="365" y="38" width="160" height="14" forecolor="#C62828" fontSize="8.0" pattern="#,##0.00" bold="true" hTextAlign="Right">
+			<expression><![CDATA[$F{total_deducciones}]]></expression>
+		</element>
+		<element kind="line" uuid="c5c6f7ef-9290-4d05-abe4-3ffaa8f38ee3" x="260" y="55" width="260" height="1" forecolor="#CCCCCC">
+			<pen lineWidth="0.5"/>
+		</element>
+		<element kind="rectangle" uuid="a88d2a9b-9cad-432e-91b3-07696456612c" x="250" y="58" width="285" height="18" backcolor="#0D47A1">
+			<pen lineWidth="0.0"/>
+		</element>
+		<element kind="staticText" uuid="0a891c93-21a8-4991-b152-a0065626a753" x="260" y="60" width="100" height="14" forecolor="#FFFFFF" fontSize="8.0" bold="true" hTextAlign="Right">
+			<text><![CDATA[SALARIO NETO:]]></text>
+		</element>
+		<element kind="textField" uuid="ede9350f-7337-4817-ad93-6f2e9869ba8a" x="365" y="60" width="160" height="14" forecolor="#FFFFFF" fontSize="9.0" pattern="#,##0.00" bold="true" hTextAlign="Right">
+			<expression><![CDATA[$F{salario_neto}]]></expression>
+		</element>
+		<element kind="staticText" uuid="aafaddec-4af6-4b27-a083-034e09537a8f" x="5" y="68" width="200" height="10" forecolor="#888888" fontSize="6.0">
+			<text><![CDATA[Documento válido como comprobante de nómina.]]></text>
+		</element>
+		<element kind="textField" uuid="068f0814-ef4d-4aee-97db-2d90a00fc113" x="460" y="68" width="70" height="10" forecolor="#888888" fontSize="6.0" evaluationTime="Report" hTextAlign="Right">
+			<expression><![CDATA["Pág. " + $V{PAGE_NUMBER}]]></expression>
+		</element>
+	</pageFooter>
+</jasperReport>

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+
+<ScrollPane fitToWidth="true" style="-fx-background-color: #EEF4FB; -fx-background: #EEF4FB; -fx-border-color: transparent;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.proyecto.Controladores.RegistroNominaController">
+
+    <VBox spacing="16" style="-fx-padding: 22 28 10 28; -fx-background-color: #EEF4FB;">
+
+        <!-- TÍTULO -->
+        <VBox spacing="8" style="-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 18 20 18 20; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);">
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label style="-fx-font-size: 24px;" text="📋" />
+                <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;" text="Registro de Nómina" />
+                <Rectangle fill="#D6E8F5" height="24" width="1" />
+                <Label style="-fx-font-size: 12px; -fx-text-fill: #7A9FBB;" text="Gestión de pagos de nómina" />
+            </HBox>
+            <Separator />
+            <Label style="-fx-font-size: 11px; -fx-text-fill: #E53935;" text="* Campos obligatorios" />
+        </VBox>
+
+        <!-- PANEL DE CONSULTA (OCULTO INICIALMENTE) -->
+        <VBox fx:id="consultaPanel" spacing="10" style="-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 15 20; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);" managed="false" visible="false">
+            <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1A6BAD;" text="🔍 Buscar Nóminas" />
+            <HBox spacing="10">
+                <TextField fx:id="txtBuscar" prefHeight="36" HBox.hgrow="ALWAYS" promptText="Buscar por empleado o estado..." style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 4 10;" />
+                <Button fx:id="btnBuscar" onAction="#buscarNomina" prefHeight="36" prefWidth="90" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-font-size: 13px;" text="Buscar" />
+                <Button fx:id="btnVerTodos" onAction="#mostrarTodos" prefHeight="36" prefWidth="95" style="-fx-background-color: #EEF4FB; -fx-text-fill: #1A6BAD; -fx-font-weight: bold; -fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-cursor: hand; -fx-font-size: 13px;" text="Ver todos" />
+                <Button fx:id="btnCerrarConsulta" onAction="#cerrarConsulta" prefHeight="36" prefWidth="95" style="-fx-background-color: #E53935; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-font-size: 13px;" text="✖ Cerrar" />
+            </HBox>
+
+            <!-- TABLA DE NÓMINAS -->
+            <TableView fx:id="tblNominas" prefHeight="300" style="-fx-border-color: #D6E8F5; -fx-border-radius: 8; -fx-background-radius: 8;">
+                <columns>
+                    <TableColumn fx:id="colId" prefWidth="60" text="ID" />
+                    <TableColumn fx:id="colEmpleado" prefWidth="180" text="Empleado" />
+                    <TableColumn fx:id="colPeriodoInicio" prefWidth="120" text="Período Inicio" />
+                    <TableColumn fx:id="colPeriodoFin" prefWidth="120" text="Período Fin" />
+                    <TableColumn fx:id="colSalarioBruto" prefWidth="120" text="Salario Bruto" />
+                    <TableColumn fx:id="colBonificaciones" prefWidth="110" text="Bonificaciones" />
+                    <TableColumn fx:id="colComisiones" prefWidth="110" text="Comisiones" />
+                    <TableColumn fx:id="colDeduccionesSfs" prefWidth="110" text="Ded. SFS" />
+                    <TableColumn fx:id="colDeduccionesAfp" prefWidth="110" text="Ded. AFP" />
+                    <TableColumn fx:id="colOtrasDeducciones" prefWidth="120" text="Otras Ded." />
+                    <TableColumn fx:id="colSalarioNeto" prefWidth="120" text="Salario Neto" />
+                    <TableColumn fx:id="colFechaPago" prefWidth="110" text="Fecha Pago" />
+                    <TableColumn fx:id="colEstado" prefWidth="100" text="Estado" />
+                </columns>
+                <placeholder>
+                    <Label style="-fx-text-fill: #9BBDD6; -fx-font-size: 13px;" text="No hay nóminas registradas" />
+                </placeholder>
+            </TableView>
+        </VBox>
+
+        <!-- FORMULARIO DE REGISTRO/EDICIÓN -->
+        <VBox spacing="14" style="-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);" VBox.vgrow="ALWAYS">
+
+            <Label style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1A4F7A;" text="📝 Datos de la Nómina" />
+
+            <GridPane hgap="16" vgap="12">
+                <columnConstraints>
+                    <ColumnConstraints percentWidth="33.33" />
+                    <ColumnConstraints percentWidth="33.33" />
+                    <ColumnConstraints percentWidth="33.34" />
+                </columnConstraints>
+
+                <!-- Fila 0: Empleado | Período Inicio | Período Fin -->
+                <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                    <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="👔 Empleado *" />
+                    <ComboBox fx:id="cmbEmpleado" prefHeight="34" promptText="Seleccione empleado" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                </VBox>
+                <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                    <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="📅 Período Inicio *" />
+                    <DatePicker fx:id="datePeriodoInicio" prefHeight="34" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                </VBox>
+                <VBox spacing="5" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                    <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="📅 Período Fin *" />
+                    <DatePicker fx:id="datePeriodoFin" prefHeight="34" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                </VBox>
+
+                <!-- Fila 1: Salario Bruto | Bonificaciones | Comisiones -->
+                <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                    <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="💰 Salario Bruto (RD$) *" />
+                    <TextField fx:id="txtSalarioBruto" promptText="0.00" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                </VBox>
+                <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                    <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="🎁 Bonificaciones (RD$)" />
+                    <TextField fx:id="txtBonificaciones" promptText="0.00" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                </VBox>
+                <VBox spacing="5" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                    <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="📊 Comisiones (RD$)" />
+                    <TextField fx:id="txtComisiones" promptText="0.00" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                </VBox>
+
+                <!-- Fila 2: Ded. SFS | Ded. AFP | Otras Ded. -->
+                <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                    <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="🏥 Ded. SFS (RD$)" />
+                    <TextField fx:id="txtDeduccionesSfs" promptText="0.00" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                </VBox>
+                <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                    <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="🏦 Ded. AFP (RD$)" />
+                    <TextField fx:id="txtDeduccionesAfp" promptText="0.00" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                </VBox>
+                <VBox spacing="5" GridPane.columnIndex="2" GridPane.rowIndex="2">
+                    <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="📝 Otras Ded. (RD$)" />
+                    <TextField fx:id="txtOtrasDeducciones" promptText="0.00" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 7 10;" />
+                </VBox>
+
+                <!-- Fila 3: Salario Neto | Fecha Pago | Estado -->
+                <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="3">
+                    <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="💵 Salario Neto (RD$) *" />
+                    <TextField fx:id="txtSalarioNeto" prefHeight="40" promptText="0.00" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-padding: 7 10; -fx-text-fill: #1A6BAD;" />
+                </VBox>
+                <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                    <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="📅 Fecha Pago *" />
+                    <DatePicker fx:id="dateFechaPago" prefHeight="34" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                </VBox>
+                <VBox spacing="5" GridPane.columnIndex="2" GridPane.rowIndex="3">
+                    <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A7FA5;" text="📌 Estado *" />
+                    <ComboBox fx:id="cmbEstado" prefHeight="34" promptText="Seleccione estado" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8;" />
+                </VBox>
+            </GridPane>
+        </VBox>
+
+        <!-- BARRA DE ACCIONES -->
+        <HBox alignment="CENTER_RIGHT" spacing="12" style="-fx-background-color: white; -fx-padding: 14 28 14 28; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.08), 6, 0, -2, 0);">
+            <Label style="-fx-font-size: 11px; -fx-text-fill: #9BBDD6;" text="* Campos obligatorios" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Button fx:id="btnGenerarReporte" onAction="#generarReporte" prefHeight="40" prefWidth="170" style="-fx-background-color: #00897B; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(0,137,123,0.35), 8, 0, 0, 3);" text="📊 Generar Reporte" />
+            <Button fx:id="btnConsultar" onAction="#abrirConsulta" prefHeight="40" prefWidth="130" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand;" text="🔍 Consultar" />
+            <Button fx:id="btnLimpiar" onAction="#limpiarCampos" prefHeight="40" prefWidth="120" style="-fx-background-color: white; -fx-text-fill: #546E7A; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #B0BEC5; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="🧹 Limpiar" />
+            <Button fx:id="btnEliminar" onAction="#eliminarNomina" prefHeight="40" prefWidth="130" style="-fx-background-color: white; -fx-text-fill: #E53935; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #EF5350; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="🗑 Eliminar" />
+            <Button fx:id="btnEditar" onAction="#editarNomina" prefHeight="40" prefWidth="130" style="-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(46,125,50,0.35), 8, 0, 0, 3);" text="✏ Editar" />
+            <Button fx:id="btnGuardar" onAction="#guardarNomina" prefHeight="40" prefWidth="180" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(26,107,173,0.35), 8, 0, 0, 3);" text="✔ Guardar Nómina" />
+        </HBox>
+    </VBox>
+</ScrollPane>
