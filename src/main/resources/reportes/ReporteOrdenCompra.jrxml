@@ -1,0 +1,278 @@
+<!-- Created with Jaspersoft Studio version 7.0.6.final using JasperReports Library version 7.0.6-5d2a603fdc6b3db8f842a83383e594f41891534d  -->
+<jasperReport name="ReporteOrdenCompra" language="java" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="32ee2f4a-32af-47b4-9557-d249e8af600e">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="SQLServer"/>
+	<parameter name="id_orden" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[1]]></defaultValueExpression>
+	</parameter>
+	<query language="SQL"><![CDATA[SELECT 
+    oc.id_orden,
+    oc.fecha_orden,
+    oc.fecha_entrega,
+    oc.condicion_pago,
+    oc.observaciones,
+    oc.subtotal,
+    oc.total,
+    oc.estado,
+    oc.cantidad_productos,
+    
+    p.id_proveedor,
+    p.rnc,
+    p.razon_social,
+    p.nombre_comercial,
+    p.telefono AS proveedor_telefono,
+    p.email AS proveedor_email,
+    p.contacto AS proveedor_contacto,
+    p.direccion AS proveedor_direccion,
+    
+    e.id_empleado,
+    e.nombres + ' ' + e.apellidos AS empleado_nombre,
+    e.cedula AS empleado_cedula,
+    e.telefono AS empleado_telefono,
+    car.nombre AS empleado_cargo,
+    
+    doc.id_detalle,
+    doc.id_producto,
+    doc.cantidad,
+    doc.precio_unitario,
+    doc.subtotal AS subtotal_producto,
+    
+    prod.nombre AS producto_nombre,
+    prod.codigo_barra
+    
+FROM dbo.tbl_ORDEN_COMPRA oc
+INNER JOIN dbo.tbl_PROVEEDOR p ON p.id_proveedor = oc.id_proveedor
+INNER JOIN dbo.tbl_EMPLEADO e ON e.id_empleado = oc.id_empleado
+INNER JOIN dbo.tbl_CARGO car ON car.id_cargo = e.id_cargo
+INNER JOIN dbo.tbl_DETALLE_ORDEN_COMPRA doc ON doc.id_orden = oc.id_orden
+INNER JOIN dbo.tbl_PRODUCTO prod ON prod.id_producto = doc.id_producto
+WHERE oc.id_orden = $P{id_orden}
+ORDER BY doc.id_detalle]]></query>
+	<field name="id_orden" class="java.lang.Integer"/>
+	<field name="fecha_orden" class="java.sql.Timestamp"/>
+	<field name="fecha_entrega" class="java.sql.Timestamp"/>
+	<field name="condicion_pago" class="java.lang.String"/>
+	<field name="observaciones" class="java.lang.String"/>
+	<field name="subtotal" class="java.math.BigDecimal"/>
+	<field name="total" class="java.math.BigDecimal"/>
+	<field name="estado" class="java.lang.String"/>
+	<field name="cantidad_productos" class="java.lang.Integer"/>
+	<field name="id_proveedor" class="java.lang.Integer"/>
+	<field name="rnc" class="java.lang.String"/>
+	<field name="razon_social" class="java.lang.String"/>
+	<field name="nombre_comercial" class="java.lang.String"/>
+	<field name="proveedor_telefono" class="java.lang.String"/>
+	<field name="proveedor_email" class="java.lang.String"/>
+	<field name="proveedor_contacto" class="java.lang.String"/>
+	<field name="proveedor_direccion" class="java.lang.String"/>
+	<field name="id_empleado" class="java.lang.Integer"/>
+	<field name="empleado_nombre" class="java.lang.String"/>
+	<field name="empleado_cedula" class="java.lang.String"/>
+	<field name="empleado_telefono" class="java.lang.String"/>
+	<field name="empleado_cargo" class="java.lang.String"/>
+	<field name="id_detalle" class="java.lang.Integer"/>
+	<field name="id_producto" class="java.lang.Integer"/>
+	<field name="cantidad" class="java.math.BigDecimal"/>
+	<field name="precio_unitario" class="java.math.BigDecimal"/>
+	<field name="subtotal_producto" class="java.math.BigDecimal"/>
+	<field name="producto_nombre" class="java.lang.String"/>
+	<field name="codigo_barra" class="java.lang.String"/>
+	<group name="grp_orden">
+		<expression><![CDATA[$F{id_orden}]]></expression>
+		<groupHeader>
+			<band height="270">
+				<element kind="rectangle" uuid="995558a7-0f69-48af-a469-a6b5026e7987" x="0" y="0" width="535" height="50" backcolor="#0D47A1">
+					<pen lineWidth="0.0"/>
+				</element>
+				<element kind="staticText" uuid="1de3a56e-5b81-4082-a2db-37ac43f2b175" x="10" y="8" width="300" height="22" forecolor="#FFFFFF" fontSize="16.0" bold="true">
+					<text><![CDATA[FARMACIA CARMEN]]></text>
+				</element>
+				<element kind="staticText" uuid="b028681a-0b77-49c4-b4a1-b9b302271783" x="10" y="30" width="250" height="14" forecolor="#BBDEFB" fontSize="9.0">
+					<text><![CDATA[Sistema de Órdenes de Compra]]></text>
+				</element>
+				<element kind="rectangle" uuid="ab9d31b9-3b05-4689-a4a2-1c0a71bbdfb8" x="370" y="10" width="155" height="30" backcolor="rgba(13, 71, 161, 0.8745098)">
+					<pen lineWidth="1.0" lineColor="#0D47A1"/>
+				</element>
+				<element kind="staticText" uuid="cfb0076d-5e92-417b-9b77-62f1d446d664" x="370" y="14" width="155" height="20" forecolor="#FFFFFF" backcolor="#FF0703" fontSize="11.0" bold="true" hTextAlign="Center">
+					<text><![CDATA[ORDEN DE COMPRA]]></text>
+				</element>
+				<element kind="line" uuid="4b1d7bec-d324-48a6-96ff-8a4e0e79d214" x="0" y="55" width="535" height="2" forecolor="#0D47A1">
+					<pen lineWidth="1.5"/>
+				</element>
+				<element kind="staticText" uuid="a4e2c700-147d-4456-b5be-594272d752f8" x="5" y="65" width="80" height="14" forecolor="#555555" fontSize="9.0" bold="true">
+					<text><![CDATA[NÚMERO ORDEN:]]></text>
+				</element>
+				<element kind="textField" uuid="afb2d6e3-4000-43c1-9915-43b21da4f11d" x="90" y="65" width="60" height="14" forecolor="#0D47A1" fontSize="10.0" bold="true">
+					<expression><![CDATA[$F{id_orden}]]></expression>
+				</element>
+				<element kind="staticText" uuid="13b3435a-c043-4979-aa52-debfe165c84c" x="170" y="65" width="50" height="14" forecolor="#555555" fontSize="9.0" bold="true">
+					<text><![CDATA[ESTADO:]]></text>
+				</element>
+				<element kind="textField" uuid="4094dcde-2042-4a45-a4be-891ec531bce6" x="225" y="65" width="80" height="14" forecolor="#0D47A1" fontSize="9.0" bold="true">
+					<expression><![CDATA[$F{estado}]]></expression>
+				</element>
+				<element kind="staticText" uuid="679563c7-7284-458f-ae0a-a3dfa86c6267" x="320" y="65" width="45" height="14" forecolor="#555555" fontSize="8.0">
+					<text><![CDATA[Creada:]]></text>
+				</element>
+				<element kind="textField" uuid="dee08a2d-467e-43a5-98e3-91ba6d36eda3" x="370" y="65" width="80" height="14" forecolor="#333333" fontSize="8.0" pattern="dd/MM/yyyy">
+					<expression><![CDATA[$F{fecha_orden}]]></expression>
+				</element>
+				<element kind="staticText" uuid="3e277e6b-9d0b-4081-bd51-7b282dc2fe57" x="460" y="65" width="50" height="14" forecolor="#555555" fontSize="8.0">
+					<text><![CDATA[Entrega:]]></text>
+				</element>
+				<element kind="textField" uuid="852c8f12-f976-4982-9b8b-ae6429d95e5b" x="5" y="83" width="80" height="14" forecolor="#333333" fontSize="8.0" pattern="dd/MM/yyyy">
+					<expression><![CDATA[$F{fecha_entrega}]]></expression>
+				</element>
+				<element kind="staticText" uuid="659378ac-7651-4692-80aa-e80dfe1b1f1a" x="100" y="83" width="50" height="14" forecolor="#555555" fontSize="8.0">
+					<text><![CDATA[Impreso:]]></text>
+				</element>
+				<element kind="textField" uuid="7740990f-4298-4b56-8941-a84c9554eae7" x="155" y="83" width="100" height="14" forecolor="#888888" fontSize="8.0" pattern="dd/MM/yyyy HH:mm">
+					<expression><![CDATA[new java.util.Date()]]></expression>
+				</element>
+				<element kind="staticText" uuid="d8aa2801-973e-4152-b33d-73ac8ec5e51b" x="0" y="108" width="200" height="18" forecolor="#0D47A1" fontSize="10.0" bold="true">
+					<text><![CDATA[DATOS DEL PROVEEDOR]]></text>
+				</element>
+				<element kind="rectangle" uuid="d2d0d01c-4e0f-42d7-ba2d-dbd9da93ff9b" x="0" y="128" width="535" height="95" backcolor="#F5F5F5">
+					<pen lineWidth="0.5" lineColor="#CCCCCC"/>
+				</element>
+				<element kind="staticText" uuid="93f9cae2-4ea9-4abc-a937-21040f4d2e23" x="5" y="135" width="50" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+					<text><![CDATA[ID:]]></text>
+				</element>
+				<element kind="textField" uuid="271ea65a-67d6-4256-bc35-63e06b4eb9a2" x="60" y="135" width="60" height="14" forecolor="#333333" fontSize="8.0">
+					<expression><![CDATA[$F{id_proveedor}]]></expression>
+				</element>
+				<element kind="staticText" uuid="a24a4d95-703f-4e99-a157-cf26a194aa8e" x="130" y="135" width="40" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+					<text><![CDATA[RNC:]]></text>
+				</element>
+				<element kind="textField" uuid="7968c218-400a-47e5-ba23-fff9cb7b0994" x="175" y="135" width="160" height="14" forecolor="#333333" fontSize="8.0">
+					<expression><![CDATA[$F{rnc}]]></expression>
+				</element>
+				<element kind="staticText" uuid="a13110c1-a298-4d16-84f8-3f97f9a0933c" x="350" y="135" width="60" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+					<text><![CDATA[TELÉFONO:]]></text>
+				</element>
+				<element kind="textField" uuid="901dc162-dce5-4d83-8a02-3511dcee2c66" x="415" y="135" width="110" height="14" forecolor="#333333" fontSize="8.0">
+					<expression><![CDATA[$F{proveedor_telefono}]]></expression>
+				</element>
+				<element kind="staticText" uuid="b9879421-5368-43cf-ba0b-e06d667197b5" x="5" y="153" width="70" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+					<text><![CDATA[RAZÓN SOCIAL:]]></text>
+				</element>
+				<element kind="textField" uuid="451ee97f-3def-4097-a487-694b22b57ff7" x="80" y="153" width="445" height="14" forecolor="#333333" fontSize="8.0">
+					<expression><![CDATA[$F{razon_social}]]></expression>
+				</element>
+				<element kind="staticText" uuid="7f930baa-fd16-4173-b564-3d7e08453334" x="5" y="171" width="70" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+					<text><![CDATA[NOMBRE COM.:]]></text>
+				</element>
+				<element kind="textField" uuid="c1d30346-1ad6-4c80-91d8-ce5c6a600ab9" x="80" y="171" width="200" height="14" forecolor="#333333" fontSize="8.0">
+					<expression><![CDATA[$F{nombre_comercial}]]></expression>
+				</element>
+				<element kind="staticText" uuid="ade9ab66-3364-4cd7-8fe0-e51a0eb61d22" x="5" y="189" width="60" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+					<text><![CDATA[DIRECCIÓN:]]></text>
+				</element>
+				<element kind="textField" uuid="4c24a4bf-8246-4825-bce3-9e6315d9eaf8" x="70" y="189" width="455" height="14" forecolor="#333333" fontSize="8.0">
+					<expression><![CDATA[$F{proveedor_direccion}]]></expression>
+				</element>
+				<element kind="staticText" uuid="59a78f36-ff05-4eb3-8e7a-f5f27e8f3df3" x="0" y="228" width="200" height="18" forecolor="#0D47A1" fontSize="10.0" bold="true">
+					<text><![CDATA[DATOS DE LA ORDEN]]></text>
+				</element>
+				<element kind="rectangle" uuid="07ce6141-4b64-4244-8b49-503a743a0e80" x="0" y="248" width="535" height="20" backcolor="#F5F5F5">
+					<pen lineWidth="0.5" lineColor="#CCCCCC"/>
+				</element>
+				<element kind="staticText" uuid="0b72cc83-a079-4f6f-a578-3457b88f4174" x="5" y="250" width="90" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+					<text><![CDATA[CANT. PRODUCTOS:]]></text>
+				</element>
+				<element kind="textField" uuid="7c07ac50-038b-41c3-852b-3d9f8b43a7ac" x="100" y="250" width="50" height="14" forecolor="#0D47A1" fontSize="8.0" bold="true">
+					<expression><![CDATA[$F{cantidad_productos}]]></expression>
+				</element>
+				<element kind="staticText" uuid="42be6885-4b5e-4b30-b1b4-3b30088e1b35" x="170" y="250" width="60" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+					<text><![CDATA[EMPLEADO:]]></text>
+				</element>
+				<element kind="textField" uuid="99516dc7-27c1-49f0-b81f-f760a65e995d" x="235" y="250" width="140" height="14" forecolor="#333333" fontSize="8.0">
+					<expression><![CDATA[$F{empleado_nombre}]]></expression>
+				</element>
+				<element kind="staticText" uuid="b211ae89-8e60-40e1-ada6-50c6d33c90d9" x="380" y="250" width="50" height="14" forecolor="#555555" fontSize="8.0" bold="true">
+					<text><![CDATA[CARGO:]]></text>
+				</element>
+				<element kind="textField" uuid="205c0ce2-84f5-4f92-bcd0-63ecc90284e3" x="435" y="250" width="90" height="14" forecolor="#333333" fontSize="8.0">
+					<expression><![CDATA[$F{empleado_cargo}]]></expression>
+				</element>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="90">
+				<element kind="line" uuid="cc51fe4f-412a-49b4-a3d6-07e930e0f495" x="0" y="5" width="535" height="1" forecolor="#1565C0">
+					<pen lineWidth="0.5"/>
+				</element>
+				<element kind="rectangle" uuid="ef6025ce-7dda-48f9-b385-76d71b179d5e" x="250" y="15" width="285" height="60" backcolor="#F5F5F5">
+					<pen lineWidth="0.5" lineColor="#CCCCCC"/>
+				</element>
+				<element kind="staticText" uuid="883bfe5a-d835-4b6b-8f6d-ba30a984611f" x="260" y="40" width="90" height="16" forecolor="#555555" fontSize="9.0" hTextAlign="Right">
+					<text><![CDATA[SUBTOTAL:]]></text>
+				</element>
+				<element kind="textField" uuid="88dbf908-4c7f-48aa-9440-1725a083233d" x="429" y="40" width="95" height="16" forecolor="#333333" fontSize="9.0" pattern="#,##0.00" hTextAlign="Right">
+					<expression><![CDATA[$F{subtotal}]]></expression>
+				</element>
+				<element kind="line" uuid="58051385-ec1b-44a9-95d1-d1ffb6b4d036" x="260" y="60" width="260" height="1" forecolor="#CCCCCC">
+					<pen lineWidth="0.5"/>
+				</element>
+				<element kind="staticText" uuid="481884bf-f0cb-46e8-99f5-8e47281ea2c9" x="260" y="67" width="90" height="16" forecolor="#555555" fontSize="11.0" bold="true" hTextAlign="Right">
+					<text><![CDATA[TOTAL:]]></text>
+				</element>
+				<element kind="textField" uuid="dd2769c6-bb4b-4ed6-933f-fe09d0c766f9" x="420" y="67" width="105" height="16" forecolor="#0D47A1" fontSize="11.0" pattern="#,##0.00" bold="true" hTextAlign="Right">
+					<expression><![CDATA[$F{total}]]></expression>
+				</element>
+			</band>
+		</groupFooter>
+	</group>
+	<columnHeader height="25">
+		<element kind="rectangle" uuid="ce6cb21d-d46b-49cd-bf39-889c1b16d1c5" x="0" y="0" width="535" height="25" backcolor="#1565C0">
+			<pen lineWidth="0.0"/>
+		</element>
+		<element kind="staticText" uuid="0dbe643b-ae2e-4f8e-a50b-ebcbd028d330" x="5" y="5" width="60" height="16" forecolor="#FFFFFF" fontSize="8.0" bold="true">
+			<text><![CDATA[CÓDIGO]]></text>
+		</element>
+		<element kind="staticText" uuid="3f1badc3-9052-43a6-a8b8-319a25f64dea" x="70" y="5" width="230" height="16" forecolor="#FFFFFF" fontSize="8.0" bold="true">
+			<text><![CDATA[PRODUCTO]]></text>
+		</element>
+		<element kind="staticText" uuid="7ecd17ab-4889-4eed-b1fb-d4bd9967eca3" x="305" y="5" width="50" height="16" forecolor="#FFFFFF" fontSize="8.0" bold="true" hTextAlign="Right">
+			<text><![CDATA[CANT]]></text>
+		</element>
+		<element kind="staticText" uuid="1bb2c06a-6974-4e57-8879-2bd9d726151d" x="360" y="5" width="55" height="16" forecolor="#FFFFFF" fontSize="8.0" bold="true" hTextAlign="Right">
+			<text><![CDATA[PRECIO]]></text>
+		</element>
+		<element kind="staticText" uuid="c4ebda55-2656-4831-94fb-137dd157399e" x="420" y="5" width="50" height="16" forecolor="#FFFFFF" fontSize="8.0" bold="true" hTextAlign="Right">
+			<text><![CDATA[ITBIS]]></text>
+		</element>
+		<element kind="staticText" uuid="5df561c0-2bf1-425d-a590-fc98251acd37" x="475" y="5" width="55" height="16" forecolor="#FFFFFF" fontSize="8.0" bold="true" hTextAlign="Right">
+			<text><![CDATA[SUBT]]></text>
+		</element>
+	</columnHeader>
+	<detail>
+		<band height="20">
+			<element kind="line" uuid="b93743b8-2c9d-4a57-9c1d-b4ef248032fb" x="0" y="19" width="535" height="1" forecolor="#E0E0E0">
+				<pen lineWidth="0.3"/>
+			</element>
+			<element kind="textField" uuid="af398031-96f6-4997-a970-4669fbf40230" x="5" y="3" width="60" height="14" forecolor="#333333" fontSize="7.0">
+				<expression><![CDATA[$F{codigo_barra} == null ? "-" : $F{codigo_barra}]]></expression>
+			</element>
+			<element kind="textField" uuid="a1123456-8bfc-4a44-8209-5e3cd43a6f54" x="70" y="3" width="230" height="14" forecolor="#333333" fontSize="7.0">
+				<expression><![CDATA[$F{producto_nombre}]]></expression>
+			</element>
+			<element kind="textField" uuid="c1b6e74f-7bde-4c46-b422-ea7f1b75b8f8" x="305" y="3" width="50" height="14" forecolor="#333333" fontSize="7.0" pattern="#,##0" hTextAlign="Right">
+				<expression><![CDATA[$F{cantidad}]]></expression>
+			</element>
+			<element kind="textField" uuid="fbfda3e2-0ea0-4cd9-8f1d-70ddd655e62a" x="360" y="3" width="55" height="14" forecolor="#333333" fontSize="7.0" pattern="#,##0.00" hTextAlign="Right">
+				<expression><![CDATA[$F{precio_unitario}]]></expression>
+			</element>
+			<element kind="textField" uuid="3eff13b7-55fc-4a22-ae8a-931fd60543fb" x="420" y="3" width="50" height="14" forecolor="#333333" fontSize="7.0" pattern="#,##0.00" hTextAlign="Right">
+				<expression><![CDATA[$F{precio_unitario}.multiply($F{cantidad}).multiply(new java.math.BigDecimal("0.18"))]]></expression>
+			</element>
+			<element kind="textField" uuid="995a5689-ddf8-4f19-a220-15cb3bc2e47d" x="475" y="3" width="55" height="14" forecolor="#0D47A1" fontSize="7.0" pattern="#,##0.00" bold="true" hTextAlign="Right">
+				<expression><![CDATA[$F{subtotal_producto}]]></expression>
+			</element>
+		</band>
+	</detail>
+	<pageFooter height="20">
+		<element kind="textField" uuid="0752d764-90bf-45c8-8a94-ced9efeeb621" x="240" y="5" width="60" height="12" forecolor="#888888" fontSize="7.0" evaluationTime="Report" hTextAlign="Center">
+			<expression><![CDATA["Pág. " + $V{PAGE_NUMBER}]]></expression>
+		</element>
+	</pageFooter>
+</jasperReport>

@@ -1,0 +1,271 @@
+<!-- Created with Jaspersoft Studio version 7.0.6.final using JasperReports Library version 7.0.6-5d2a603fdc6b3db8f842a83383e594f41891534d  -->
+<jasperReport name="ReporteVentas" language="java" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="abda99c1-49d0-49c5-b4ca-9f800b523416">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="SQLServer"/>
+	<parameter name="id_venta" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[1]]></defaultValueExpression>
+	</parameter>
+	<query language="SQL"><![CDATA[SELECT
+    v.id_venta,
+    v.fecha,
+    v.estado AS estado_venta,
+    v.subtotal,
+    v.descuento AS descuento_venta,
+    v.itbis AS itbis_venta,
+    v.total,
+    ISNULL(c.nombres + ' ' + c.apellidos, 'CONSUMIDOR FINAL') AS cliente_nombre,
+    ISNULL(c.cedula_rnc, '-') AS cliente_cedula,
+    ISNULL(c.telefono, '-') AS cliente_telefono,
+    ISNULL(c.email, '-') AS cliente_email,
+    ISNULL(c.puntos_fidelidad, 0) AS cliente_puntos,
+    e.nombres + ' ' + e.apellidos AS vendedor_nombre,
+    ISNULL(cf.ncf, 'SIN NCF') AS ncf,
+    ISNULL(tcf.codigo, '-') AS tipo_ncf_codigo,
+    ISNULL(tcf.descripcion, '-') AS tipo_ncf_desc,
+    cf.fecha_emision,
+    rm.nro_receta,
+    rm.nombre_medico_ext,
+    dv.id_det_venta,
+    p.codigo_barra,
+    p.nombre AS producto_nombre,
+    dv.cantidad,
+    dv.precio_unitario,
+    dv.descuento AS descuento_linea,
+    dv.itbis AS itbis_linea,
+    dv.subtotal AS subtotal_linea,
+    dv.lote,
+    dv.fecha_vencimiento
+FROM dbo.tbl_VENTA v
+INNER JOIN dbo.tbl_DETALLE_VENTA dv ON dv.id_venta = v.id_venta
+INNER JOIN dbo.tbl_EMPLEADO e ON e.id_empleado = v.id_empleado
+LEFT JOIN dbo.tbl_CLIENTE c ON c.id_cliente = v.id_cliente
+LEFT JOIN dbo.tbl_COMPROBANTE_FISCAL cf ON cf.id_comprobante = v.id_comprobante
+LEFT JOIN dbo.tbl_TIPO_COMPROBANTE_FISCAL tcf ON tcf.id_tipo_ncf = cf.id_tipo_ncf
+LEFT JOIN dbo.tbl_RECETA_MEDICA rm ON rm.id_venta = v.id_venta
+INNER JOIN dbo.tbl_PRODUCTO p ON p.id_producto = dv.id_producto
+WHERE v.id_venta = $P{id_venta}
+  AND v.estado NOT IN ('ANULADA')
+ORDER BY dv.id_det_venta]]></query>
+	<field name="id_venta" class="java.lang.Integer"/>
+	<field name="fecha" class="java.sql.Timestamp"/>
+	<field name="estado_venta" class="java.lang.String"/>
+	<field name="subtotal" class="java.math.BigDecimal"/>
+	<field name="descuento_venta" class="java.math.BigDecimal"/>
+	<field name="itbis_venta" class="java.math.BigDecimal"/>
+	<field name="total" class="java.math.BigDecimal"/>
+	<field name="cliente_nombre" class="java.lang.String"/>
+	<field name="cliente_cedula" class="java.lang.String"/>
+	<field name="cliente_telefono" class="java.lang.String"/>
+	<field name="cliente_email" class="java.lang.String"/>
+	<field name="cliente_puntos" class="java.lang.Integer"/>
+	<field name="vendedor_nombre" class="java.lang.String"/>
+	<field name="ncf" class="java.lang.String"/>
+	<field name="tipo_ncf_codigo" class="java.lang.String"/>
+	<field name="tipo_ncf_desc" class="java.lang.String"/>
+	<field name="fecha_emision" class="java.sql.Timestamp"/>
+	<field name="nro_receta" class="java.lang.String"/>
+	<field name="nombre_medico_ext" class="java.lang.String"/>
+	<field name="id_det_venta" class="java.lang.Integer"/>
+	<field name="codigo_barra" class="java.lang.String"/>
+	<field name="producto_nombre" class="java.lang.String"/>
+	<field name="cantidad" class="java.math.BigDecimal"/>
+	<field name="precio_unitario" class="java.math.BigDecimal"/>
+	<field name="descuento_linea" class="java.math.BigDecimal"/>
+	<field name="itbis_linea" class="java.math.BigDecimal"/>
+	<field name="subtotal_linea" class="java.math.BigDecimal"/>
+	<field name="lote" class="java.lang.String"/>
+	<field name="fecha_vencimiento" class="java.sql.Date"/>
+	<variable name="var_subtotal_grp" calculation="Sum" class="java.math.BigDecimal">
+		<expression><![CDATA[$F{subtotal_linea}]]></expression>
+		<initialValueExpression><![CDATA[new java.math.BigDecimal("0")]]></initialValueExpression>
+	</variable>
+	<variable name="var_itbis_grp" calculation="Sum" class="java.math.BigDecimal">
+		<expression><![CDATA[$F{itbis_linea}]]></expression>
+		<initialValueExpression><![CDATA[new java.math.BigDecimal("0")]]></initialValueExpression>
+	</variable>
+	<group name="grp_venta">
+		<expression><![CDATA[$F{id_venta}]]></expression>
+		<groupHeader>
+			<band height="170">
+				<element kind="rectangle" uuid="8a26d4cc-62ac-4c7a-9f99-b0da20878cf9" x="0" y="0" width="535" height="35" backcolor="#1565C0">
+					<pen lineWidth="0.0"/>
+				</element>
+				<element kind="staticText" uuid="992eb0a4-6bc2-4a2f-b694-b78d39579d14" x="0" y="5" width="535" height="25" forecolor="#FFFFFF" fontSize="16.0" bold="true" hTextAlign="Center">
+					<text><![CDATA[FACTURA DE VENTA]]></text>
+				</element>
+				<element kind="rectangle" uuid="b6a7d14c-2697-4c77-bc18-b69e354c7244" x="370" y="40" width="165" height="35" backcolor="#F39C12">
+					<pen lineWidth="0.0"/>
+				</element>
+				<element kind="staticText" uuid="27e0f1ac-929f-4704-b840-62ee2386d90c" x="375" y="43" width="40" height="12" forecolor="#FFFFFF" fontSize="7.0" bold="true">
+					<text><![CDATA[NCF:]]></text>
+				</element>
+				<element kind="textField" uuid="62ac8953-405d-491e-a36b-e2a6db77599c" x="375" y="55" width="155" height="16" forecolor="#FFFFFF" fontSize="11.0" bold="true" hTextAlign="Center">
+					<expression><![CDATA[$F{ncf}]]></expression>
+				</element>
+				<element kind="rectangle" uuid="dd81e55b-c48f-4220-b7be-a01ebf316159" x="0" y="40" width="365" height="50" backcolor="#E3F2FD">
+					<pen lineWidth="0.5" lineColor="#1565C0"/>
+				</element>
+				<element kind="staticText" uuid="b27141a5-bbee-480d-a8b9-6aa754efc4a2" x="5" y="45" width="50" height="12" forecolor="#1565C0" fontSize="7.0" bold="true">
+					<text><![CDATA[CLIENTE:]]></text>
+				</element>
+				<element kind="textField" uuid="a83a45ae-1ce8-4e69-a85f-bf8073aee0db" x="60" y="45" width="200" height="12" forecolor="#333333" fontSize="8.0" bold="true">
+					<expression><![CDATA[$F{cliente_nombre}]]></expression>
+				</element>
+				<element kind="textField" uuid="35f55c57-2b39-4ab6-9543-f08c2a62e5cd" x="5" y="60" width="160" height="12" forecolor="#333333" fontSize="7.0">
+					<expression><![CDATA["RNC: " + $F{cliente_cedula}]]></expression>
+				</element>
+				<element kind="textField" uuid="6326710c-d76b-47ad-9e6f-85e27ac712a3" x="170" y="60" width="190" height="12" forecolor="#333333" fontSize="7.0">
+					<expression><![CDATA["Tel: " + $F{cliente_telefono}]]></expression>
+				</element>
+				<element kind="textField" uuid="40071539-d970-456a-87e2-650b55cc51d8" x="5" y="75" width="355" height="12" forecolor="#333333" fontSize="7.0">
+					<expression><![CDATA["Email: " + $F{cliente_email}]]></expression>
+				</element>
+				<element kind="rectangle" uuid="a9a87e0c-18b6-4ff5-9fd8-038611a03b52" x="0" y="95" width="535" height="70" backcolor="#F5F5F5">
+					<pen lineWidth="0.5" lineColor="#BDBDBD"/>
+				</element>
+				<element kind="staticText" uuid="247b34bb-4182-4a93-b2a7-54a3e52d5f69" x="5" y="100" width="70" height="12" forecolor="#555555" fontSize="7.0" bold="true">
+					<text><![CDATA[Nº Factura:]]></text>
+				</element>
+				<element kind="textField" uuid="ece1b90d-2bd8-401e-8457-48b3ca810257" x="80" y="100" width="80" height="12" forecolor="#1565C0" fontSize="8.0" bold="true">
+					<expression><![CDATA["FAC-" + $F{id_venta}]]></expression>
+				</element>
+				<element kind="staticText" uuid="648becf1-70e1-4532-90c4-cf9b37775dda" x="170" y="100" width="45" height="12" forecolor="#555555" fontSize="7.0" bold="true">
+					<text><![CDATA[Fecha:]]></text>
+				</element>
+				<element kind="textField" uuid="953466de-9856-4f71-91ad-86c03fb80f2f" x="220" y="100" width="130" height="12" forecolor="#333333" fontSize="7.0" pattern="dd/MM/yyyy HH:mm">
+					<expression><![CDATA[$F{fecha}]]></expression>
+				</element>
+				<element kind="staticText" uuid="94ac11d0-b011-4401-a096-ef85626ce533" x="360" y="100" width="50" height="12" forecolor="#555555" fontSize="7.0" bold="true">
+					<text><![CDATA[Vendedor:]]></text>
+				</element>
+				<element kind="textField" uuid="b79c6f7e-5338-46fb-a5c3-fa3761bb93af" x="415" y="100" width="115" height="12" forecolor="#333333" fontSize="7.0">
+					<expression><![CDATA[$F{vendedor_nombre}]]></expression>
+				</element>
+				<element kind="staticText" uuid="546cfa35-78e5-42c7-b57e-e253513d7e01" x="5" y="115" width="60" height="12" forecolor="#555555" fontSize="7.0" bold="true">
+					<text><![CDATA[Tipo NCF:]]></text>
+				</element>
+				<element kind="textField" uuid="e0cb4f65-8a90-47b1-a5f5-4e620069ab80" x="70" y="115" width="200" height="12" forecolor="#333333" fontSize="7.0">
+					<expression><![CDATA[$F{tipo_ncf_codigo} + " - " + $F{tipo_ncf_desc}]]></expression>
+				</element>
+				<element kind="textField" uuid="503c37b3-fa93-4e70-9e60-e58241f7982e" x="280" y="115" width="250" height="12" forecolor="#E74C3C" fontSize="7.0" bold="true">
+					<expression><![CDATA[$F{nro_receta} != null ? "RECETA: " + $F{nro_receta} : ""]]></expression>
+				</element>
+				<element kind="staticText" uuid="7ff91458-4cb5-4df5-ab8b-4b9218ee7432" x="5" y="130" width="50" height="12" forecolor="#555555" fontSize="7.0" bold="true">
+					<text><![CDATA[Médico:]]></text>
+				</element>
+				<element kind="textField" uuid="e41c35d8-cd89-4af7-9d41-19937185191f" x="60" y="130" width="200" height="12" forecolor="#333333" fontSize="7.0">
+					<expression><![CDATA[$F{nombre_medico_ext}]]></expression>
+				</element>
+				<element kind="textField" uuid="f3b828a4-d9c5-4d87-92c2-14cb3d980bfd" x="280" y="130" width="250" height="12" forecolor="#F39C12" fontSize="7.0" bold="true" hTextAlign="Right">
+					<expression><![CDATA["Puntos acumulados: " + $F{cliente_puntos}]]></expression>
+				</element>
+				<element kind="rectangle" uuid="241d55e2-bd0c-4957-9078-3bd881c4ed5c" x="0" y="148" width="535" height="22" backcolor="#1976D2">
+					<pen lineWidth="0.0"/>
+				</element>
+				<element kind="staticText" uuid="467ac0e5-6481-4aa5-ab87-8ab92ed95077" x="5" y="151" width="45" height="14" forecolor="#FFFFFF" fontSize="7.0" bold="true">
+					<text><![CDATA[CÓDIGO]]></text>
+				</element>
+				<element kind="staticText" uuid="34bf834b-bb45-4b19-b50c-680e59c134b1" x="55" y="151" width="150" height="14" forecolor="#FFFFFF" fontSize="7.0" bold="true">
+					<text><![CDATA[PRODUCTO]]></text>
+				</element>
+				<element kind="staticText" uuid="f22de51a-2ec0-4401-b78c-aabebd520909" x="210" y="151" width="40" height="14" forecolor="#FFFFFF" fontSize="7.0" bold="true" hTextAlign="Right">
+					<text><![CDATA[CANT]]></text>
+				</element>
+				<element kind="staticText" uuid="75accdbe-eb06-46d4-b03f-89942459e08a" x="255" y="151" width="55" height="14" forecolor="#FFFFFF" fontSize="7.0" bold="true" hTextAlign="Right">
+					<text><![CDATA[PRECIO]]></text>
+				</element>
+				<element kind="staticText" uuid="5a43043a-43f4-4bdf-a6ed-0a40ce08c186" x="315" y="151" width="45" height="14" forecolor="#FFFFFF" fontSize="7.0" bold="true" hTextAlign="Right">
+					<text><![CDATA[DTO]]></text>
+				</element>
+				<element kind="staticText" uuid="8f3d26cc-3e06-4f26-8cd0-44db34d14c81" x="365" y="151" width="45" height="14" forecolor="#FFFFFF" fontSize="7.0" bold="true" hTextAlign="Right">
+					<text><![CDATA[ITBIS]]></text>
+				</element>
+				<element kind="staticText" uuid="38391a61-9580-455b-b4f9-a5cfdfd33c13" x="415" y="151" width="55" height="14" forecolor="#FFFFFF" fontSize="7.0" bold="true" hTextAlign="Right">
+					<text><![CDATA[SUBT]]></text>
+				</element>
+				<element kind="staticText" uuid="c1cc72f4-9355-4058-8b5c-b58bbb7e6628" x="475" y="151" width="55" height="14" forecolor="#FFFFFF" fontSize="7.0" bold="true">
+					<text><![CDATA[LOTE]]></text>
+				</element>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="55">
+				<element kind="line" uuid="098b6021-5435-4abc-b56f-92a4e5a17f2e" x="0" y="0" width="535" height="1" forecolor="#BBDEFB">
+					<pen lineWidth="0.5"/>
+				</element>
+				<element kind="staticText" uuid="2fca40b7-e4d5-44ad-a7cc-f1b4d5252b0d" x="280" y="5" width="70" height="14" forecolor="#1565C0" fontSize="8.0" bold="true" hTextAlign="Right">
+					<text><![CDATA[SUBTOTAL:]]></text>
+				</element>
+				<element kind="textField" uuid="22b7f349-3f0d-41e6-996d-d37a261fbe66" x="355" y="5" width="80" height="14" forecolor="#1565C0" fontSize="8.0" pattern="#,##0.00" bold="true" hTextAlign="Right">
+					<expression><![CDATA[$V{var_subtotal_grp}]]></expression>
+				</element>
+				<element kind="staticText" uuid="d698e11d-ce43-468d-ae04-5e285fb42a7a" x="280" y="20" width="70" height="14" forecolor="#1565C0" fontSize="8.0" bold="true" hTextAlign="Right">
+					<text><![CDATA[DESCUENTO:]]></text>
+				</element>
+				<element kind="textField" uuid="d8af58a8-7167-4670-ab82-7d3f66a056d8" x="355" y="20" width="80" height="14" forecolor="#E74C3C" fontSize="8.0" pattern="#,##0.00" bold="true" hTextAlign="Right">
+					<expression><![CDATA[$F{descuento_venta}]]></expression>
+				</element>
+				<element kind="staticText" uuid="cba5729c-4ab0-4743-ad3d-c62e959d63ab" x="440" y="5" width="55" height="14" forecolor="#1565C0" fontSize="8.0" bold="true" hTextAlign="Right">
+					<text><![CDATA[ITBIS 18%:]]></text>
+				</element>
+				<element kind="textField" uuid="aea35de8-6eab-407d-a13d-39a36c73c4ca" x="500" y="5" width="35" height="14" forecolor="#2980B9" fontSize="8.0" pattern="#,##0.00" bold="true" hTextAlign="Right">
+					<expression><![CDATA[$V{var_itbis_grp}]]></expression>
+				</element>
+				<element kind="rectangle" uuid="1b98188a-e8f0-44be-b8bc-e1a8f0aa0c38" x="280" y="20" width="255" height="25" backcolor="#0D47A1">
+					<pen lineWidth="0.0"/>
+				</element>
+				<element kind="staticText" uuid="78f1d2cc-4146-43d1-81fc-f5b8f847c0f2" x="285" y="24" width="60" height="16" forecolor="#FFFFFF" fontSize="10.0" bold="true" hTextAlign="Right">
+					<text><![CDATA[TOTAL:]]></text>
+				</element>
+				<element kind="textField" uuid="33840280-5594-4b3f-9009-e7f7461262f7" x="350" y="23" width="80" height="18" forecolor="#FFFFFF" fontSize="12.0" pattern="#,##0.00" bold="true" hTextAlign="Right">
+					<expression><![CDATA[$F{total}]]></expression>
+				</element>
+			</band>
+		</groupFooter>
+	</group>
+	<detail>
+		<band height="18">
+			<element kind="rectangle" uuid="d1568f2c-05c2-4c66-993c-42b682ec3e67" x="0" y="0" width="535" height="17" backcolor="#E8F4FD">
+				<printWhenExpression><![CDATA[$V{REPORT_COUNT} % 2 == 0]]></printWhenExpression>
+				<pen lineWidth="0.0"/>
+			</element>
+			<element kind="line" uuid="6ef72c02-e887-4edc-b1b7-5ef424e7328f" x="0" y="17" width="535" height="1" forecolor="#BBDEFB">
+				<pen lineWidth="0.3"/>
+			</element>
+			<element kind="textField" uuid="3d6703b6-d885-4011-bfc7-162cd46d7513" x="5" y="2" width="45" height="12" forecolor="#333333" fontSize="6.0" blankWhenNull="true">
+				<expression><![CDATA[$F{codigo_barra}]]></expression>
+			</element>
+			<element kind="textField" uuid="f6209a3e-d961-4e32-b0d7-87bc28ccea93" x="55" y="2" width="150" height="12" forecolor="#333333" fontSize="6.0" blankWhenNull="true">
+				<expression><![CDATA[$F{producto_nombre}]]></expression>
+			</element>
+			<element kind="textField" uuid="7254b6ff-6128-4998-99cc-bafdeff2faf1" x="210" y="2" width="40" height="12" forecolor="#333333" fontSize="6.0" pattern="#,##0.00" blankWhenNull="true" hTextAlign="Right">
+				<expression><![CDATA[$F{cantidad}]]></expression>
+			</element>
+			<element kind="textField" uuid="322fce46-20db-46e4-a0d3-965ad5d8ba9f" x="255" y="2" width="55" height="12" forecolor="#333333" fontSize="6.0" pattern="#,##0.00" blankWhenNull="true" hTextAlign="Right">
+				<expression><![CDATA[$F{precio_unitario}]]></expression>
+			</element>
+			<element kind="textField" uuid="8a3e4322-8159-4211-b09d-b8ef372acb32" x="315" y="2" width="45" height="12" forecolor="#1565C0" fontSize="6.0" pattern="#,##0.00" blankWhenNull="true" hTextAlign="Right">
+				<expression><![CDATA[$F{descuento_linea}]]></expression>
+			</element>
+			<element kind="textField" uuid="ad6f0103-07ff-4d42-a0ed-998d71d208d6" x="365" y="2" width="45" height="12" forecolor="#333333" fontSize="6.0" pattern="#,##0.00" blankWhenNull="true" hTextAlign="Right">
+				<expression><![CDATA[$F{itbis_linea}]]></expression>
+			</element>
+			<element kind="textField" uuid="1172934a-dbbe-4e03-90ef-b3db9b3d9ee8" x="415" y="2" width="55" height="12" forecolor="#0D47A1" fontSize="6.0" pattern="#,##0.00" blankWhenNull="true" bold="true" hTextAlign="Right">
+				<expression><![CDATA[$F{subtotal_linea}]]></expression>
+			</element>
+			<element kind="textField" uuid="e26480a3-2ab7-4072-a1f4-925cef94216c" x="475" y="2" width="55" height="12" forecolor="#333333" fontSize="6.0" blankWhenNull="true">
+				<expression><![CDATA[$F{lote}]]></expression>
+			</element>
+		</band>
+	</detail>
+	<pageFooter height="25">
+		<element kind="line" uuid="29fdf945-6f65-42b5-b282-8b7e884edefc" x="0" y="0" width="535" height="1" forecolor="#1976D2">
+			<pen lineWidth="0.5"/>
+		</element>
+		<element kind="staticText" uuid="99a898bc-ce03-474d-8695-319e3ef6180b" x="5" y="5" width="400" height="12" forecolor="#888888" fontSize="6.0">
+			<text><![CDATA[Gracias por su compra - Comprobante Fiscal Válido Ley 11-92]]></text>
+		</element>
+		<element kind="textField" uuid="db23999a-7382-4516-8666-b5a91e99c642" x="410" y="5" width="120" height="12" forecolor="#888888" fontSize="6.0" evaluationTime="Report" hTextAlign="Right">
+			<expression><![CDATA["Página " + $V{PAGE_NUMBER}]]></expression>
+		</element>
+	</pageFooter>
+</jasperReport>
