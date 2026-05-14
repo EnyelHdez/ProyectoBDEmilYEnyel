@@ -19,6 +19,7 @@ import org.example.proyecto.Conexion.ConexionBD;
 import org.example.proyecto.Modelos.DetalleVenta;
 import org.example.proyecto.Modelos.Venta;
 import org.example.proyecto.Modelos.Usuarios.SesionUsuario;
+import org.example.proyecto.util.EmailUtil;
 import org.example.proyecto.util.ReportUtil;
 
 import java.io.IOException;
@@ -84,6 +85,7 @@ public class RegistroVentaController implements Initializable {
     @FXML private Button btnEditar;
     @FXML private Button btnGuardar;
     @FXML private Button btnGenerarReporte;
+    @FXML private Button btnEnviarCorreo;
     @FXML private Button btnBuscar;
     @FXML private Button btnVerTodos;
     @FXML private Button btnCerrarConsulta;
@@ -798,6 +800,44 @@ public class RegistroVentaController implements Initializable {
         Map<String, Object> params = new HashMap<>();
         params.put("id_venta", seleccion.getIdVenta());
         ReportUtil.generarReporte("Ventas", "/reportes/ReporteVentas.jasper", params, conexion);
+    }
+
+    @FXML
+    private void enviarFactura() {
+        Venta seleccion = tblVentas.getSelectionModel().getSelectedItem();
+        if (seleccion == null) {
+            mostrarAlerta("Seleccionar Venta", "Debe seleccionar una venta para enviar la factura.", Alert.AlertType.WARNING);
+            return;
+        }
+        try {
+            String correo = "";
+            String sql = "SELECT c.correo FROM tbl_CLIENTE c JOIN tbl_VENTA v ON c.id_cliente = v.id_cliente WHERE v.id_venta = ?";
+            try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+                ps.setInt(1, seleccion.getIdVenta());
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    correo = rs.getString("correo");
+                }
+            }
+            if (correo == null || correo.trim().isEmpty()) {
+                mostrarAlerta("Sin correo", "El cliente de esta venta no tiene un correo electrónico registrado.", Alert.AlertType.WARNING);
+                return;
+            }
+            Map<String, Object> params = new HashMap<>();
+            params.put("id_venta", seleccion.getIdVenta());
+            byte[] pdf = ReportUtil.generarReportePDF("/reportes/ReporteVentas.jasper", params, conexion);
+            if (pdf == null) return;
+
+            EmailUtil.enviarFacturaPDF(correo,
+                    "Factura de Venta #" + seleccion.getIdVenta(),
+                    "Estimado cliente,\n\nAdjunto encontrará la factura de su compra.\n\nGracias por su preferencia.\nFarmacia Kenia Carmen",
+                    pdf, "Factura_Venta_" + seleccion.getIdVenta() + ".pdf");
+
+            mostrarAlerta("Correo enviado", "La factura ha sido enviada exitosamente a: " + correo, Alert.AlertType.INFORMATION);
+        } catch (Exception e) {
+            e.printStackTrace();
+            mostrarAlerta("Error", "Error al enviar el correo: " + e.getMessage(), Alert.AlertType.ERROR);
+        }
     }
 
     private void mostrarAlerta(String titulo, String mensaje, Alert.AlertType tipo) {

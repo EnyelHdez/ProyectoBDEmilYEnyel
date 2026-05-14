@@ -38,6 +38,34 @@ public class ReportUtil {
         }
     }
 
+    public static byte[] generarReportePDF(String jasperResourcePath, Map<String, Object> parametros, Connection conexion) {
+        try {
+            InputStream jasperStream = ReportUtil.class.getResourceAsStream(jasperResourcePath);
+            if (jasperStream == null) {
+                mostrarError("No se encontró el archivo compilado: " + jasperResourcePath);
+                return null;
+            }
+
+            JasperReport jasperReport = (JasperReport) JRLoader.loadObject(jasperStream);
+
+            parametros.put("REPORT_LOCALE", new java.util.Locale("es", "DO"));
+
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parametros, conexion);
+
+            if (jasperPrint.getPages().isEmpty()) {
+                mostrarError("El reporte no contiene datos para los criterios actuales.");
+                return null;
+            }
+
+            return JasperExportManager.exportReportToPdf(jasperPrint);
+
+        } catch (JRException e) {
+            mostrarError("Error al generar el PDF: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     private static void mostrarError(String mensaje) {
         javafx.application.Platform.runLater(() -> {
             Alert a = new Alert(Alert.AlertType.ERROR);

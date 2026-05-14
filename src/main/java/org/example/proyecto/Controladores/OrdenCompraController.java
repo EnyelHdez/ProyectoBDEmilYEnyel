@@ -13,6 +13,7 @@ import org.example.proyecto.Conexion.ConexionBD;
 import org.example.proyecto.Modelos.DetalleOrdenCompra;
 import org.example.proyecto.Modelos.OrdenCompra;
 import org.example.proyecto.Modelos.Usuarios.SesionUsuario;
+import org.example.proyecto.util.EmailUtil;
 import org.example.proyecto.util.ReportUtil;
 
 import java.math.BigDecimal;
@@ -43,6 +44,7 @@ public class OrdenCompraController implements Initializable {
     @FXML private Button btnEditar;
     @FXML private Button btnGuardar;
     @FXML private Button btnGenerarReporte;
+    @FXML private Button btnEnviarCorreo;
     @FXML private Button btnAgregarProducto;
     @FXML private Button btnEliminarProducto;
     @FXML private Button btnCambiarEstado;
@@ -796,7 +798,7 @@ public class OrdenCompraController implements Initializable {
     }
 
     private void actualizarStock(int idProducto, int cantidad) {
-        String sql = "UPDATE tbl_PRODUCTO SET stock = stock + ? WHERE id_producto = ?";
+        String sql = "UPDATE tbl_PRODUCTO SET stock_actual = stock_actual + ? WHERE id_producto = ?";
         try (PreparedStatement ps = conexion.prepareStatement(sql)) {
             ps.setInt(1, cantidad);
             ps.setInt(2, idProducto);
@@ -929,6 +931,44 @@ public class OrdenCompraController implements Initializable {
         Map<String, Object> params = new HashMap<>();
         params.put("id_orden", seleccion.getIdOrden());
         ReportUtil.generarReporte("OrdenCompra", "/reportes/ReporteOrdenCompra.jasper", params, conexion);
+    }
+
+    @FXML
+    private void enviarReporte() {
+        OrdenCompra seleccion = tblOrdenes.getSelectionModel().getSelectedItem();
+        if (seleccion == null) {
+            mostrarError("Debe seleccionar una orden de compra para enviar el reporte.");
+            return;
+        }
+        try {
+            String correo = "";
+            String sql = "SELECT p.correo FROM tbl_PROVEEDOR p JOIN tbl_ORDEN_COMPRA o ON p.id_proveedor = o.id_proveedor WHERE o.id_orden = ?";
+            try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+                ps.setInt(1, seleccion.getIdOrden());
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    correo = rs.getString("correo");
+                }
+            }
+            if (correo == null || correo.trim().isEmpty()) {
+                mostrarError("El proveedor no tiene un correo electrónico registrado.");
+                return;
+            }
+            Map<String, Object> params = new HashMap<>();
+            params.put("id_orden", seleccion.getIdOrden());
+            byte[] pdf = ReportUtil.generarReportePDF("/reportes/ReporteOrdenCompra.jasper", params, conexion);
+            if (pdf == null) return;
+
+            EmailUtil.enviarFacturaPDF(correo,
+                    "Orden de Compra #" + seleccion.getIdOrden(),
+                    "Estimado proveedor,\n\nAdjunto encontrará la orden de compra.\n\nSaludos cordiales.\nFarmacia Kenia Carmen",
+                    pdf, "OrdenCompra_" + seleccion.getIdOrden() + ".pdf");
+
+            mostrarExito("La orden de compra ha sido enviada exitosamente a: " + correo);
+        } catch (Exception e) {
+            e.printStackTrace();
+            mostrarError("Error al enviar el correo: " + e.getMessage());
+        }
     }
 
     private void mostrarError(String mensaje) {

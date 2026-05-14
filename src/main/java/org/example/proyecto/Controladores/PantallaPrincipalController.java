@@ -6,13 +6,17 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import org.example.proyecto.Conexion.ConexionBD;
 import org.example.proyecto.Modelos.Usuarios.SesionUsuario;
 
 import java.io.IOException;
 import java.net.URL;
+import java.sql.*;
 import java.util.*;
 
 public class PantallaPrincipalController implements Initializable {
@@ -54,6 +58,7 @@ public class PantallaPrincipalController implements Initializable {
     private Map<String, List<String>> permisosPorCargo = new HashMap<>();
     private Button botonActivo = null;
     private Map<String, Parent> vistasCache = new HashMap<>();
+    private Connection conexion;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -61,7 +66,12 @@ public class PantallaPrincipalController implements Initializable {
         configurarMapaPantallas();
         aplicarControlDeAcceso();
         aplicarEstilosBotones();
-        cargarPantallaBienvenida();
+        try {
+            conexion = new ConexionBD().EstablecerConexion();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        cargarDashboard();
         mostrarInformacionUsuario();
         configurarBadgePorRol();
     }
@@ -289,31 +299,152 @@ public class PantallaPrincipalController implements Initializable {
         }
     }
 
-    private void cargarPantallaBienvenida() {
-        lblTituloPantalla.setText("Panel Principal");
+    private void cargarDashboard() {
+        lblTituloPantalla.setText("Inicio");
 
         String nombreUsuario = "Usuario";
         if (SesionUsuario.getInstancia().isSesionActiva()) {
             nombreUsuario = SesionUsuario.getInstancia().getNombreUsuario();
         }
 
-        VBox bienvenida = new VBox(20);
-        bienvenida.setStyle("-fx-alignment: CENTER; -fx-background-color: #F4F7FC; -fx-padding: 50;");
+        VBox dashboard = new VBox(20);
+        dashboard.setStyle("-fx-padding: 20; -fx-background-color: #F4F7FC;");
 
-        Label lblIcono = new Label("🏥");
-        lblIcono.setStyle("-fx-font-size: 70px;");
+        Label lblBienvenida = new Label("¡Bienvenido, " + nombreUsuario + "!");
+        lblBienvenida.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1A4F6E;");
 
-        Label lblTitulo = new Label("¡Bienvenido, " + nombreUsuario + "!");
-        lblTitulo.setStyle("-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #1A4F6E;");
-
-        Label lblSubtitulo = new Label("Seleccione una opción del menú lateral para comenzar");
+        Label lblSubtitulo = new Label("Resumen general del sistema");
         lblSubtitulo.setStyle("-fx-font-size: 13px; -fx-text-fill: #7A9FBB;");
 
-        bienvenida.getChildren().addAll(lblIcono, lblTitulo, lblSubtitulo);
+        VBox headerBox = new VBox(5, lblBienvenida, lblSubtitulo);
+        headerBox.setStyle("-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2);");
+
+        // Grid de tarjetas 3x2
+        GridPane grid = new GridPane();
+        grid.setHgap(16);
+        grid.setVgap(16);
+        grid.setStyle("-fx-padding: 0;");
+
+        // Obtener métricas
+        Map<String, String> metricas = obtenerMetricasDashboard();
+
+        // Tarjeta 1: Ventas Hoy
+        VBox card1 = crearCard("💰", "Ventas Hoy", metricas.get("ventasHoy"), "Total de ventas registradas hoy", "#00897B", "#E0F2F1");
+        grid.add(card1, 0, 0);
+
+        // Tarjeta 2: Ventas del Mes
+        VBox card2 = crearCard("📊", "Ventas del Mes", metricas.get("ventasMes"), "Total de ventas del mes actual", "#1A6BAD", "#E3F2FD");
+        grid.add(card2, 1, 0);
+
+        // Tarjeta 3: Productos con Stock Bajo
+        VBox card3 = crearCard("⚠️", "Stock Bajo", metricas.get("stockBajo"), "Productos por debajo del mínimo", "#E65100", "#FFF3E0");
+        grid.add(card3, 2, 0);
+
+        // Tarjeta 4: Órdenes Pendientes
+        VBox card4 = crearCard("📄", "Órdenes Pendientes", metricas.get("ordenesPendientes"), "Órdenes de compra sin procesar", "#F57F17", "#FFF8E1");
+        grid.add(card4, 0, 1);
+
+        // Tarjeta 5: Devoluciones del Mes
+        VBox card5 = crearCard("🔄", "Devoluciones del Mes", metricas.get("devolucionesMes"), "Devoluciones registradas este mes", "#C62828", "#FFEBEE");
+        grid.add(card5, 1, 1);
+
+        // Tarjeta 6: Total Clientes
+        VBox card6 = crearCard("👥", "Total Clientes", metricas.get("totalClientes"), "Clientes registrados en el sistema", "#2E7D32", "#E8F5E9");
+        grid.add(card6, 2, 1);
+
+        dashboard.getChildren().addAll(headerBox, grid);
         contenedorPrincipal.getChildren().clear();
-        contenedorPrincipal.getChildren().add(bienvenida);
+        contenedorPrincipal.getChildren().add(dashboard);
 
         if (botonActivo != null) marcarBotonActivo(null);
+    }
+
+    private Map<String, String> obtenerMetricasDashboard() {
+        Map<String, String> metricas = new HashMap<>();
+        metricas.put("ventasHoy", "0");
+        metricas.put("ventasMes", "0");
+        metricas.put("stockBajo", "0");
+        metricas.put("ordenesPendientes", "0");
+        metricas.put("devolucionesMes", "0");
+        metricas.put("totalClientes", "0");
+
+        if (conexion == null) return metricas;
+
+        try {
+            String sqlVentasHoy = "SELECT COUNT(*) AS total, ISNULL(SUM(total), 0) AS monto FROM tbl_VENTA WHERE CAST(fecha AS DATE) = CAST(GETDATE() AS DATE)";
+            try (Statement st = conexion.createStatement(); ResultSet rs = st.executeQuery(sqlVentasHoy)) {
+                if (rs.next()) {
+                    metricas.put("ventasHoy", rs.getInt("total") + " | RD$ " + String.format("%.2f", rs.getBigDecimal("monto")));
+                }
+            }
+
+            String sqlVentasMes = "SELECT COUNT(*) AS total, ISNULL(SUM(total), 0) AS monto FROM tbl_VENTA WHERE MONTH(fecha) = MONTH(GETDATE()) AND YEAR(fecha) = YEAR(GETDATE())";
+            try (Statement st = conexion.createStatement(); ResultSet rs = st.executeQuery(sqlVentasMes)) {
+                if (rs.next()) {
+                    metricas.put("ventasMes", rs.getInt("total") + " | RD$ " + String.format("%.2f", rs.getBigDecimal("monto")));
+                }
+            }
+
+            String sqlStockBajo = "SELECT COUNT(*) AS total FROM tbl_PRODUCTO WHERE stock_actual <= stock_minimo";
+            try (Statement st = conexion.createStatement(); ResultSet rs = st.executeQuery(sqlStockBajo)) {
+                if (rs.next()) {
+                    metricas.put("stockBajo", String.valueOf(rs.getInt("total")));
+                }
+            }
+
+            String sqlOrdenesPend = "SELECT COUNT(*) AS total FROM tbl_ORDEN_COMPRA WHERE estado = 'PENDIENTE'";
+            try (Statement st = conexion.createStatement(); ResultSet rs = st.executeQuery(sqlOrdenesPend)) {
+                if (rs.next()) {
+                    metricas.put("ordenesPendientes", String.valueOf(rs.getInt("total")));
+                }
+            }
+
+            String sqlDevolucionesMes = "SELECT COUNT(*) AS total, ISNULL(SUM(monto_devuelto), 0) AS monto FROM tbl_DEVOLUCION WHERE MONTH(fecha) = MONTH(GETDATE()) AND YEAR(fecha) = YEAR(GETDATE())";
+            try (Statement st = conexion.createStatement(); ResultSet rs = st.executeQuery(sqlDevolucionesMes)) {
+                if (rs.next()) {
+                    metricas.put("devolucionesMes", rs.getInt("total") + " | RD$ " + String.format("%.2f", rs.getBigDecimal("monto")));
+                }
+            }
+
+            String sqlClientes = "SELECT COUNT(*) AS total FROM tbl_CLIENTE WHERE estado = 1";
+            try (Statement st = conexion.createStatement(); ResultSet rs = st.executeQuery(sqlClientes)) {
+                if (rs.next()) {
+                    metricas.put("totalClientes", String.valueOf(rs.getInt("total")));
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return metricas;
+    }
+
+    private VBox crearCard(String icono, String titulo, String valor, String descripcion, String colorAccent, String colorBg) {
+        VBox card = new VBox(12);
+        card.setStyle("-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 22; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.07), 8, 0, 0, 2); -fx-border-color: " + colorBg.replace("#", "") + "; -fx-border-radius: 14; -fx-border-width: 2;");
+        card.setPrefWidth(280);
+        card.setPrefHeight(140);
+
+        HBox iconTitleRow = new HBox(10);
+        iconTitleRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+        Label lblIcono = new Label(icono);
+        lblIcono.setStyle("-fx-font-size: 28px;");
+
+        Label lblTitulo = new Label(titulo);
+        lblTitulo.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #455A64;");
+
+        iconTitleRow.getChildren().addAll(lblIcono, lblTitulo);
+
+        Label lblValor = new Label(valor);
+        lblValor.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: " + colorAccent + ";");
+
+        Label lblDesc = new Label(descripcion);
+        lblDesc.setStyle("-fx-font-size: 11px; -fx-text-fill: #90A4AE;");
+
+        card.getChildren().addAll(iconTitleRow, lblValor, lblDesc);
+        return card;
     }
 
     private void mostrarPantallaError(String titulo, String ruta, String error) {
@@ -368,7 +499,7 @@ public class PantallaPrincipalController implements Initializable {
 
     @FXML
     private void irAInicio() {
-        cargarPantallaBienvenida();
+        cargarDashboard();
         if (botonActivo != null) marcarBotonActivo(null);
     }
 
