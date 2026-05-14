@@ -46,6 +46,18 @@
             <artifactId>formsfx-core</artifactId>
             <version>11.6.0</version>
         </dependency>
+
+        <!-- JasperReports 7.0.6 -->
+        <dependency>
+            <groupId>net.sf.jasperreports</groupId>
+            <artifactId>jasperreports</artifactId>
+            <version>7.0.6</version>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.jasperreports</groupId>
+            <artifactId>jasperreports-pdf</artifactId>
+            <version>7.0.6</version>
+        </dependency>
     </dependencies>
 
     <build>
