@@ -94,6 +94,17 @@
                     <target>17</target>
                 </configuration>
             </plugin>
+
+            <!-- JasperReports Maven Plugin: compila .jrxml → .jasper -->
+            <plugin>
+                <groupId>net.sf.jasperreports</groupId>
+                <artifactId>jasperreports-maven-plugin</artifactId>
+                <version>7.0.6</version>
+                <configuration>
+                    <sourceDirectory>${basedir}/src/main/resources/reportes</sourceDirectory>
+                    <outputDirectory>${project.build.directory}/classes/reportes</outputDirectory>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
