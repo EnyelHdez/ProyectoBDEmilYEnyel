@@ -756,12 +756,12 @@ public class RegistroDevolucionController implements Initializable {
         }
         try {
             String correo = "";
-            String sql = "SELECT c.correo FROM tbl_CLIENTE c JOIN tbl_DEVOLUCION d ON c.id_cliente = d.id_cliente WHERE d.id_devolucion = ?";
+            String sql = "SELECT c.email FROM tbl_CLIENTE c JOIN tbl_DEVOLUCION d ON c.id_cliente = d.id_cliente WHERE d.id_devolucion = ?";
             try (PreparedStatement ps = conexion.prepareStatement(sql)) {
                 ps.setInt(1, seleccion.getIdDevolucion());
                 ResultSet rs = ps.executeQuery();
                 if (rs.next()) {
-                    correo = rs.getString("correo");
+                    correo = rs.getString("email");
                 }
             }
             if (correo == null || correo.trim().isEmpty()) {

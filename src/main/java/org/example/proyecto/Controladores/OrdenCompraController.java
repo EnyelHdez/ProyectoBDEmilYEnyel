@@ -942,12 +942,12 @@ public class OrdenCompraController implements Initializable {
         }
         try {
             String correo = "";
-            String sql = "SELECT p.correo FROM tbl_PROVEEDOR p JOIN tbl_ORDEN_COMPRA o ON p.id_proveedor = o.id_proveedor WHERE o.id_orden = ?";
+            String sql = "SELECT p.email FROM tbl_PROVEEDOR p JOIN tbl_ORDEN_COMPRA o ON p.id_proveedor = o.id_proveedor WHERE o.id_orden = ?";
             try (PreparedStatement ps = conexion.prepareStatement(sql)) {
                 ps.setInt(1, seleccion.getIdOrden());
                 ResultSet rs = ps.executeQuery();
                 if (rs.next()) {
-                    correo = rs.getString("correo");
+                    correo = rs.getString("email");
                 }
             }
             if (correo == null || correo.trim().isEmpty()) {

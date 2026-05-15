@@ -140,7 +140,7 @@ public class RegistroVentaController implements Initializable {
             } else {
                 txtPrecioUnitario.clear();
                 txtLote.clear();
-                dateFechaVencimiento.setValue(null);
+                if (dateFechaVencimiento != null) dateFechaVencimiento.setValue(null);
             }
         });
     }
@@ -464,7 +464,7 @@ public class RegistroVentaController implements Initializable {
             txtPrecioUnitario.clear();
             txtDetalleDescuento.clear();
             txtLote.clear();
-            dateFechaVencimiento.setValue(null);
+            if (dateFechaVencimiento != null) dateFechaVencimiento.setValue(null);
 
         } catch (NumberFormatException e) {
             mostrarAlerta("Error", "Cantidad inválida", Alert.AlertType.WARNING);
@@ -811,12 +811,12 @@ public class RegistroVentaController implements Initializable {
         }
         try {
             String correo = "";
-            String sql = "SELECT c.correo FROM tbl_CLIENTE c JOIN tbl_VENTA v ON c.id_cliente = v.id_cliente WHERE v.id_venta = ?";
+            String sql = "SELECT c.email FROM tbl_CLIENTE c JOIN tbl_VENTA v ON c.id_cliente = v.id_cliente WHERE v.id_venta = ?";
             try (PreparedStatement ps = conexion.prepareStatement(sql)) {
                 ps.setInt(1, seleccion.getIdVenta());
                 ResultSet rs = ps.executeQuery();
                 if (rs.next()) {
-                    correo = rs.getString("correo");
+                    correo = rs.getString("email");
                 }
             }
             if (correo == null || correo.trim().isEmpty()) {

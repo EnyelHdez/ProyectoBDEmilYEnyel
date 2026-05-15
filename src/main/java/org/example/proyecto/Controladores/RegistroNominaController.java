@@ -502,12 +502,12 @@ public class RegistroNominaController implements Initializable {
         }
         try {
             String correo = "";
-            String sql = "SELECT e.correo FROM tbl_EMPLEADO e JOIN tbl_NOMINA n ON e.id_empleado = n.id_empleado WHERE n.id_nomina = ?";
+            String sql = "SELECT e.email FROM tbl_EMPLEADO e JOIN tbl_NOMINA n ON e.id_empleado = n.id_empleado WHERE n.id_nomina = ?";
             try (PreparedStatement ps = conexion.prepareStatement(sql)) {
                 ps.setInt(1, seleccion.getIdNomina());
                 ResultSet rs = ps.executeQuery();
                 if (rs.next()) {
-                    correo = rs.getString("correo");
+                    correo = rs.getString("email");
                 }
             }
             if (correo == null || correo.trim().isEmpty()) {
