@@ -5,7 +5,7 @@
 <?import javafx.scene.shape.*?>
 <?import javafx.geometry.Insets?>
 
-<BorderPane prefHeight="700.0" prefWidth="1200.0" style="-fx-background-color: #F4F7FC;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.proyecto.Controladores.PantallaPrincipalController">
+<BorderPane prefHeight="700.0" prefWidth="1200.0" style="-fx-background-color: #F4F7FC;" stylesheets="@estilos.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.proyecto.Controladores.PantallaPrincipalController">
 
     <!-- SIDEBAR IZQUIERDO -->
     <left>
@@ -34,20 +34,20 @@
 
                     <Label style="-fx-text-fill: #7BC6E8; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 8 0 4 12; -fx-letter-spacing: 0.8px;" text="MÓDULO PRINCIPAL" />
 
-                    <Button fx:id="btnClientes" onAction="#abrirClientes" prefHeight="40" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 13px; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16; -fx-background-radius: 12; -fx-cursor: hand;" text="👥  Clientes" />
-                    <Button fx:id="btnVentas" onAction="#abrirVentas" prefHeight="40" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 13px; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16; -fx-background-radius: 12; -fx-cursor: hand;" text="💰  Ventas" />
-                    <Button fx:id="btnProductos" onAction="#abrirProductos" prefHeight="40" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 13px; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16; -fx-background-radius: 12; -fx-cursor: hand;" text="💊  Productos" />
-                    <Button fx:id="btnCompras" onAction="#abrirCompras" prefHeight="40" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 13px; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16; -fx-background-radius: 12; -fx-cursor: hand;" text="📦  Compras" />
+                    <Button fx:id="btnClientes" onAction="#abrirClientes" maxWidth="Infinity" prefHeight="38" styleClass="menu-button" text="Clientes" />
+                    <Button fx:id="btnVentas" onAction="#abrirVentas" maxWidth="Infinity" prefHeight="38" styleClass="menu-button" text="Ventas" />
+                    <Button fx:id="btnProductos" onAction="#abrirProductos" maxWidth="Infinity" prefHeight="38" styleClass="menu-button" text="Productos" />
+                    <Button fx:id="btnCompras" onAction="#abrirCompras" maxWidth="Infinity" prefHeight="38" styleClass="menu-button" text="Compras" />
 
                     <Separator prefHeight="2" style="-fx-background-color: #2C5A7A; -fx-padding: 8 0;" />
 
                     <Label style="-fx-text-fill: #7BC6E8; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 8 0 4 12; -fx-letter-spacing: 0.8px;" text="ADMINISTRACIÓN" />
 
-                    <Button fx:id="btnUsuarios" onAction="#abrirUsuarios" prefHeight="40" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 13px; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16; -fx-background-radius: 12; -fx-cursor: hand;" text="👥  Usuarios" />
-                    <Button fx:id="btnEmpleados" onAction="#abrirEmpleados" prefHeight="40" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 13px; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16; -fx-background-radius: 12; -fx-cursor: hand;" text="👔  Empleados" />
-                    <Button fx:id="btnProveedores" onAction="#abrirProveedores" prefHeight="40" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 13px; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16; -fx-background-radius: 12; -fx-cursor: hand;" text="🚚  Proveedores" />
-                    <Button fx:id="btnPedidos" onAction="#abrirPedidos" prefHeight="40" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 13px; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16; -fx-background-radius: 12; -fx-cursor: hand;" text="📄  Pedidos" />
-                    <Button fx:id="btnPagos" onAction="#abrirPagos" prefHeight="40" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 13px; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16; -fx-background-radius: 12; -fx-cursor: hand;" text="💳  Pagos" />
+                    <Button fx:id="btnUsuarios" onAction="#abrirUsuarios" maxWidth="Infinity" prefHeight="38" styleClass="menu-button" text="Usuarios" />
+                    <Button fx:id="btnEmpleados" onAction="#abrirEmpleados" maxWidth="Infinity" prefHeight="38" styleClass="menu-button" text="Empleados" />
+                    <Button fx:id="btnProveedores" onAction="#abrirProveedores" maxWidth="Infinity" prefHeight="38" styleClass="menu-button" text="Proveedores" />
+                    <Button fx:id="btnPedidos" onAction="#abrirPedidos" maxWidth="Infinity" prefHeight="38" styleClass="menu-button" text="Pedidos" />
+                    <Button fx:id="btnPagos" onAction="#abrirPagos" maxWidth="Infinity" prefHeight="38" styleClass="menu-button" text="Pagos" />
 
 
                     <Separator prefHeight="2" style="-fx-background-color: #2C5A7A; -fx-padding: 8 0;" />
@@ -56,17 +56,17 @@
                     <!-- OPERACIONES -->
                     <Label style="-fx-text-fill: #7BC6E8; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 8 0 4 12; -fx-letter-spacing: 0.8px;" text="OPERACIONES" />
 
-                    <Button fx:id="btnEnvios" onAction="#abrirEnvios" prefHeight="40" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 13px; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16; -fx-background-radius: 12; -fx-cursor: hand;" text="📮  Envíos" />
-                    <Button fx:id="btnDevoluciones" onAction="#abrirDevoluciones" prefHeight="40" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 13px; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16; -fx-background-radius: 12; -fx-cursor: hand;" text="🔄  Devoluciones" />
-                    <Button fx:id="btnFidelizacion" onAction="#abrirFidelizacion" prefHeight="40" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 13px; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16; -fx-background-radius: 12; -fx-cursor: hand;" text="⭐  Fidelización" />
-                    <Button fx:id="btnReclamaciones" onAction="#abrirReclamaciones" prefHeight="40" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 13px; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16; -fx-background-radius: 12; -fx-cursor: hand;" text="📝  Reclamaciones" />
-                    <Button fx:id="btnMedicamentos" onAction="#abrirMedicamentos" prefHeight="40" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 13px; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16; -fx-background-radius: 12; -fx-cursor: hand;" text="💊  Medicamentos" />
-                    <Button fx:id="btnRecetas" onAction="#abrirRecetas" prefHeight="40" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 13px; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16; -fx-background-radius: 12; -fx-cursor: hand;" text="📋  Recetas Médicas" />
-                    <Button fx:id="btnPerdidas" onAction="#abrirPerdidas" prefHeight="40" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 13px; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16; -fx-background-radius: 12; -fx-cursor: hand;" text="⚠️  Pérdidas" />
-                    <Button fx:id="btnCuentasPago" onAction="#abrirCuentasPago" prefHeight="40" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 13px; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16; -fx-background-radius: 12; -fx-cursor: hand;" text="💳  Cuentas de Pago" />
-                    <Button fx:id="btnHistorialReclamaciones" onAction="#abrirHistorialReclamaciones" prefHeight="40" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 13px; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16; -fx-background-radius: 12; -fx-cursor: hand;" text="📊  Historial Reclamaciones" />
-                    <Button fx:id="btnOrdenCompra" onAction="#abrirOrdenCompra" prefHeight="40" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 13px; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16; -fx-background-radius: 12; -fx-cursor: hand;" text="🧾  Orden de Compra" />
-                    <Button fx:id="btnConvenios" onAction="#abrirConvenios" prefHeight="40" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 13px; -fx-alignment: CENTER_LEFT; -fx-padding: 0 0 0 16; -fx-background-radius: 12; -fx-cursor: hand;" text="🤝  Convenios" />
+                    <Button fx:id="btnEnvios" onAction="#abrirEnvios" maxWidth="Infinity" prefHeight="38" styleClass="menu-button" text="Envios" />
+                    <Button fx:id="btnDevoluciones" onAction="#abrirDevoluciones" maxWidth="Infinity" prefHeight="38" styleClass="menu-button" text="Devoluciones" />
+                    <Button fx:id="btnFidelizacion" onAction="#abrirFidelizacion" maxWidth="Infinity" prefHeight="38" styleClass="menu-button" text="Fidelizacion" />
+                    <Button fx:id="btnReclamaciones" onAction="#abrirReclamaciones" maxWidth="Infinity" prefHeight="38" styleClass="menu-button" text="Reclamaciones" />
+                    <Button fx:id="btnMedicamentos" onAction="#abrirMedicamentos" maxWidth="Infinity" prefHeight="38" styleClass="menu-button" text="Medicamentos" />
+                    <Button fx:id="btnRecetas" onAction="#abrirRecetas" maxWidth="Infinity" prefHeight="38" styleClass="menu-button" text="Recetas Medicas" />
+                    <Button fx:id="btnPerdidas" onAction="#abrirPerdidas" maxWidth="Infinity" prefHeight="38" styleClass="menu-button" text="Perdidas" />
+                    <Button fx:id="btnCuentasPago" onAction="#abrirCuentasPago" maxWidth="Infinity" prefHeight="38" styleClass="menu-button" text="Cuentas de Pago" />
+                    <Button fx:id="btnHistorialReclamaciones" onAction="#abrirHistorialReclamaciones" maxWidth="Infinity" prefHeight="38" styleClass="menu-button" text="Historial Reclamaciones" />
+                    <Button fx:id="btnOrdenCompra" onAction="#abrirOrdenCompra" maxWidth="Infinity" prefHeight="38" styleClass="menu-button" text="Orden de Compra" />
+                    <Button fx:id="btnConvenios" onAction="#abrirConvenios" maxWidth="Infinity" prefHeight="38" styleClass="menu-button" text="Convenios" />
 
                 </VBox>
             </ScrollPane>
@@ -94,9 +94,9 @@
 
                 <Region HBox.hgrow="ALWAYS" />
 
-                <Button fx:id="btnCerrarSesion" onAction="#cerrarSesion" prefHeight="38" prefWidth="130" style="-fx-background-color: #E74C3C; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-cursor: hand; -fx-font-size: 12px;" text="🚪  Cerrar Sesión" />
+                <Button fx:id="btnCerrarSesion" onAction="#cerrarSesion" prefHeight="38" prefWidth="130" styleClass="btn-danger" text="Cerrar Sesion" />
 
-                <Button fx:id="btnInicio" onAction="#irAInicio" prefHeight="38" prefWidth="90" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-cursor: hand; -fx-font-size: 12px;" text="🏠  Inicio" />
+                <Button fx:id="btnInicio" onAction="#irAInicio" prefHeight="38" prefWidth="90" styleClass="btn-primary" text="Inicio" />
 
                 <Label fx:id="lblBadgeEstado" style="-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #1E7A4A; -fx-background-color: #E0F5EA; -fx-padding: 6 16; -fx-background-radius: 30;" text="● Sistema Activo" />
             </HBox>

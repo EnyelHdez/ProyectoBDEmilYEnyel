@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.*?>
 
-<ScrollPane fitToWidth="true" style="-fx-background-color: #EEF4FB; -fx-background: #EEF4FB; -fx-border-color: transparent;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.proyecto.Controladores.RegistroReclamacionController">
+<ScrollPane fitToWidth="true" stylesheets="@estilos.css" style="-fx-background-color: #EEF4FB; -fx-background: #EEF4FB; -fx-border-color: transparent;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.proyecto.Controladores.RegistroReclamacionController">
 
     <VBox spacing="16" style="-fx-padding: 22 28 10 28; -fx-background-color: #EEF4FB;">
 
@@ -25,9 +25,9 @@
             <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1A6BAD;" text="🔍 Buscar Reclamaciones" />
             <HBox spacing="10">
                 <TextField fx:id="txtBuscar" prefHeight="36" HBox.hgrow="ALWAYS" promptText="Buscar por ID, cliente, empleado, motivo o estado..." style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-font-size: 13px; -fx-padding: 4 10;" />
-                <Button fx:id="btnBuscar" onAction="#buscarReclamacion" prefHeight="36" prefWidth="90" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-font-size: 13px;" text="Buscar" />
-                <Button fx:id="btnVerTodos" onAction="#mostrarTodos" prefHeight="36" prefWidth="95" style="-fx-background-color: #EEF4FB; -fx-text-fill: #1A6BAD; -fx-font-weight: bold; -fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-cursor: hand; -fx-font-size: 13px;" text="Ver todos" />
-                <Button fx:id="btnCerrarConsulta" onAction="#cerrarConsulta" prefHeight="36" prefWidth="95" style="-fx-background-color: #E53935; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-font-size: 13px;" text="✖ Cerrar" />
+                <Button fx:id="btnBuscar" onAction="#buscarReclamacion" prefHeight="36" prefWidth="90" styleClass="btn-search" text="Buscar" />
+                <Button fx:id="btnVerTodos" onAction="#mostrarTodos" prefHeight="36" prefWidth="95" styleClass="btn-outline" text="Ver todos" />
+                <Button fx:id="btnCerrarConsulta" onAction="#cerrarConsulta" prefHeight="36" prefWidth="95" styleClass="btn-cerrar" text="Cerrar" />
             </HBox>
 
             <!-- TABLA DE RECLAMACIONES -->
@@ -95,11 +95,11 @@
         <HBox alignment="CENTER_RIGHT" spacing="12" style="-fx-background-color: white; -fx-padding: 14 28 14 28; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.08), 6, 0, -2, 0);">
             <Label style="-fx-font-size: 11px; -fx-text-fill: #9BBDD6;" text="* Campos obligatorios" />
             <Region HBox.hgrow="ALWAYS" />
-            <Button fx:id="btnConsultar" onAction="#abrirConsulta" prefHeight="40" prefWidth="130" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand;" text="🔍 Consultar" />
-            <Button fx:id="btnLimpiar" onAction="#limpiarCampos" prefHeight="40" prefWidth="120" style="-fx-background-color: white; -fx-text-fill: #546E7A; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #B0BEC5; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="🧹 Limpiar" />
-            <Button fx:id="btnEliminar" onAction="#eliminarReclamacion" prefHeight="40" prefWidth="130" style="-fx-background-color: white; -fx-text-fill: #E53935; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #EF5350; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="🗑 Eliminar" />
-            <Button fx:id="btnEditar" onAction="#editarReclamacion" prefHeight="40" prefWidth="130" style="-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(46,125,50,0.35), 8, 0, 0, 3);" text="✏ Editar" />
-            <Button fx:id="btnGuardar" onAction="#guardarReclamacion" prefHeight="40" prefWidth="180" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(26,107,173,0.35), 8, 0, 0, 3);" text="✔ Guardar Reclamación" />
+            <Button fx:id="btnConsultar" onAction="#abrirConsulta" prefHeight="40" prefWidth="130" styleClass="btn-primary" text="Consultar" />
+            <Button fx:id="btnLimpiar" onAction="#limpiarCampos" prefHeight="40" prefWidth="120" styleClass="btn-secondary" text="Limpiar" />
+            <Button fx:id="btnEliminar" onAction="#eliminarReclamacion" prefHeight="40" prefWidth="130" styleClass="btn-danger" text="Eliminar" />
+            <Button fx:id="btnEditar" onAction="#editarReclamacion" prefHeight="40" prefWidth="130" styleClass="btn-success" text="Editar" />
+            <Button fx:id="btnGuardar" onAction="#guardarReclamacion" prefHeight="40" prefWidth="180" styleClass="btn-primary" text="Guardar" />
         </HBox>
     </VBox>
 </ScrollPane>

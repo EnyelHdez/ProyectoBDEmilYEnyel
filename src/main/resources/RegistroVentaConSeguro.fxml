@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 
-<BorderPane prefHeight="650.0" prefWidth="850.0" style="-fx-background-color: #EEF4FB;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.proyecto.Controladores.VentaConSeguroController">
+<BorderPane prefHeight="650.0" prefWidth="850.0" stylesheets="@estilos.css" style="-fx-background-color: #EEF4FB;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.proyecto.Controladores.VentaConSeguroController">
 
     <top>
         <VBox style="-fx-background-color: white; -fx-padding: 15 20; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.08), 6, 0, 0, 2);">
@@ -143,8 +143,8 @@
         <HBox alignment="CENTER_RIGHT" spacing="12" style="-fx-background-color: white; -fx-padding: 14 28 14 28; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.08), 6, 0, -2, 0);">
             <Label style="-fx-font-size: 11px; -fx-text-fill: #9BBDD6;" text="* Campos obligatorios" />
             <Region HBox.hgrow="ALWAYS" />
-            <Button onAction="#cancelar" prefHeight="40" prefWidth="120" style="-fx-background-color: white; -fx-text-fill: #546E7A; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #B0BEC5; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="✖ Cancelar" />
-            <Button onAction="#guardarVentaConSeguro" prefHeight="40" prefWidth="220" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(26,107,173,0.35), 8, 0, 0, 3);" text="💾 Guardar Venta con Seguro" />
+            <Button onAction="#cancelar" prefHeight="40" prefWidth="120" styleClass="btn-secondary" text="Cancelar" />
+            <Button onAction="#guardarVentaConSeguro" prefHeight="40" prefWidth="220" styleClass="btn-warning" text="Guardar Venta con Seguro" />
         </HBox>
     </bottom>
 </BorderPane>
