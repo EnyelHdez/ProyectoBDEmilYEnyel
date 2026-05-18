@@ -86,14 +86,19 @@
         </VBox>
 
         <!-- BARRA DE ACCIONES -->
-        <HBox alignment="CENTER_RIGHT" spacing="12" style="-fx-background-color: white; -fx-padding: 14 28 14 28; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.08), 6, 0, -2, 0);">
-            <Label style="-fx-font-size: 11px; -fx-text-fill: #9BBDD6;" text="* Campos obligatorios" />
-            <Region HBox.hgrow="ALWAYS" />
-            <Button fx:id="btnConsultar" onAction="#abrirConsulta" prefHeight="40" prefWidth="130" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand;" text="🔍 Consultar" />
-            <Button fx:id="btnLimpiar" onAction="#limpiarCampos" prefHeight="40" prefWidth="120" style="-fx-background-color: white; -fx-text-fill: #546E7A; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #B0BEC5; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="🧹 Limpiar" />
-            <Button fx:id="btnEliminar" onAction="#eliminarPerdida" prefHeight="40" prefWidth="130" style="-fx-background-color: white; -fx-text-fill: #E53935; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #EF5350; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="🗑 Eliminar" />
-            <Button fx:id="btnEditar" onAction="#editarPerdida" prefHeight="40" prefWidth="130" style="-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(46,125,50,0.35), 8, 0, 0, 3);" text="✏ Editar" />
-            <Button fx:id="btnGuardar" onAction="#guardarPerdida" prefHeight="40" prefWidth="180" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(26,107,173,0.35), 8, 0, 0, 3);" text="✔ Guardar Pérdida" />
-        </HBox>
+        <VBox spacing="8" style="-fx-background-color: white; -fx-padding: 12 28 14 28; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.08), 6, 0, -2, 0);">
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <Label style="-fx-font-size: 11px; -fx-text-fill: #9BBDD6;" text="* Campos obligatorios" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Button fx:id="btnConsultar" onAction="#abrirConsulta" prefHeight="40" prefWidth="130" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand;" text="🔍 Consultar" />
+            </HBox>
+            <Separator />
+            <HBox alignment="CENTER_RIGHT" spacing="12">
+                <Button fx:id="btnLimpiar" onAction="#limpiarCampos" prefHeight="40" prefWidth="120" style="-fx-background-color: white; -fx-text-fill: #546E7A; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #B0BEC5; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="🧹 Limpiar" />
+                <Button fx:id="btnEliminar" onAction="#eliminarPerdida" prefHeight="40" prefWidth="130" style="-fx-background-color: white; -fx-text-fill: #E53935; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #EF5350; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="🗑 Eliminar" />
+                <Button fx:id="btnEditar" onAction="#editarPerdida" prefHeight="40" prefWidth="130" style="-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(46,125,50,0.35), 8, 0, 0, 3);" text="✏ Editar" />
+                <Button fx:id="btnGuardar" onAction="#guardarPerdida" prefHeight="40" prefWidth="180" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(26,107,173,0.35), 8, 0, 0, 3);" text="✔ Guardar Pérdida" />
+            </HBox>
+        </VBox>
     </VBox>
 </ScrollPane>

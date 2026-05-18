@@ -44,48 +44,49 @@
 
 /* Botón de cerrar sesión */
 .btn-cerrar-sesion {
-    -fx-background-color: #EF4444;
+    -fx-background-color: #E74C3C;
     -fx-text-fill: white;
     -fx-font-weight: bold;
-    -fx-background-radius: 8;
+    -fx-background-radius: 20;
     -fx-cursor: hand;
-    -fx-font-size: 12px;
+    -fx-font-size: 11px;
 }
 
 .btn-cerrar-sesion:hover {
-    -fx-background-color: #DC2626;
+    -fx-background-color: #C0392B;
 }
 
 /* Botón de inicio */
-.btn-inicio {
+.btn-inicio-header {
     -fx-background-color: #1A6BAD;
     -fx-text-fill: white;
     -fx-font-weight: bold;
-    -fx-background-radius: 8;
+    -fx-background-radius: 20;
     -fx-cursor: hand;
-    -fx-font-size: 12px;
+    -fx-font-size: 11px;
 }
 
-.btn-inicio:hover {
+.btn-inicio-header:hover {
     -fx-background-color: #2A85CF;
 }
 
-.btn-inicio:pressed {
+.btn-inicio-header:pressed {
     -fx-background-color: #0E5A96;
 }
 
 /* Botón de login */
 .btn-login {
-    -fx-background-color: #1A6BAD;
+    -fx-background-color: #3b6e9e;
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-font-size: 14px;
-    -fx-background-radius: 8;
+    -fx-background-radius: 30;
     -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(59,110,158,0.3), 10, 0, 0, 4);
 }
 
 .btn-login:hover {
-    -fx-background-color: #2A85CF;
+    -fx-background-color: #2c5a7a;
 }
 
 /* Botón de registro */
@@ -160,6 +161,122 @@
 
 .btn-limpiar:hover {
     -fx-background-color: #F5F5F5;
+}
+
+/* Consultar */
+.btn-consultar {
+    -fx-background-color: #1A6BAD;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+
+.btn-consultar:hover {
+    -fx-background-color: #2A85CF;
+}
+
+/* Buscar (pequeño) */
+.btn-buscar {
+    -fx-background-color: #1A6BAD;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-font-size: 13px;
+    -fx-pref-height: 36;
+}
+
+.btn-buscar:hover {
+    -fx-background-color: #2A85CF;
+}
+
+/* Ver todos */
+.btn-ver-todos {
+    -fx-background-color: #EEF4FB;
+    -fx-text-fill: #1A6BAD;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-border-color: #BAD6EE;
+    -fx-border-radius: 8;
+    -fx-cursor: hand;
+    -fx-font-size: 13px;
+    -fx-pref-height: 36;
+}
+
+.btn-ver-todos:hover {
+    -fx-background-color: #D6E8F5;
+}
+
+/* Cerrar consulta */
+.btn-cerrar {
+    -fx-background-color: #E53935;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-font-size: 13px;
+    -fx-pref-height: 36;
+}
+
+.btn-cerrar:hover {
+    -fx-background-color: #C62828;
+}
+
+/* Generar Reporte */
+.btn-reporte {
+    -fx-background-color: #00897B;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,137,123,0.35), 8, 0, 0, 3);
+}
+
+.btn-reporte:hover {
+    -fx-background-color: #26A69A;
+}
+
+/* Venta con Seguro */
+.btn-seguro {
+    -fx-background-color: #FF9800;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(255,152,0,0.35), 8, 0, 0, 3);
+}
+
+.btn-seguro:hover {
+    -fx-background-color: #FB8C00;
+}
+
+/* Agregar / Quitar detalle */
+.btn-agregar {
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.btn-agregar:hover {
+    -fx-background-color: #43A047;
+}
+
+.btn-quitar {
+    -fx-background-color: #F44336;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.btn-quitar:hover {
+    -fx-background-color: #E53935;
 }
 
 /* ---------- ESTILOS PARA CAMPOS DE TEXTO ---------- */

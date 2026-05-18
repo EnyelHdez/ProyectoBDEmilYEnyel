@@ -8,22 +8,26 @@ public class Venta {
     private Integer       idCliente;
     private int           idEmpleado;
     private Integer       idComprobante;
-    private Integer       idProducto;      // ← NUEVO
+    private Integer       idProducto;
     private LocalDateTime fecha;
     private BigDecimal    subtotal;
     private BigDecimal    descuento;
     private BigDecimal    itbis;
     private BigDecimal    total;
+    private BigDecimal    montoPagado;
+    private BigDecimal    saldoPendiente;
+    private String        estadoPago;
     private String        estado;          // COMPLETADA | ANULADA | PENDIENTE
 
     // Campo auxiliar para mostrar en tabla (no está en la BD)
-    private String nombreProducto;         // ← NUEVO
+    private String nombreProducto;
 
     public Venta() {}
 
     public Venta(int idVenta, Integer idCliente, int idEmpleado, Integer idComprobante,
                  LocalDateTime fecha, BigDecimal subtotal, BigDecimal descuento,
-                 BigDecimal itbis, BigDecimal total, String estado) {
+                 BigDecimal itbis, BigDecimal total, BigDecimal montoPagado,
+                 BigDecimal saldoPendiente, String estadoPago, String estado) {
         this.idVenta       = idVenta;
         this.idCliente     = idCliente;
         this.idEmpleado    = idEmpleado;
@@ -33,6 +37,9 @@ public class Venta {
         this.descuento     = descuento;
         this.itbis         = itbis;
         this.total         = total;
+        this.montoPagado   = montoPagado;
+        this.saldoPendiente = saldoPendiente;
+        this.estadoPago    = estadoPago;
         this.estado        = estado;
     }
 
@@ -71,6 +78,15 @@ public class Venta {
 
     public String getEstado()                           { return estado; }
     public void setEstado(String v)                     { this.estado = v; }
+
+    public BigDecimal getMontoPagado()                  { return montoPagado; }
+    public void setMontoPagado(BigDecimal v)            { this.montoPagado = v; }
+
+    public BigDecimal getSaldoPendiente()               { return saldoPendiente; }
+    public void setSaldoPendiente(BigDecimal v)         { this.saldoPendiente = v; }
+
+    public String getEstadoPago()                       { return estadoPago; }
+    public void setEstadoPago(String v)                 { this.estadoPago = v; }
 
     /** Nombre del producto (campo auxiliar, viene del JOIN) */
     public String getNombreProducto()                   { return nombreProducto; }

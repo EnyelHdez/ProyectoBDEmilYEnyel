@@ -132,7 +132,7 @@
                         <TextField fx:id="txtPrecioUnitario" promptText="0.00" style="-fx-background-radius: 8; -fx-border-color: #BAD6EE; -fx-border-radius: 8; -fx-padding: 7 10;" />
                     </VBox>
                     <VBox alignment="BOTTOM_CENTER" GridPane.columnIndex="3">
-                        <Button fx:id="btnAgregarProducto" onAction="#agregarProducto" prefHeight="34" style="-fx-background-color: #10B981; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;" text="➕ Agregar Producto" />
+                        <Button fx:id="btnAgregarProducto" onAction="#agregarProducto" prefHeight="34" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" text="➕ Agregar Producto" />
                     </VBox>
                 </GridPane>
 
@@ -150,7 +150,7 @@
                 </TableView>
 
                 <HBox alignment="CENTER_RIGHT" spacing="10">
-                    <Button fx:id="btnEliminarProducto" onAction="#eliminarProductoSeleccionado" prefHeight="30" style="-fx-background-color: #EF4444; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand;" text="🗑️ Eliminar Seleccionado" />
+                    <Button fx:id="btnEliminarProducto" onAction="#eliminarProductoSeleccionado" prefHeight="30" style="-fx-background-color: #F44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" text="🗑️ Eliminar Seleccionado" />
                     <Button fx:id="btnCambiarEstado" onAction="#cambiarEstado" prefHeight="30" style="-fx-background-color: #F59E0B; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" text="🔄 Cambiar Estado" />
                 </HBox>
             </VBox>
@@ -175,15 +175,20 @@
         </VBox>
 
         <!-- BARRA DE ACCIONES -->
-        <HBox alignment="CENTER_RIGHT" spacing="12" style="-fx-background-color: white; -fx-padding: 14 28 14 28; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.08), 6, 0, -2, 0);">
-            <Label style="-fx-font-size: 11px; -fx-text-fill: #9BBDD6;" text="* Campos obligatorios" />
-            <Region HBox.hgrow="ALWAYS" />
-            <Button fx:id="btnGenerarReporte" onAction="#generarReporte" prefHeight="40" prefWidth="170" style="-fx-background-color: #00897B; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(0,137,123,0.35), 8, 0, 0, 3);" text="📊 Generar Reporte" />
-            <Button fx:id="btnConsultar" onAction="#abrirConsulta" prefHeight="40" prefWidth="130" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand;" text="🔍 Consultar" />
-            <Button fx:id="btnLimpiar" onAction="#limpiarCampos" prefHeight="40" prefWidth="120" style="-fx-background-color: white; -fx-text-fill: #546E7A; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #B0BEC5; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="🧹 Limpiar" />
-            <Button fx:id="btnEliminar" onAction="#eliminarOrden" prefHeight="40" prefWidth="130" style="-fx-background-color: white; -fx-text-fill: #E53935; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #EF5350; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="🗑 Eliminar" />
-            <Button fx:id="btnEditar" onAction="#editarOrden" prefHeight="40" prefWidth="130" style="-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(46,125,50,0.35), 8, 0, 0, 3);" text="✏ Editar" />
-            <Button fx:id="btnGuardar" onAction="#guardarOrden" prefHeight="40" prefWidth="170" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(26,107,173,0.35), 8, 0, 0, 3);" text="✔ Guardar Orden" />
-        </HBox>
+        <VBox spacing="8" style="-fx-background-color: white; -fx-padding: 12 28 14 28; -fx-effect: dropshadow(gaussian, rgba(0,80,160,0.08), 6, 0, -2, 0);">
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <Label style="-fx-font-size: 11px; -fx-text-fill: #9BBDD6;" text="* Campos obligatorios" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Button fx:id="btnGenerarReporte" onAction="#generarReporte" prefHeight="40" prefWidth="170" style="-fx-background-color: #00897B; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(0,137,123,0.35), 8, 0, 0, 3);" text="📊 Generar Reporte" />
+                <Button fx:id="btnConsultar" onAction="#abrirConsulta" prefHeight="40" prefWidth="130" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand;" text="🔍 Consultar" />
+            </HBox>
+            <Separator />
+            <HBox alignment="CENTER_RIGHT" spacing="12">
+                <Button fx:id="btnLimpiar" onAction="#limpiarCampos" prefHeight="40" prefWidth="120" style="-fx-background-color: white; -fx-text-fill: #546E7A; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #B0BEC5; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="🧹 Limpiar" />
+                <Button fx:id="btnEliminar" onAction="#eliminarOrden" prefHeight="40" prefWidth="130" style="-fx-background-color: white; -fx-text-fill: #E53935; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #EF5350; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="🗑 Eliminar" />
+                <Button fx:id="btnEditar" onAction="#editarOrden" prefHeight="40" prefWidth="130" style="-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(46,125,50,0.35), 8, 0, 0, 3);" text="✏ Editar" />
+                <Button fx:id="btnGuardar" onAction="#guardarOrden" prefHeight="40" prefWidth="170" style="-fx-background-color: #1A6BAD; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(26,107,173,0.35), 8, 0, 0, 3);" text="✔ Guardar Orden" />
+            </HBox>
+        </VBox>
     </VBox>
 </ScrollPane>

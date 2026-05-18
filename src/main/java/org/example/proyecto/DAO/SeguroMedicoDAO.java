@@ -11,7 +11,6 @@ import java.util.List;
 
 public class SeguroMedicoDAO {
 
-    // Obtener seguro médico por ID de cliente
     public SeguroMedico obtenerPorIdCliente(int idCliente) throws SQLException {
         String sql = "SELECT * FROM seguro_medico WHERE id_cliente = ? AND estado = 1 " +
                 "AND GETDATE() BETWEEN vigencia_inicio AND vigencia_fin";

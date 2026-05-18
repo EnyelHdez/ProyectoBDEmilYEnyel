@@ -47,6 +47,9 @@ public class RegistroVentaController implements Initializable {
     @FXML private TableColumn<Venta, BigDecimal> colDescuento;
     @FXML private TableColumn<Venta, BigDecimal> colItbis;
     @FXML private TableColumn<Venta, BigDecimal> colTotal;
+    @FXML private TableColumn<Venta, BigDecimal> colMontoPagado;
+    @FXML private TableColumn<Venta, BigDecimal> colSaldoPendiente;
+    @FXML private TableColumn<Venta, String> colEstadoPago;
     @FXML private TableColumn<Venta, String> colEstado;
 
     // Formulario
@@ -59,6 +62,9 @@ public class RegistroVentaController implements Initializable {
     @FXML private TextField txtDescuento;
     @FXML private TextField txtItbis;
     @FXML private TextField txtTotal;
+    @FXML private TextField txtMontoPagado;
+    @FXML private TextField txtSaldoPendiente;
+    @FXML private ComboBox<String> cmbEstadoPago;
 
     // Campos para detalles de venta
     @FXML private ComboBox<String> cmbDetalleProducto;
@@ -111,6 +117,10 @@ public class RegistroVentaController implements Initializable {
                     "COMPLETADA", "PENDIENTE", "ANULADA"));
             cmbEstado.setValue("PENDIENTE");
 
+            cmbEstadoPago.setItems(FXCollections.observableArrayList(
+                    "PAGADO", "PENDIENTE", "PARCIAL"));
+            cmbEstadoPago.setValue("PAGADO");
+
             dateFecha.setValue(LocalDate.now());
 
             configurarTabla();
@@ -118,6 +128,7 @@ public class RegistroVentaController implements Initializable {
             configurarSeleccionTabla();
             configurarBotonesPorRol();
             configurarSeleccionProductoDetalle();
+            configurarCalculoSaldoPendiente();
 
             consultaPanel.setVisible(false);
             consultaPanel.setManaged(false);
@@ -193,6 +204,9 @@ public class RegistroVentaController implements Initializable {
         colDescuento.setCellValueFactory(new PropertyValueFactory<>("descuento"));
         colItbis.setCellValueFactory(new PropertyValueFactory<>("itbis"));
         colTotal.setCellValueFactory(new PropertyValueFactory<>("total"));
+        colMontoPagado.setCellValueFactory(new PropertyValueFactory<>("montoPagado"));
+        colSaldoPendiente.setCellValueFactory(new PropertyValueFactory<>("saldoPendiente"));
+        colEstadoPago.setCellValueFactory(new PropertyValueFactory<>("estadoPago"));
         colEstado.setCellValueFactory(new PropertyValueFactory<>("estado"));
         tblVentas.setItems(listaVentas);
     }
@@ -268,6 +282,11 @@ public class RegistroVentaController implements Initializable {
         txtDescuento.setText(v.getDescuento() != null ? v.getDescuento().toPlainString() : "");
         txtItbis.setText(v.getItbis() != null ? v.getItbis().toPlainString() : "");
         txtTotal.setText(v.getTotal() != null ? v.getTotal().toPlainString() : "");
+
+        txtMontoPagado.setText(v.getMontoPagado() != null ? v.getMontoPagado().toPlainString() : "");
+        txtSaldoPendiente.setText(v.getSaldoPendiente() != null ? v.getSaldoPendiente().toPlainString() : "");
+        cmbEstadoPago.setValue(v.getEstadoPago() != null ? v.getEstadoPago() : "PENDIENTE");
+
         cmbEstado.setValue(v.getEstado() != null ? v.getEstado() : "PENDIENTE");
     }
 
@@ -416,6 +435,9 @@ public class RegistroVentaController implements Initializable {
         v.setDescuento(rs.getBigDecimal("descuento"));
         v.setItbis(rs.getBigDecimal("itbis"));
         v.setTotal(rs.getBigDecimal("total"));
+        v.setMontoPagado(rs.getBigDecimal("monto_pagado"));
+        v.setSaldoPendiente(rs.getBigDecimal("saldo_pendiente"));
+        v.setEstadoPago(rs.getString("estado_pago"));
         v.setEstado(rs.getString("estado"));
         return v;
     }
@@ -480,6 +502,36 @@ public class RegistroVentaController implements Initializable {
         }
     }
 
+    private void configurarCalculoSaldoPendiente() {
+        txtMontoPagado.textProperty().addListener((obs, oldVal, newVal) -> {
+            calcularSaldoPendiente();
+        });
+        txtTotal.textProperty().addListener((obs, oldVal, newVal) -> {
+            calcularSaldoPendiente();
+        });
+    }
+
+    private void calcularSaldoPendiente() {
+        try {
+            BigDecimal total = txtTotal.getText().trim().isEmpty() ?
+                    BigDecimal.ZERO : new BigDecimal(txtTotal.getText().trim());
+            BigDecimal montoPagado = txtMontoPagado.getText().trim().isEmpty() ?
+                    BigDecimal.ZERO : new BigDecimal(txtMontoPagado.getText().trim());
+            BigDecimal saldo = total.subtract(montoPagado);
+            txtSaldoPendiente.setText(saldo.toPlainString());
+
+            if (saldo.compareTo(BigDecimal.ZERO) <= 0) {
+                cmbEstadoPago.setValue("PAGADO");
+            } else if (montoPagado.compareTo(BigDecimal.ZERO) > 0) {
+                cmbEstadoPago.setValue("PARCIAL");
+            } else {
+                cmbEstadoPago.setValue("PENDIENTE");
+            }
+        } catch (NumberFormatException e) {
+            // Ignorar mientras escribe
+        }
+    }
+
     private void recalcularTotales() {
         BigDecimal subtotalTotal = BigDecimal.ZERO;
         BigDecimal descuentoTotal = BigDecimal.ZERO;
@@ -516,8 +568,8 @@ public class RegistroVentaController implements Initializable {
 
         String sqlVenta = "INSERT INTO tbl_VENTA " +
                 "(id_cliente, id_empleado, id_comprobante, fecha, " +
-                " subtotal, descuento, itbis, total, estado) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                " subtotal, descuento, itbis, total, monto_pagado, saldo_pendiente, estado_pago, estado) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement ps = conexion.prepareStatement(sqlVenta, Statement.RETURN_GENERATED_KEYS)) {
             setearParametrosVenta(ps);
@@ -594,11 +646,12 @@ public class RegistroVentaController implements Initializable {
 
         String sqlVenta = "UPDATE tbl_VENTA " +
                 "SET id_cliente=?, id_empleado=?, id_comprobante=?, " +
-                "    fecha=?, subtotal=?, descuento=?, itbis=?, total=?, estado=? " +
+                "    fecha=?, subtotal=?, descuento=?, itbis=?, total=?, " +
+                "    monto_pagado=?, saldo_pendiente=?, estado_pago=?, estado=? " +
                 "WHERE id_venta=?";
         try (PreparedStatement ps = conexion.prepareStatement(sqlVenta)) {
             setearParametrosVenta(ps);
-            ps.setInt(10, idVentaSeleccionada);
+            ps.setInt(13, idVentaSeleccionada);
             ps.executeUpdate();
 
             String sqlDetalle = "INSERT INTO tbl_DETALLE_VENTA " +
@@ -696,7 +749,15 @@ public class RegistroVentaController implements Initializable {
 
         ps.setBigDecimal(8, new BigDecimal(txtTotal.getText().trim()));
 
-        ps.setString(9, cmbEstado.getValue());
+        String montoPagadoStr = txtMontoPagado.getText().trim();
+        ps.setBigDecimal(9, montoPagadoStr.isEmpty() ? BigDecimal.ZERO : new BigDecimal(montoPagadoStr));
+
+        String saldoPendienteStr = txtSaldoPendiente.getText().trim();
+        ps.setBigDecimal(10, saldoPendienteStr.isEmpty() ? BigDecimal.ZERO : new BigDecimal(saldoPendienteStr));
+
+        ps.setString(11, cmbEstadoPago.getValue() != null ? cmbEstadoPago.getValue() : "PENDIENTE");
+
+        ps.setString(12, cmbEstado.getValue());
     }
 
     @FXML
@@ -715,6 +776,9 @@ public class RegistroVentaController implements Initializable {
         txtDescuento.clear();
         txtItbis.clear();
         txtTotal.clear();
+        txtMontoPagado.clear();
+        txtSaldoPendiente.clear();
+        cmbEstadoPago.setValue("PAGADO");
         listaDetalles.clear();
         modoEdicion = false;
 

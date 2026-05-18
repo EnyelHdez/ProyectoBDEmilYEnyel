@@ -9,7 +9,6 @@ import java.util.List;
 
 public class UsuarioDAO {
 
-    // Registrar nuevo usuario
     public boolean registrarUsuario(Usuario usuario) {
         String sql = "INSERT INTO tbl_USUARIO (nombre_usuario, contrasena, nombre_completo, email, cargo, telefono, estado, fecha_registro) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
