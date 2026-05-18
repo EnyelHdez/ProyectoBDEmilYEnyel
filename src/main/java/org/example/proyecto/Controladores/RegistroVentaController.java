@@ -702,22 +702,22 @@ public class RegistroVentaController implements Initializable {
         }
 
         Alert conf = new Alert(Alert.AlertType.CONFIRMATION);
-        conf.setTitle("Confirmar eliminación");
+        conf.setTitle("Confirmar anulación");
         conf.setHeaderText(null);
-        conf.setContentText("¿Está seguro que desea eliminar esta venta?\nEsta acción no se puede deshacer.");
+        conf.setContentText("¿Está seguro que desea anular esta venta?\nLa venta quedará marcada como ANULADA.");
         if (conf.showAndWait().get() != ButtonType.OK) return;
 
         try (PreparedStatement ps = conexion.prepareStatement(
-                "DELETE FROM tbl_VENTA WHERE id_venta=?")) {
+                "UPDATE tbl_VENTA SET estado = 'ANULADA' WHERE id_venta=?")) {
             ps.setInt(1, idVentaSeleccionada);
             ps.executeUpdate();
-            mostrarAlerta("Éxito", "Venta eliminada correctamente.", Alert.AlertType.INFORMATION);
+            mostrarAlerta("Éxito", "Venta anulada correctamente.", Alert.AlertType.INFORMATION);
             limpiarCamposInterno();
             if (consultaPanel.isVisible()) {
                 cargarVentas();
             }
         } catch (SQLException e) {
-            mostrarAlerta("Error", "No se puede eliminar: la venta tiene registros asociados.",
+            mostrarAlerta("Error", "No se puede anular la venta.",
                     Alert.AlertType.ERROR);
         }
     }
